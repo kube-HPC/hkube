@@ -1,0 +1,8 @@
+description: jobs flowInput
+content:
+  application/json:
+    schema:
+      type: object
+    example:
+      addInput:
+        - 2

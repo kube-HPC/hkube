@@ -5,3 +5,9 @@ properties:
     description: Pipeline name
   jobId:
     $ref: "#/components/schemas/jobId"
+  children:
+    type: array
+    description: Child pipelines
+    items:
+      type: object
+      properties: {}

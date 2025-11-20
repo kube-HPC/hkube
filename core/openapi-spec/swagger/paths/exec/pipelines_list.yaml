@@ -5,11 +5,7 @@ get:
   description: Returns the current running pipelines data
   responses:
     "200":
-      description: pipeline data
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/pipeline"
+      $ref: "#/components/responses/exec_successGetManyPipeline"
     "400":
       $ref: "#/components/responses/badRequest"
     "401":

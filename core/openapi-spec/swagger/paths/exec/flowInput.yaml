@@ -18,20 +18,10 @@ get:
         type: boolean                
   responses:
     "200":
-      description: jobs flowInput
-      content:
-        application/json:
-          schema:
-            type: object
-    "400":
-      $ref: "#/components/responses/badRequest"
+      $ref: "#/components/responses/exec_successFlowInput"
     "401":
       $ref: "#/components/responses/unauthorized"
     "404":
-      description: jobId Not Found
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/exec_notFound"
     default:
       $ref: "#/components/responses/default"

@@ -21,10 +21,6 @@ post:
     "401":
       $ref: "#/components/responses/unauthorized"
     "404":
-      description: jobId Not Found
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/exec_notFound"
     default:
       $ref: "#/components/responses/default"

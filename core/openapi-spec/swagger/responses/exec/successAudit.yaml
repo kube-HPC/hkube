@@ -1,0 +1,11 @@
+description: Successfully retrieved audit trail
+content:
+  application/json:
+    schema:
+      $ref: "#/components/schemas/auditTrail"
+    example:
+      "0":
+        timestamp: 1763643353687
+        user: "adir"
+        action: "run"
+      jobId: "qohsjh0in1a4"

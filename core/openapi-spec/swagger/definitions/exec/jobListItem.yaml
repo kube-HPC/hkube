@@ -4,3 +4,5 @@ properties:
     $ref: "#/components/schemas/jobId"
   status:
     type: string
+  pipelineName:
+    type: string

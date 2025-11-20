@@ -45,6 +45,8 @@ default:
   $ref: ./common/default.yaml
 internalServerError:
   $ref: ./common/internalServerError.yaml
+success:
+  $ref: ./common/success.yaml
 unauthorized:
   $ref: ./common/unauthorized.yaml
 
@@ -105,6 +107,32 @@ datasource_successUploadFile:
   $ref: ./datasource/successUploadFile.yaml
 datasource_successValidate:
   $ref: ./datasource/successValidate.yaml
+
+# exec
+exec_notFound:
+  $ref: ./exec/notFound.yaml
+exec_successAudit:
+  $ref: ./exec/successAudit.yaml
+exec_successFlowInput:
+  $ref: ./exec/successFlowInput.yaml
+exec_successGetSinglePipeline:
+  $ref: ./exec/successGetSinglePipeline.yaml
+exec_successGetManyPipeline:
+  $ref: ./exec/successGetManyPipeline.yaml
+exec_successJobs:
+  $ref: ./exec/successJobs.yaml
+exec_successResults:
+  $ref: ./exec/successResults.yaml
+exec_successRun:
+  $ref: ./exec/successRun.yaml
+exec_successSearch:
+  $ref: ./exec/successSearch.yaml
+exec_successStatus:
+  $ref: ./exec/successStatus.yaml
+exec_successStop:
+  $ref: ./exec/successStop.yaml
+exec_successTree:
+  $ref: ./exec/successTree.yaml
 
 # experiment
 experiment_conflictInsert:

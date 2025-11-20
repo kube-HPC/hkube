@@ -1,3 +1,9 @@
-type: array
-items:
-  $ref: "#/components/schemas/execTreeNode"
+type: object
+properties:
+  jobId:
+    $ref: "#/components/schemas/jobId"
+  children:
+    type: array
+    items: {}
+  name:
+    type: string

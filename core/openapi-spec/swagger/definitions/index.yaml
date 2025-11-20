@@ -175,6 +175,8 @@ execTreeResult:
   $ref: ./exec/execTreeResult.yaml
 stopRequest:
   $ref: ./exec/stopRequest.yaml
+jobPipeline:
+  $ref: ./exec/jobPipeline.yaml
 pauseRequest:
   $ref: ./exec/pauseRequest.yaml
 resumeRequest:
@@ -183,8 +185,6 @@ execAlgorithmRequest:
   $ref: ./exec/execAlgorithmRequest.yaml
 searchJobs:
   $ref: ./exec/searchJobs.yaml
-searchJobsResponse:
-  $ref: ./exec/searchJobsResponse.yaml
 rerun:
   $ref: ./exec/rerun.yaml
 auditTrail:

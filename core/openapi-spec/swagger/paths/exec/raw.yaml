@@ -12,11 +12,7 @@ post:
     required: true
   responses:
     "200":
-      description: pipeline execution data
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/jobIdObject"
+      $ref: "#/components/responses/exec_successRun"
     "400":
       $ref: "#/components/responses/badRequest"
     "401":

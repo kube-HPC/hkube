@@ -12,11 +12,7 @@ post:
     required: true
   responses:
     "200":
-      description: search jobs response
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/searchJobsResponse"
+      $ref: "#/components/responses/exec_successSearch"
     "400":
       $ref: "#/components/responses/badRequest"
     "401":
@@ -93,11 +89,7 @@ get:
         type: string
   responses:
     "200":
-      description: search jobs response
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/searchJobsResponse"
+      $ref: "#/components/responses/exec_successSearch"
     "400":
       $ref: "#/components/responses/badRequest"
     "401":

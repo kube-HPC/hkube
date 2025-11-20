@@ -12,20 +12,10 @@ get:
         type: string
   responses:
     "200":
-      description: action summary
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/pipelineResult"
-    "400":
-      $ref: "#/components/responses/badRequest"
+      $ref: "#/components/responses/exec_successResults"
     "401":
       $ref: "#/components/responses/unauthorized"
     "404":
-      description: jobId Not Found
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/exec_notFound"
     default:
       $ref: "#/components/responses/default"

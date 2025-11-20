@@ -1,0 +1,10 @@
+description: Operation completed successfully
+content:
+  application/json:
+    schema:
+      type: object
+      properties:
+        message:
+          type: string
+    example:
+      message: "OK"

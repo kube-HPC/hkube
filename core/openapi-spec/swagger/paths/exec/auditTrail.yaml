@@ -12,20 +12,10 @@ get:
         type: string
   responses:
     "200":
-      description: pipeline audit trail
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/auditTrail"
-    "400":
-      $ref: "#/components/responses/badRequest"
+      $ref: "#/components/responses/exec_successAudit"
     "401":
       $ref: "#/components/responses/unauthorized"
     "404":
-      description: jobId Not Found
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/exec_notFound"
     default:
       $ref: "#/components/responses/default"

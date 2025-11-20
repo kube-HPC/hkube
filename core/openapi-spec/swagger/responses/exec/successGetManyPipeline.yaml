@@ -1,0 +1,127 @@
+description: Successfully retrieved list of active pipelines
+content:
+  application/json:
+    schema:
+      type: array
+      items:
+        $ref: "#/components/schemas/jobPipeline"
+    example:
+      - jobId: "3bnn2sr53tps"
+        name: "simple"
+        nodes:
+          - nodeName: "green"
+            algorithmName: "green-alg"
+            input:
+              - "@flowInput.files.link"
+            kind: "algorithm"
+            minStatelessCount: 0
+          - nodeName: "yellow"
+            algorithmName: "yellow-alg"
+            input:
+              - "@green"
+            kind: "algorithm"
+            minStatelessCount: 0
+          - nodeName: "black"
+            algorithmName: "black-alg"
+            input:
+              - "@yellow"
+            kind: "algorithm"
+            minStatelessCount: 0
+        options:
+          batchTolerance: 100
+          progressVerbosityLevel: "debug"
+          ttl: 3600
+        auditTrail:
+          - timestamp: null
+            version: "9xoak79mx7"
+        created: 1763312527050
+        modified: 1763365952708
+        version: "9xoak79mx7"
+        triggers:
+          cron:
+            enabled: false
+            pattern: "0 * * * *"
+        webhooks:
+          progress: "http://localhost:3003/webhook/progress"
+          result: "http://localhost:3003/webhook/result"
+        priority: 1
+        kind: "batch"
+        experimentName: "main"
+        flowInput: null
+        flowInputMetadata:
+          metadata:
+            flowInput.files.link:
+              type: "string"
+          storageInfo:
+            path: "cicd-hkube/xjf5uerdtzjd/xjf5uerdtzjd"
+        maxExceeded: false
+        startTime: 1763643071874
+        lastRunResult:
+          timestamp: 1763630493622
+          status: "completed"
+          timeTook: 3.663
+        types:
+          - "stored"
+          - "dev-mode"
+          - "rerun"
+        activeTime: 1763643071949
+
+      - jobId: "aqh3oyumdom6"
+        name: "simple"
+        nodes:
+          - nodeName: "green"
+            algorithmName: "green-alg"
+            input:
+              - "@flowInput.files.link"
+            kind: "algorithm"
+            minStatelessCount: 0
+          - nodeName: "yellow"
+            algorithmName: "yellow-alg"
+            input:
+              - "@green"
+            kind: "algorithm"
+            minStatelessCount: 0
+          - nodeName: "black"
+            algorithmName: "black-alg"
+            input:
+              - "@yellow"
+            kind: "algorithm"
+            minStatelessCount: 0
+        options:
+          batchTolerance: 100
+          progressVerbosityLevel: "debug"
+          ttl: 3600
+        auditTrail:
+          - timestamp: null
+            version: "9xoak79mx7"
+        created: 1763312527050
+        modified: 1763365952708
+        version: "9xoak79mx7"
+        triggers:
+          cron:
+            enabled: false
+            pattern: "0 * * * *"
+        webhooks:
+          progress: "http://localhost:3003/webhook/progress"
+          result: "http://localhost:3003/webhook/result"
+        priority: 1
+        kind: "batch"
+        experimentName: "main"
+        flowInput: null
+        flowInputMetadata:
+          metadata:
+            flowInput.files.link:
+              type: "string"
+          storageInfo:
+            path: "cicd-hkube/r11iv5ajo3xg/r11iv5ajo3xg"
+        maxExceeded: false
+        startTime: 1763643072426
+        lastRunResult:
+          timestamp: 1763630493622
+          status: "completed"
+          timeTook: 3.663
+        types:
+          - "stored"
+          - "dev-mode"
+          - "rerun"
+        activeTime: 1763643072453
