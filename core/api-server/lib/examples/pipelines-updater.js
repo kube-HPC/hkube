@@ -9,13 +9,14 @@ const stateManager = require('../state/state-manager');
 const algorithmsVersionsService = require('../../lib/service/algorithm-versions');
 const pipelinesVersionsService = require('../../lib/service/pipeline-versions');
 const keycloak = require('../../lib/service/keycloak');
+const component = require('../consts/componentNames').PIPELINES_UPDATER;
 
 class PipelinesUpdater {
     async init(options) {
         this._defaultStorage = options.defaultStorage;
         const addDefaultAlgorithms = options.addDefaultAlgorithms !== 'false';
         const defaultAlgorithms = addDefaultAlgorithms ? algorithms : null;
-        log.info('--------starting sync process---------');
+        log.info('--------starting sync process---------', { component });
         await this._pipelineDriversTemplate(options);
         await this._transferJobsToDB();
         await this._transferGraphsToDB(options);
@@ -24,7 +25,7 @@ class PipelinesUpdater {
         await this._transferFromStorageToDB('experiment', experiments, (...args) => this._createExperiments(...args));
         await this._transferFromStorageToDB('readme/pipeline', null, (...args) => this._createPipelinesReadMe(...args));
         await this._transferFromStorageToDB('readme/algorithms', null, (...args) => this._createAlgorithmsReadMe(...args));
-        log.info('--------finish sync process---------');
+        log.info('--------finish sync process---------', { component });
     }
 
     async _transferFromStorageToDB(type, defaultData, createFunc) {
@@ -33,9 +34,13 @@ class PipelinesUpdater {
             if (defaultData) {
                 list = await this._getDiff(defaultData, list);
             }
-            log.info(`${type}s: found ${list.length} to sync from storage to db`);
-            const result = await createFunc(type, list);
-            this._logSyncSuccess(type, result);
+            if (list.length === 0) {
+                log.info(`${type}s: no items to sync from storage to db`, { component });
+                return;
+            }
+            log.info(`${type}s: found ${list.length} to sync from storage to db`, { component });
+            const resultMessage = await createFunc(type, list);
+            this._logSyncSuccess(type, resultMessage);
         }
         catch (error) {
             this._logSyncFailed(type, error);
@@ -56,7 +61,7 @@ class PipelinesUpdater {
             });
             const missingGraphs = jobs.filter(j => !j.graph);
             if (missingGraphs.length === 0) {
-                log.info('jobs: there are no graphs to sync');
+                log.info('jobs: there are no graphs to sync', { component });
                 return;
             }
             const redisClient = Factory.getClient(options.redis);
@@ -75,17 +80,17 @@ class PipelinesUpdater {
                     await redisClient.del(key);
                     migrated += 1;
                 } catch (error) {
-                    log.throttle.warning(`error syncing graph ${error.message}`);
+                    log.throttle.warning(`error syncing graph ${error.message}`, { component });
                 }
             }))
             if (migrated > 0) {
-                log.info(`jobs: synced ${migrated} graphs from redis to db`);
+                log.info(`jobs: synced ${migrated} graphs from redis to db`, { component });
             }
             else {
-                log.info('jobs: there are no graphs to sync');
+                log.info('jobs: there are no graphs to sync', { component });
             }
         } catch (error) {
-            log.warning(`error syncing graphs. ${error.message}`);
+            log.warning(`error syncing graphs. ${error.message}`, { component });
         }
 
 
@@ -104,22 +109,22 @@ class PipelinesUpdater {
                 const { jobId: j2, ...pipeline } = executions.find(r => r.jobId === s.jobId) || {};
                 try {
                     const res = await stateManager._db.jobs.create({ jobId, status, result, pipeline });
-                    jobs += res.a;
+                    jobs ++;
                 }
                 catch (error) {
-                    log.throttle.warning(`error syncing job ${error.message}`);
+                    log.throttle.warning(`error syncing job ${error.message}`, { component });
                 }
             }));
-            if (jobs.length > 0) {
-                log.info(`jobs: synced ${jobs.length} from etcd to db`);
+            if (jobs > 0) {
+                log.info(`jobs: synced ${jobs} from etcd to db`, { component });
                 await this._deleteEtcdPrefix('jobs', '/jobs');
             }
             else {
-                log.info('jobs: there are no jobs to sync');
+                log.info('jobs: there are no jobs to sync', { component });
             }
         }
         catch (error) {
-            log.warning(`error syncing jobs. ${error.message}`);
+            log.warning(`error syncing jobs. ${error.message}`, { component });
         }
     }
 
@@ -134,59 +139,76 @@ class PipelinesUpdater {
     }
 
     async _createAlgorithms(type, list) {
+        let syncResult;
         try {
             const result = await stateManager.createAlgorithms(list);
-            log.info(`algorithms: synced ${result?.inserted || 0} to db`);
+            log.info(`algorithms: synced ${result?.inserted || 0} to db`, { component });
             await this._deleteEtcdPrefix('algorithms', '/algorithms/store');
             await this._deleteEtcdPrefix('algorithms', '/algorithms/versions');
             await this._deleteEtcdPrefix('algorithms', '/algorithms/builds');
             await this._deleteStoragePrefix(type);
         }
+        catch (error) {
+            this._handleDuplicateKeyErrors(error);
+        }
         finally {
             // In case algorithms already exist in db, check if a new version needs to be added
-            await this._syncAlgorithmsData(list);
+            syncResult = await this._syncAlgorithmsData(list);
         }
+        return syncResult;
     }
 
     async _syncAlgorithmsData(algorithmList) {
+        let etcd_versionsCount = 0;
         let versionsCount = 0;
         let buildsCount = 0;
         let addedVersionsCount = 0;
         const limit = 1000;
+        const message = [];
 
         for (const algorithm of algorithmList) {
-            const versions = await stateManager._etcd.algorithms.versions.list({ name: algorithm.name, limit });
+            const { name } = algorithm;
+            const etcd_versions = await stateManager._etcd.algorithms.versions.list({ name, limit });
+            const versions = await stateManager.getVersions({ name, limit }, true);
 
-            if (versions.length) {
-                versionsCount += versions.length;
-                await stateManager.createVersions(versions);
-            }
-            else {
-                // Add versions only to algorithms with no versions.
-                const existingVersion = await algorithmsVersionsService.getLatestSemver(algorithm);
-                if (!existingVersion) {
-                    const userName = keycloak.getPreferredUsername();
-                    const newVersion = await algorithmsVersionsService.createVersion(algorithm, undefined, userName);
-                    await algorithmsVersionsService.applyVersion({ name: algorithm.name, version: newVersion, force: true });
-                    addedVersionsCount++;
-                }
+            if (etcd_versions.length) {
+                etcd_versionsCount += etcd_versions.length;
+                await stateManager.createVersions(etcd_versions);
             }
 
-            const builds = await stateManager._etcd.algorithms.builds.list({ name: algorithm.name, limit });
+            const algo = await stateManager.getAlgorithm({ name });
+            if (!algo.version) {  // occurs when algo was just created (either when it has versions in the past, or first time creation)
+                const userName = keycloak.getPreferredUsername();
+                const newVersion = await algorithmsVersionsService.createVersion(algorithm, undefined, userName);
+                await algorithmsVersionsService.applyVersion({ name, version: newVersion, force: true });
+                addedVersionsCount++;
+                versionsCount += versions.length; // Including previous versions if there are any.
+            }
+
+            const builds = await stateManager._etcd.algorithms.builds.list({ name, limit });
             if (builds.length) {
                 buildsCount += builds.length;
                 await stateManager.createBuilds(builds);
             }
         }
-        log.info(`algorithms: synced ${versionsCount} versions, added ${addedVersionsCount}, made ${buildsCount} builds to sync from storage to db`);
+        if (addedVersionsCount > 0) {
+            message.push(`Algorithms: Added ${addedVersionsCount} versions and synced ${versionsCount} versions.`);
+        }
+        if (etcd_versionsCount > 0) {
+            message.push(`Synced ${etcd_versionsCount} versions from etcd.`);
+        }
+        if (buildsCount > 0) {
+            message.push(`Created ${buildsCount} builds from etcd.`);
+        }
+        return message.length > 0 ? message.join(' ') : `Algorithms are already synced.`;
     }
 
-    _logSyncSuccess(type, result) {
-        log.info(`${type}s: syncing success, synced: ${result?.inserted || 0}`);
+    _logSyncSuccess(type, resultMessage) {
+        log.info(`${type}s syncing succeed: ${resultMessage}`, { component });
     }
 
     _logSyncFailed(type, error) {
-        log.warning(`${type}s: syncing failed. ${error.message}`);
+        log.warning(`${type}s: syncing failed. ${error.message}`, { component });
     }
 
     async _pipelineDriversTemplate(options) {
@@ -196,20 +218,25 @@ class PipelinesUpdater {
             await this._deleteEtcdPrefix('pipelineDrivers', '/pipelineDrivers/store');
         }
         catch (error) {
-            log.warning(`pipelineDrivers: failed to upload default drivers. ${error.message} `);
+            log.warning(`pipelineDrivers: failed to upload default drivers. ${error.message} `, { component });
         }
     }
 
     async _createPipelines(type, list) {
+        let syncResult;
         try {
             await stateManager.createPipelines(list);
             await this._deleteEtcdPrefix('pipelines', '/pipelines/store');
             await this._deleteStoragePrefix(type);
         }
+        catch (error) {
+            this._handleDuplicateKeyErrors(error);
+        }
         finally {
             // In case pipelines exist in db, createPipelines will fail but syncing is needed any case.
-            await this._syncPipelinesData(list);
+            syncResult = await this._syncPipelinesData(list);
         }
+        return syncResult;
     }
 
     async _syncPipelinesData(pipelineList) {
@@ -218,30 +245,37 @@ class PipelinesUpdater {
         const limit = 1000;
 
         for (const pipeline of pipelineList) {
-            const name = pipeline.name;
+            const { name } = pipeline;
             const versions = await stateManager.getVersions({ name, limit }, true);
-
-            if (versions.length) {
-                versionsCount += versions.length;
-            }
-            else {
-                // Add versions only to pipelines with no versions.
-                const existingVersion = await pipelinesVersionsService.getLatestSemver(pipeline);
-                if (!existingVersion) {
-                    const userName = keycloak.getPreferredUsername();
-                    const newVersion = await pipelinesVersionsService.createVersion(pipeline, userName);
-                    addedVersionsCount++;
-                    await pipelinesVersionsService.applyVersion({ name, version: newVersion, force: true });
-                }
+            const pipe = await stateManager.getPipeline({ name });
+            if (!pipe.version) {
+                const userName = keycloak.getPreferredUsername();
+                const newVersion = await pipelinesVersionsService.createVersion(pipe, undefined, userName);
+                await pipelinesVersionsService.applyVersion({ name, version: newVersion, force: true });
+                addedVersionsCount++;
+                versionsCount += versions.length; // Including previous versions if there are any.
             }
         }
-        log.info(`pipelines: synced ${versionsCount} versions and added ${addedVersionsCount} versions to sync from storage to db`);
+        return addedVersionsCount > 0 ? `Pipelines: Added ${addedVersionsCount} versions and synced ${versionsCount} versions.` : `Pipelines are already synced.`;
     }
 
     async _createExperiments(type, list) {
-        await stateManager.createExperiments(list);
-        await this._deleteEtcdPrefix('experiments', '/experiment');
-        await this._deleteStoragePrefix(type);
+        const refinedList = list.map(experiment => ({ ...experiment, created: Date.now() }));
+        let duplicateCount = 0;
+        let syncResult;
+        try {
+            await stateManager.createExperiments(refinedList);
+            await this._deleteEtcdPrefix('experiments', '/experiment');
+            await this._deleteStoragePrefix(type);
+        }
+        catch (error) {
+            duplicateCount = this._handleDuplicateKeyErrors(error);
+        }
+        finally {
+            const experimentsAdded = list.length - duplicateCount;
+            syncResult = experimentsAdded === 0 ? `Experiments are already synced.` : `Experiments: Added ${experimentsAdded} experiments.`;
+        }
+        return syncResult;
     }
 
     async _createPipelinesReadMe(type, list) {
@@ -256,12 +290,31 @@ class PipelinesUpdater {
 
     async _deleteEtcdPrefix(type, path) {
         const result = await stateManager._etcd._client.delete(path, { isPrefix: true });
-        log.info(`${type}: clean etcd path "${path}" deleted ${result.deleted} keys`);
+        log.info(`${type}: clean etcd path "${path}" deleted ${result.deleted} keys`, { component });
     }
 
     async _deleteStoragePrefix(type) {
         await storageManager.hkubeStore.delete({ type });
-        log.info(`${type}s: clean storage path "${type}"`);
+        log.info(`${type}s: clean storage path "${type}"`, { component });
+    }
+
+    // Filters out duplicate key errors and throws if there are other errors
+    _handleDuplicateKeyErrors(error) {
+        const all_error_messages = error?.writeErrors?.map(e => e.err?.errmsg || e.errmsg) || [];
+
+        // Ignore duplicate key errors
+        const filtered_errors = all_error_messages.filter(
+            msg => !msg.includes('E11000 duplicate key error')
+        );
+
+        if (filtered_errors.length > 0) {
+            const filteredError = new Error(
+                `Non-duplicate errors occurred during sync:\n${filtered_errors.join('\n')}`
+            );
+            filteredError.writeErrors = filtered_errors;
+            throw filteredError;
+        }
+        return all_error_messages.length - filtered_errors.length;
     }
 }
 

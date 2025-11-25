@@ -95,7 +95,7 @@ class DatabaseQuerier extends Events {
         return { experimentName, jobs };
     }
 
-    async getJobs({ experimentName, pipelineName, pipelineType, pipelineStatus, algorithmName, datesRange, user, action, cursor, pageNum, sort, limit = MAX_ITEMS, tag }) {
+    async getJobs({ experimentName, pipelineName, pipelineType, pipelineStatus, algorithmName, datesRange, user, action, cursor, pageNum, sort, limit = MAX_ITEMS, tag }, searchByPrefix = false) {
         const query = {
             experimentName,
             pipelineName,
@@ -117,7 +117,7 @@ class DatabaseQuerier extends Events {
             // limit: MAX_ITEMS,
             maxItemsSize: this._options.sizes.maxFlowInputSize,
             itemsToRemove: ['pipeline.flowInput', 'userPipeline.flowInput', 'pipeline.flowInputMetadata']
-        });
+        }, searchByPrefix);
 
         return jobs;
     }

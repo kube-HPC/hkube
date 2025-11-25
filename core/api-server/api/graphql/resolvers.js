@@ -11,8 +11,8 @@ const errorLogsQuerier = require('./queries/error-logs-querier');
 const logsQueries = require('../task-logs/logs');
 
 class GraphqlResolvers {
-    async queryJobs(query) {
-        const jobs = await dbQueires.getJobs(query || {});
+    async queryJobs(query, searchByPrefix = false) {
+        const jobs = await dbQueires.getJobs(query || {}, searchByPrefix);
         return {
             jobs: jobs.hits.map(job => ({ ...job, key: job.jobId, results: job.result })),
             cursor: jobs.cursor
@@ -140,7 +140,7 @@ class GraphqlResolvers {
                 // eslint-disable-next-line no-param-reassign
                 args.pipelineStatus = args.pipelineStatus || { $not: { $in: [pipelineStatuses.PENDING] } };
                 context.args = { ...args };
-                const jobs = await this.queryJobs({ ...args });
+                const jobs = await this.queryJobs({ ...args }, true);
                 return { jobs: jobs.jobs, cursor: jobs.cursor };
             }, [keycloakRoles.API_VIEW]),
 
