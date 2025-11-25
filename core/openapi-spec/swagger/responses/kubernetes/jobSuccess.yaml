@@ -1,4 +1,4 @@
-description: Action summary
+description: Successfully delete Kubernetes jobs
 content:
   application/json:
     schema:

@@ -1,4 +1,4 @@
-description: action summary
+description: Successfully get an experiment details
 content:
   application/json:
     schema:

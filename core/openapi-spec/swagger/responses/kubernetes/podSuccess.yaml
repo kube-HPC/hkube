@@ -1,4 +1,4 @@
-description: Action summary
+description: Successfully delete Kubernetes pods
 content:
   application/json:
     schema:

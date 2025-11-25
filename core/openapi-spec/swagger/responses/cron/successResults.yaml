@@ -1,4 +1,4 @@
-description: action summary
+description: Get cron job results successfully
 content:
   application/json:
     schema:

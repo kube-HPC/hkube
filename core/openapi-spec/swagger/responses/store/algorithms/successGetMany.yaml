@@ -1,4 +1,4 @@
-description: action summary
+description: Get a list of algorithms
 content:
   application/json:
     schema:
