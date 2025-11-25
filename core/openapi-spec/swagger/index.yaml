@@ -11,11 +11,11 @@ paths:
   $ref: ./swagger/paths/index.yaml
 components:
   schemas:
-    $ref: ./swagger/definitions/index.yaml
+    $ref: ./swagger/components/schemas/index.yaml
   parameters:
     $ref: ./swagger/paths/datasource/parameters.yaml
   responses:
-    $ref: ./swagger/responses/index.yaml
+    $ref: ./swagger/components/responses/index.yaml
   securitySchemes:
     bearerAuth: 
       type: http
