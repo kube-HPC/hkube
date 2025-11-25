@@ -2,6 +2,7 @@ get:
     tags:
         - DataSource
     summary: Fetch a single dataSource by name
+    description: Fetch a specific datasource meta data by its name
     parameters:
         - $ref: '#/components/parameters/nameParam'
         - $ref: '#/components/parameters/idQuery'
@@ -20,6 +21,7 @@ post:
     tags:
         - DataSource
     summary: Upload a new file to a given datasource
+    description: Upload a new file to a given datasource by its name
     parameters:
         - $ref: '#/components/parameters/nameParam'
     requestBody:
@@ -44,6 +46,7 @@ delete:
     tags:
         - DataSource
     summary: Deletes a datasource by name
+    description: Deletes a datasource by its name
     parameters:
         - $ref: '#/components/parameters/nameParam'
     responses:

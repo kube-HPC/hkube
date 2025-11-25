@@ -1,8 +1,8 @@
 get:
   tags:
     - Storage
-  summary: stream data
-  description: stream data according to path
+  summary: Stream data
+  description: Stream data according to path
   parameters:
     - name: path
       in: path

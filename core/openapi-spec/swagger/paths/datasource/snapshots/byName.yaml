@@ -2,6 +2,7 @@ get:
     tags:
         - DataSource
     summary: Fetch snapshots for a given datasource
+    description: Fetch snapshots for a given datasource
     parameters:
         - $ref: "#/components/parameters/nameParam"
         - $ref: "#/components/parameters/snapshotNameParam"

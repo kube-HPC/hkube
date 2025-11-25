@@ -1,8 +1,8 @@
 get:
   tags:
     - Storage
-  summary: stream data to file
-  description: download data as file according to path
+  summary: Stream data to file
+  description: Download data as file according to path
   parameters:
     - name: path
       in: path

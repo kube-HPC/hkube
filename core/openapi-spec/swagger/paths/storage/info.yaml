@@ -2,7 +2,7 @@ get:
   tags:
     - Storage
   summary: Get storage info
-  description: returns the storage info
+  description: Returns the storage info
   responses:
     "200":
       $ref: "#/components/responses/storage_successGetInfo"

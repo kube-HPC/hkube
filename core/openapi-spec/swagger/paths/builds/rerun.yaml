@@ -2,7 +2,7 @@ post:
   tags:
     - Builds
   summary: Rerun build
-  description: rerun build
+  description: Rerun build
   requestBody:
     content:
       application/json:

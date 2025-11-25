@@ -2,7 +2,7 @@ get:
   tags:
     - Storage
   summary: Get all keys by path
-  description: returns all available keys found in storage according to path
+  description: Returns all available keys found in storage according to path
   parameters:
     - name: path
       in: path

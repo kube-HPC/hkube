@@ -2,7 +2,7 @@ post:
   tags:
     - StorePipelines
   summary: Get graph to preview
-  description: get graph to preview
+  description: Get graph to preview
   requestBody:
     content:
       application/json:

@@ -2,7 +2,7 @@ get:
   tags:
     - Storage
   summary: Get all prefixes by path
-  description: returns all available prefixes found in storage according to path
+  description: Returns all available prefixes found in storage according to path
   parameters:
     - name: path
       in: path

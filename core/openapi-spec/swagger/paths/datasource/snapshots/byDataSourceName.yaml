@@ -2,6 +2,7 @@ post:
     tags:
         - DataSource
     summary: Create a new snapshot for a given datasource version
+    description: Create a new snapshot for a given datasource version
     parameters:
         - $ref: "#/components/parameters/nameParam"
     requestBody:
@@ -24,6 +25,7 @@ get:
     tags:
         - DataSource
     summary: Fetch all snapshots for a given datasource
+    description: Fetch all snapshots for a given datasource
     parameters:
         - $ref: "#/components/parameters/nameParam"
     responses:

@@ -2,6 +2,7 @@ get:
     tags:
         - DataSource
     summary: Fetch all dataSources meta data
+    description: Fetching all the datasources meta-data
     responses:
         '200':
             $ref: '#/components/responses/datasource_successGetMany'
@@ -13,6 +14,7 @@ post:
     tags:
         - DataSource
     summary: Create a new dataSource and upload a file
+    description: Create a new dataSource, set its settings and upload a file
     requestBody:
         content:
             multipart/form-data:

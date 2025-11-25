@@ -2,6 +2,7 @@ post:
     tags:
         - DataSource
     summary: Create download link
+    description: Create download link
     parameters:
         - $ref: "#/components/parameters/idParam"
     requestBody:
@@ -33,6 +34,7 @@ get:
     tags:
         - DataSource
     summary: Download an archive of the selected files
+    description: Download an archive of the selected files
     parameters:
         - $ref: "#/components/parameters/idParam"
         - $ref: "#/components/parameters/downloadIdQuery"

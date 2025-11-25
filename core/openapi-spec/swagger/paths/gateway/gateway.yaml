@@ -1,8 +1,8 @@
 get:
   tags:
     - Gateway
-  summary: get gateway details
-  description: get gateway details
+  summary: Get gateway details
+  description: Get a gateway details
   parameters:
     - name: name
       in: path

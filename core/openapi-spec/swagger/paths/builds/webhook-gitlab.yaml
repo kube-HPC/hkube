@@ -2,7 +2,7 @@ post:
   tags:
     - Builds
   summary: Insert webhook for automating build after push
-  description: webhook for automating  build algorithm directly from gitlab
+  description: Webhook for automating  build algorithm directly from gitlab
   requestBody:
     content:
       application/json:

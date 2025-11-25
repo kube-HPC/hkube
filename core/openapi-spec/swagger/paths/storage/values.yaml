@@ -2,7 +2,7 @@ get:
   tags:
     - Storage
   summary: Get storage data
-  description: returns the storage data
+  description: Returns the storage data
   parameters:
     - name: path
       in: path

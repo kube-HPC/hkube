@@ -2,7 +2,7 @@ get:
   tags:
     - Builds
   summary: Get build list
-  description: returns all builds that related to algorithm
+  description: Returns all builds that related to algorithm
   parameters:
     - name: name
       in: path

@@ -2,7 +2,7 @@ get:
   tags:
     - Execution
   summary: Get pipeline result
-  description: returns result for the execution of a specific pipeline run. if called before result is determined - returns error.
+  description: Returns result for the execution of a specific pipeline run. if called before result is determined - returns error.
   parameters:
     - name: jobId
       in: path

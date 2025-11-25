@@ -2,7 +2,7 @@ get:
   tags:
     - Pipeline Versions
   summary: Get pipeline versions
-  description: returns list of pipeline versions.
+  description: Returns list of pipeline versions.
   parameters:
     - name: name
       in: path

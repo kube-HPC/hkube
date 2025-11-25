@@ -2,7 +2,7 @@ post:
   tags:
     - Builds
   summary: Insert webhook for automating build after push
-  description: webhook for automating  build algorithm directly from github
+  description: Webhook for automating  build algorithm directly from github
   requestBody:
     content:
       application/x-www-from-urlencoded:

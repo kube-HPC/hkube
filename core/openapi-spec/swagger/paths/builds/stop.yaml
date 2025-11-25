@@ -2,7 +2,7 @@ post:
   tags:
     - Builds
   summary: Stop build
-  description: stop build
+  description: Stop build
   requestBody:
     content:
       application/json:

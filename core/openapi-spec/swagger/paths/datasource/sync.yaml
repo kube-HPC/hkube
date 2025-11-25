@@ -2,6 +2,7 @@ post:
     tags:
         - DataSource
     summary: Sync a version from git to the database
+    description: Sync a version from git to the database
     parameters:
         - $ref: '#/components/parameters/nameParam'
     requestBody:

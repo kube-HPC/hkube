@@ -2,7 +2,7 @@ get:
   tags:
     - Pipelines
   summary: Get pipeline status
-  description: return status of pipelines by given pipeline name
+  description: Return status of pipelines by given pipeline name
   parameters:
     - name: name
       in: query

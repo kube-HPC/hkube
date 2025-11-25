@@ -1,8 +1,8 @@
 get:
   tags:
     - Gateway
-  summary: get gateways
-  description: get list of gateways
+  summary: Get gateways
+  description: Get list of all gateways
   responses:
     "200":
       $ref: "#/components/responses/gateway_successMany"

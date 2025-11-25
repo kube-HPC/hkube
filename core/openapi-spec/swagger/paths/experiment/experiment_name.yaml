@@ -1,8 +1,8 @@
 get:
   tags:
     - Experiment
-  summary: get experiment details
-  description: get experiment details
+  summary: Get experiment details
+  description: Get experiment details
   parameters:
     - name: name
       in: path

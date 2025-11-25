@@ -8,7 +8,7 @@ post:
       application/json:
         schema:
           $ref: "#/components/schemas/loginRequest"
-    description: algorithm descriptor to be added to the store
+    description: Algorithm descriptor to be added to the store
     required: true
   responses:
     "200":

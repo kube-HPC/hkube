@@ -2,7 +2,7 @@ get:
   tags:
     - Cron
   summary: Get pipeline cron result
-  description: return cron results by given pipeline name
+  description: Return cron results by given pipeline name
   parameters:
     - name: name
       in: query

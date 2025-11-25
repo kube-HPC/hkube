@@ -2,7 +2,7 @@ get:
   tags:
     - Cron
   summary: Get cron list
-  description: return cron list of all stored pipeline
+  description: Return cron list of all stored pipeline
   parameters:
     - name: sort
       in: query

@@ -2,6 +2,7 @@ get:
     tags:
         - DataSource
     summary: List all the versions of a given dataSource name
+    description: Showing all the versions of a given dataSource name
     parameters:
         - $ref: '#/components/parameters/nameParam'
     responses:

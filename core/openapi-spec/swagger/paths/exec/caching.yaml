@@ -2,7 +2,7 @@ post:
   tags:
     - Execution
   summary: Run job from a specific node
-  description: the api allows you to run job from current node and getting the data of the predecessors from caching of the previous run
+  description: The api allows you to run job from current node and getting the data of the predecessors from caching of the previous run
   requestBody:
     content:
       application/json:

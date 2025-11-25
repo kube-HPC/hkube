@@ -2,7 +2,7 @@ get:
   tags:
     - Builds
   summary: Get build status
-  description: returns the build status by specific build id
+  description: Returns the build status by specific build id
   parameters:
     - name: buildId
       in: path
