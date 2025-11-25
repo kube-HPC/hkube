@@ -250,6 +250,10 @@ storePipelines_successInsert:
 storePipelines_successUpdate:
   $ref: ./store/pipelines/successUpdate.yaml
 
+# versions
+versions_successDelete:
+  $ref: ./versions/successDelete.yaml
+
 # versions - algorithms
 versionsAlgorithms_successAlias:
   $ref: ./versions/algorithms/successAlias.yaml
@@ -257,8 +261,6 @@ versionsAlgorithms_successApply:
   $ref: ./versions/algorithms/successApply.yaml
 versionsAlgorithms_successGetMany:
   $ref: ./versions/algorithms/successGetMany.yaml
-versionsAlgorithms_successDelete:
-  $ref: ./versions/algorithms/successDelete.yaml
 versionsAlgorithms_successGetSingle:
   $ref: ./versions/algorithms/successGetSingle.yaml
 versionsAlgorithms_successTag:
@@ -267,8 +269,6 @@ versionsAlgorithms_successTag:
 # versions - pipelines
 versionsPipelines_successApply:
   $ref: ./versions/pipelines/successApply.yaml
-versionsPipelines_successDelete:
-  $ref: ./versions/pipelines/successDelete.yaml
 versionsPipelines_successGetMany:
   $ref: ./versions/pipelines/successGetMany.yaml
 versionsPipelines_successGetSingle:
