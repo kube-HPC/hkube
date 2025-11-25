@@ -9,7 +9,7 @@ get:
       description: the pipeline jobId
       required: true
       schema:
-        type: string
+        $ref: "#/components/schemas/jobId"
   responses:
     "200":
       $ref: "#/components/responses/storage_successGetDownload"

@@ -5,4 +5,4 @@ properties:
   status:
     type: string
   pipelineName:
-    type: string
+    $ref: "#/components/schemas/pipelineName"

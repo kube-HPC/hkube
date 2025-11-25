@@ -8,12 +8,12 @@ get:
       in: query
       description: from this job and on
       schema:
-        type: string
+        $ref: "#/components/schemas/jobId"
     - name: lastJobId
       in: query
       description: up to this job
       schema:
-        type: string 
+        $ref: "#/components/schemas/jobId"
     - name: pageSize
       in: query
       description: number of records in page
@@ -23,7 +23,7 @@ get:
     - name: pipelineName
       in: query
       schema:
-        type: string         
+        $ref: "#/components/schemas/pipelineName"       
       description: filter by pipeline       
     - name: tag
       in: query 

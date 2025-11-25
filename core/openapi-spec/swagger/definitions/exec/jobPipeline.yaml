@@ -1,7 +1,7 @@
 type: object
 properties:
   jobId:
-    type: string
+    $ref: "#/components/schemas/jobId"
   name:
     type: string
   nodes:
@@ -12,7 +12,7 @@ properties:
         nodeName:
           type: string
         algorithmName:
-          type: string
+          $ref: "#/components/schemas/algorithmName"
         input:
           type: array
           items:

@@ -9,7 +9,7 @@ get:
       description: Unique identifier representing workflow execution - is given in response to calling pipeline run method .
       required: true
       schema:
-        type: string
+        $ref: "#/components/schemas/jobId"
   responses:
     "200":
       $ref: "#/components/responses/exec_successResults"

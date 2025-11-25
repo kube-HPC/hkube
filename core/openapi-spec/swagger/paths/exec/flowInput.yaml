@@ -9,7 +9,7 @@ get:
       description: Unique identifier representing pipeline execution
       required: true
       schema:
-        type: string
+        $ref: "#/components/schemas/jobId"
     - name: download
       in: query
       description: should add download header

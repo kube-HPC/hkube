@@ -6,7 +6,7 @@ properties:
       experimentName:
         type: string
       pipelineName:
-        type: string
+        $ref: "#/components/schemas/pipelineName"
       pipelineType:
         type: string
       algorithmName:

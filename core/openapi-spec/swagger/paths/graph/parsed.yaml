@@ -9,7 +9,7 @@ get:
       description: Unique identifier representing jobId
       required: true
       schema:
-        type: string
+        $ref: "#/components/schemas/jobId"
     - name: node
       in: query
       description: The node name

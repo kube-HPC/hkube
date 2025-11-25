@@ -24,7 +24,7 @@ content:
                         nodeName:
                           type: string
                         algorithmName:
-                          type: string
+                          $ref: "#/components/schemas/algorithmName"
                         input:
                           type: array
                           items: {}

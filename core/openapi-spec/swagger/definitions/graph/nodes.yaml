@@ -5,7 +5,7 @@ items:
     nodeName:
       type: string
     algorithmName:
-      type: string
+      $ref: "#/components/schemas/algorithmName"
     algorithmVersion:
       type: string
     taskId:

@@ -13,14 +13,12 @@ properties:
       type: object
       properties:
         jobId:
-          type: string
-          description: Unique job identifier
+          $ref: "#/components/schemas/jobId"
         experimentName:
           type: string
           description: The name of the experiment
         pipelineName:
-          type: string
-          description: The name of the pipeline
+          $ref: "#/components/schemas/pipelineName"
         priority:
           type: integer
           description: The job priority

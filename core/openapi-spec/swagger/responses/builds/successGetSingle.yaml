@@ -19,7 +19,7 @@ content:
         uploadPath:
           type: string
         algorithmName:
-          type: string
+          $ref: "#/components/schemas/algorithmName"
         type:
           type: string
         status:

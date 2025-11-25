@@ -15,7 +15,7 @@ properties:
     description: Cpu allocated for streaming gateway
     default: 0.5
   jobId:
-    type: string
+    $ref: "#/components/schemas/jobId"
   nodeName:
     type: string
   algorithmName:

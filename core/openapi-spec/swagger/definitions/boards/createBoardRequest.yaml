@@ -5,6 +5,6 @@ properties:
   nodeName:
     type: string
   jobId:
-    type: string
+    $ref: "#/components/schemas/jobId"
   taskId:
     type: string
