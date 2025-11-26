@@ -8,7 +8,7 @@ const pipelineProducer = require('../lib/pipelines/pipeline-producer');
 const { cronTrigger, pipelineTrigger } = require('../lib/triggers');
 const bootstrap = require('../bootstrap');
 const Trigger = require('../lib/triggers/Trigger');
-const pipelines = require('./mocks/pipelines.json');
+const pipelines = require('./mocks/pipelines');
 const { Triggers } = require('../lib/consts');
 const delay = require('await-delay');
 
@@ -25,35 +25,35 @@ describe('test', () => {
             cronTrigger._crons.clear();
         });
         it('should get cron job map', () => {
-            const pipeline = pipelines.find(p => p.name === 'simple_cron_trigger');
+            const pipeline = pipelines.find(p => p.name.startsWith('simple_cron_trigger'));
             cronTrigger._updateTrigger(new Trigger(pipeline));
             const cron = cronTrigger._crons.get(pipeline.name);
             expect(cron.pattern).to.equal(pipeline.triggers.cron.pattern);
         });
         it('should not change the cron jobs size when no cron', () => {
-            const pipeline = pipelines.find(p => p.name === 'simple');
+            const pipeline = pipelines.find(p => p.name.startsWith('simple'));
             storeManager.emit('change', new Trigger(pipeline));
             expect(cronTrigger._crons.size).to.equal(0)
         });
         it('should not change the cron jobs size when same exist cron', () => {
-            const pipeline = pipelines.find(p => p.name === 'simple_cron_trigger');
+            const pipeline = pipelines.find(p => p.name.startsWith('simple_cron_trigger'));
             storeManager.emit('change', new Trigger(pipeline));
             expect(cronTrigger._crons.size).to.equal(1)
         });
         it('should increase the cron jobs size by one', () => {
-            const cron = pipelines.find(p => p.name === 'simple_cron_trigger');
+            const cron = pipelines.find(p => p.name.startsWith('simple_cron_trigger'));
             const pipeline = { ...cron, name: 'new_simple_cron_trigger' };
             storeManager.emit('change', new Trigger(pipeline));
             expect(cronTrigger._crons.size).to.equal(1)
         });
         it('should decrease the cron jobs size when invalid cron pattern', () => {
-            const pipeline = pipelines.find(p => p.name === 'invalid_cron_trigger');
+            const pipeline = pipelines.find(p => p.name.startsWith('invalid_cron_trigger'));
             storeManager.emit('change', new Trigger(pipeline));
             expect(cronTrigger._crons.size).to.equal(0)
         });
         it('should run cron job', () => {
             const clock = sinon.useFakeTimers();
-            const pipeline = pipelines.find(p => p.name === 'simple_cron_trigger');
+            const pipeline = pipelines.find(p => p.name.startsWith('simple_cron_trigger'));
             const spy = sinon.spy(cronTrigger, "_onTick");
             storeManager.emit('change', new Trigger(pipeline));
             clock.tick(1000);
@@ -64,9 +64,10 @@ describe('test', () => {
     });
     describe('PipelineTrigger', () => {
         it('should trigger 3 pipelines', async () => {
+            const { name } = pipelines.find(p => p.name.startsWith('pipeline_triggered_three'));
             const result = {
                 data: 'data',
-                pipeline: 'pipeline_triggered_three',
+                pipeline: name,
                 jobId: 'jobId'
             }
             const spyAdd = sinon.spy(triggerQueue, "addTrigger");
