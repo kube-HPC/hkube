@@ -1,12 +1,16 @@
-[
+const { uid: uid } = require('@hkube/uid');
+
+const pipelineTriggeredThree = `pipeline_triggered_three_${uid(6)}`
+
+const pipelines = [
     {
-        "name": "simple"
+        "name": `simple_${uid(6)}`
     },
     {
-        "name": "batch"
+        "name": `batch_${uid(6)}`
     },
     {
-        "name": "simple_cron_trigger",
+        "name": `simple_cron_trigger_${uid(6)}`,
         "triggers": {
             "cron": {
                 "pattern": "*/1 * * * * *",
@@ -15,7 +19,7 @@
         }
     },
     {
-        "name": "invalid_cron_trigger",
+        "name": `invalid_cron_trigger_${uid(6)}`,
         "triggers": {
             "cron": {
                 "pattern": "Im invalid cron",
@@ -24,7 +28,7 @@
         }
     },
     {
-        "name": "simple_pipelines_trigger",
+        "name": `simple_pipelines_trigger_${uid(6)}`,
         "triggers": {
             "pipelines": [
                 "xxx"
@@ -32,7 +36,7 @@
         }
     },
     {
-        "name": "trigger-4",
+        "name": `trigger-4_${uid(6)}`,
         "triggers": {
             "pipelines": [
                 "test-not-called"
@@ -40,31 +44,33 @@
         }
     },
     {
-        "name": "trigger-1",
+        "name": `trigger-1_${uid(6)}`,
         "triggers": {
             "pipelines": [
-                "pipeline_triggered_three"
+                pipelineTriggeredThree
             ]
         }
     },
     {
-        "name": "trigger-2",
+        "name": `trigger-2_${uid(6)}`,
         "triggers": {
             "pipelines": [
-                "pipeline_triggered_three"
+                pipelineTriggeredThree
             ]
         }
     },
     {
-        "name": "trigger-3",
+        "name": `trigger-3_${uid(6)}`,
         "triggers": {
             "pipelines": [
-                "pipeline_triggered_three",
+                pipelineTriggeredThree,
                 "test_pl"
             ]
         }
     },
     {
-        "name": "pipeline_triggered_three"
+        "name": pipelineTriggeredThree
     }
 ]
+
+module.exports = pipelines;
