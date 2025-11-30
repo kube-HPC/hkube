@@ -9,29 +9,13 @@ get:
       description: Unique identifier representing pipeline execution
       required: true
       schema:
-        type: string
+        $ref: "#/components/schemas/jobId"
   responses:
     "200":
-      description: pipeline audit trail
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/auditTrail"
-    "400":
-      description: bad request
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/exec_successAudit"
+    "401":
+      $ref: "#/components/responses/unauthorized"
     "404":
-      description: jobId Not Found
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/errorNotFound"
     default:
-      description: Unexpected error
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/default"

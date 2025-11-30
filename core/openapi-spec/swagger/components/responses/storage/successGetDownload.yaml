@@ -1,0 +1,6 @@
+description: Response for downloading a file.
+content:
+  application/octet-stream:
+    schema:
+      type: string
+      format: binary

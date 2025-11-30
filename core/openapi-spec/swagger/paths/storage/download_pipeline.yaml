@@ -1,37 +1,23 @@
 get:
   tags:
     - Storage
-  summary: stream data to file
-  description: download data as file according to path
+  summary: Stream data to file
+  description: Download data as file according to path
   parameters:
     - name: jobId
       in: path
       description: the pipeline jobId
       required: true
       schema:
-        type: string
+        $ref: "#/components/schemas/jobId"
   responses:
     "200":
-      description: storage response
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/defaultResponse"
+      $ref: "#/components/responses/storage_successGetDownload"
     "400":
-      description: bad request
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/errorBadRequest"
+    "401":
+      $ref: "#/components/responses/unauthorized"
     "404":
-      description: path Not Found
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/storage_notFound"
     default:
-      description: Unexpected error
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/default"

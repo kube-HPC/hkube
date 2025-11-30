@@ -1,0 +1,21 @@
+type: object
+properties:
+  jobId:
+    $ref: "#/components/schemas/jobId"
+  httpResponse:
+    type: object
+    properties:
+      statusCode:
+        type: string
+      statusMessage:
+        type: string
+  pipelineStatus:
+    type: string
+  responseStatus:
+    type: string
+  status:
+    type: string
+  timestamp:
+    type: string
+  url:
+    type: string

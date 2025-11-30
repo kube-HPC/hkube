@@ -28,3 +28,23 @@
   description: Store new pipelines, update, get and delete
 - name: Webhooks
   description: Webhooks status and result
+- name: Boards
+  description: Manage and list visualization boards (tensorboard, optuna)
+- name: Preferred
+  description: Preferred pipelines and tags management
+- name: Managed
+  description: Managed queue and aggregation items
+- name: Queue
+  description: Queue operations
+- name: Experiment
+  description: Experiment management
+- name: Gateway
+  description: Gateway retrieval
+- name: Status
+  description: Service and version status endpoints
+- name: Resources
+  description: Unscheduled algorithms information
+- name: Kubernetes
+  description: Kubernetes jobs and pods management for algorithms
+- name: Login
+  description: Authentication and token generation

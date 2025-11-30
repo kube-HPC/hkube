@@ -2,8 +2,11 @@ post:
     tags:
         - DataSource
     summary: |
-        post a query for *preview only*,
-        the results are NOT persisted to the database
+        Post a query for *preview only*,
+        The results are NOT persisted to the database
+    description: |
+        Post a query for *preview only*,
+        The results are NOT persisted to the database
     parameters:
         - $ref: "#/components/parameters/idParam"
     requestBody:
@@ -18,10 +21,14 @@ post:
                         - query
     responses:
         "201":
-            description: a list of files
-            content:
-                application/json:
-                    schema:
-                        type: array
-                        items:
-                            $ref: "#/components/schemas/FileMeta"
+            $ref: "#/components/responses/datasource_snapshots_successGetPreview"
+        "400":
+            $ref: "#/components/responses/errorBadRequest"
+        "401":
+            $ref: "#/components/responses/unauthorized"
+        "404":
+            $ref: "#/components/responses/errorNotFound"
+        "500":
+            $ref: "#/components/responses/errorInternalServerError"
+        default:
+            $ref: "#/components/responses/default"

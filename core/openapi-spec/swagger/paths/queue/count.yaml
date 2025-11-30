@@ -5,20 +5,8 @@ get:
   description: Get queue count
   responses:
     "200":
-      description: Get queue count
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/queueCountResponse"
-    "400":
-      description: Bad request
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/queue_success"
+    "401":
+      $ref: "#/components/responses/unauthorized"
     default:
-      description: Unexpected error
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/default"

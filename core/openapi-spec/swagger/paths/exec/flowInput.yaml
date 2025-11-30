@@ -9,7 +9,7 @@ get:
       description: Unique identifier representing pipeline execution
       required: true
       schema:
-        type: string
+        $ref: "#/components/schemas/jobId"
     - name: download
       in: query
       description: should add download header
@@ -18,26 +18,10 @@ get:
         type: boolean                
   responses:
     "200":
-      description: jobs flowInput
-      content:
-        application/json:
-          schema:
-            type: object
-    "400":
-      description: bad request
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/exec_successFlowInput"
+    "401":
+      $ref: "#/components/responses/unauthorized"
     "404":
-      description: jobId Not Found
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/errorNotFound"
     default:
-      description: Unexpected error
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/default"

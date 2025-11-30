@@ -1,0 +1,19 @@
+description: Resource Not Found
+content:
+  application/json:
+    schema:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: integer
+              description: The HTTP status code indicating the error.
+            message:
+              type: string
+              description: A description of the error.
+    example:
+      error:
+        code: 404
+        message: "Pipeline m0qvfqsjunl711 Not Found"

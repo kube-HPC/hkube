@@ -1,0 +1,52 @@
+type: object
+description: Status information for a single garbage collector module
+properties:
+  name:
+    type: string
+    description: Name of the GC module
+    example: "storage"
+  enabled:
+    type: boolean
+    description: Whether this GC module is enabled
+    example: true
+  isHealthy:
+    type: boolean
+    description: Whether the GC module is currently healthy
+    example: true
+  cron:
+    type: string
+    description: The cron expression used to schedule the cleanup
+    example: "*/5 * * * *"
+  cronText:
+    type: string
+    description: Human-readable interpretation of the cron expression
+    example: "Every 5 minutes (*/5 * * * *)"
+  cronNextTick:
+    type: string
+    format: date-time
+    description: Next scheduled cron execution time
+    example: "2025-11-14T02:00:00.000Z"
+  maxAge:
+    description: Maximum age of items before cleanup
+    oneOf:
+      - type: number
+        example: 2880
+      - type: object
+        additionalProperties:
+          type: number
+        example:
+          results: 14400
+          temp: 7200
+          builds: 14400
+  lastCronStartTime:
+    type: string
+    description: The last time the GC job started
+    example: "13/11/2025 16:47:00"
+  lastCronEndTime:
+    type: string
+    description: The last time the GC job finished
+    example: "13/11/2025 16:47:02"
+  totalCleaned:
+    type: integer
+    description: Total number of items cleaned
+    example: 5

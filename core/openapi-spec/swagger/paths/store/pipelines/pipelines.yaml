@@ -1,0 +1,72 @@
+get:
+  tags:
+    - StorePipelines
+  summary: Get all pipelines
+  description: Get all pipelines from store
+  parameters:
+    - name: sort
+      in: query
+      description: sort by
+      schema:
+        type: string
+  responses:
+    "200":
+      $ref: "#/components/responses/storePipelines_successGetMany"
+    "400":
+      $ref: "#/components/responses/errorBadRequest"
+    "401":
+      $ref: "#/components/responses/unauthorized"
+    default:
+      $ref: "#/components/responses/default"
+post:
+  tags:
+    - StorePipelines
+  summary: Insert pipeline
+  description: Insert new pipeline to store if not exist
+  parameters:
+    - name: overwrite
+      in: query
+      example: 'true'
+      schema:
+        type: string
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: "#/components/schemas/pipeline"
+    description: an object representing all information needed for pipeline execution
+    required: true
+  responses:
+    "201":
+      $ref: "#/components/responses/storePipelines_successInsert"
+    "400":
+      $ref: "#/components/responses/errorBadRequest"
+    "401":
+      $ref: "#/components/responses/unauthorized"
+    "409":
+      $ref: "#/components/responses/errorConflict"
+    default:
+      $ref: "#/components/responses/default"
+put:
+  tags:
+    - StorePipelines
+  summary: Update pipeline
+  description: Update existing pipeline
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: "#/components/schemas/pipeline"
+    description: an object representing all information needed for pipeline execution
+    required: true
+  responses:
+    "200":
+      $ref: "#/components/responses/storePipelines_successUpdate"
+    "400":
+      $ref: "#/components/responses/errorBadRequest"
+    "401":
+      $ref: "#/components/responses/unauthorized"
+    "404":
+      $ref: "#/components/responses/errorNotFound"
+    default:
+      $ref: "#/components/responses/default"

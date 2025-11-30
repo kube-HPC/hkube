@@ -12,17 +12,17 @@ get:
         type: string
   responses:
     "200":
-      description: action summary
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/defaultResponse"
+      $ref: "#/components/responses/readmePipelines_successGet"
+    "400":
+      $ref: "#/components/responses/errorBadRequest"
+    "401":
+      $ref: "#/components/responses/unauthorized"
+    "404":
+      $ref: "#/components/responses/errorNotFound"
+    "500":
+      $ref: "#/components/responses/errorInternalServerError"
     default:
-      description: Unexpected error
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/default"
 post:
   tags:
     - Pipeline Readme
@@ -48,30 +48,18 @@ post:
     description: pipeline readme to be added to the store
     required: true
   responses:
-    "201":
-      description: pipeline created
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/defaultResponse"
+    "200":
+      $ref: "#/components/responses/readmePipelines_successInsert"
     "400":
-      description: bad request
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/defaultResponse"
-    "409":
-      description: pipeline conflict
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/defaultResponse"
+      $ref: "#/components/responses/errorBadRequest"
+    "401":
+      $ref: "#/components/responses/unauthorized"
+    "404":
+      $ref: "#/components/responses/errorNotFound"
+    "500":
+      $ref: "#/components/responses/errorInternalServerError"
     default:
-      description: Unexpected error
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/default"
 put:
   tags:
     - Pipeline Readme
@@ -97,30 +85,18 @@ put:
     description: pipeline readme to be added to the store
     required: true
   responses:
-    "201":
-      description: pipeline readme updated
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/defaultResponse"
+    "200":
+      $ref: "#/components/responses/readmePipelines_successUpdate"
     "400":
-      description: bad request
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/defaultResponse"
-    "409":
-      description: pipeline conflict
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/defaultResponse"
+      $ref: "#/components/responses/errorBadRequest"
+    "401":
+      $ref: "#/components/responses/unauthorized"
+    "404":
+      $ref: "#/components/responses/errorNotFound"
+    "500":
+      $ref: "#/components/responses/errorInternalServerError"
     default:
-      description: Unexpected error
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/default"
 delete:
   tags:
     - Pipeline Readme
@@ -135,26 +111,14 @@ delete:
         type: string
   responses:
     "200":
-      description: action summary
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/defaultResponse"
+      $ref: "#/components/responses/readmePipelines_successDelete"
     "400":
-      description: bad request
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/errorBadRequest"
+    "401":
+      $ref: "#/components/responses/unauthorized"
     "404":
-      description: pipeline Not Found
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/errorNotFound"
+    "500":
+      $ref: "#/components/responses/errorInternalServerError"
     default:
-      description: Unexpected error
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/default"

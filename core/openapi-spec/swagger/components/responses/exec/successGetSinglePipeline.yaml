@@ -1,0 +1,66 @@
+description: Successfully retrieved pipeline data
+content:
+  application/json:
+    schema:
+      $ref: "#/components/schemas/jobPipeline"
+    example:
+      jobId: "xryrdg8lpbrl"
+      name: "simple"
+      nodes:
+        - nodeName: "green"
+          algorithmName: "green-alg"
+          input:
+            - "@flowInput.files.link"
+          kind: "algorithm"
+          minStatelessCount: 0
+        - nodeName: "yellow"
+          algorithmName: "yellow-alg"
+          input:
+            - "@green"
+          kind: "algorithm"
+          minStatelessCount: 0
+        - nodeName: "black"
+          algorithmName: "black-alg"
+          input:
+            - "@yellow"
+          kind: "algorithm"
+          minStatelessCount: 0
+      options:
+        batchTolerance: 100
+        progressVerbosityLevel: "debug"
+        ttl: 3600
+      auditTrail:
+        - timestamp: null
+          version: "9xoak79mx7"
+      created: 1763312527050
+      modified: 1763365952708
+      version: "9xoak79mx7"
+      triggers:
+        cron:
+          enabled: false
+          pattern: "0 * * * *"
+      webhooks:
+        progress: "http://localhost:3003/webhook/progress"
+        result: "http://localhost:3003/webhook/result"
+      priority: 1
+      kind: "batch"
+      experimentName: "main"
+      flowInput:
+        files:
+          link: "link1"
+      flowInputMetadata:
+        metadata:
+          flowInput.files.link:
+            type: "string"
+        storageInfo:
+          path: "cicd-hkube/xryrdg8lpbrl/xryrdg8lpbrl"
+      maxExceeded: false
+      startTime: 1763630489960
+      lastRunResult:
+        timestamp: 1763630477209
+        status: "completed"
+        timeTook: 3.627
+      types:
+        - "stored"
+        - "dev-mode"
+      activeTime: 1763630489983

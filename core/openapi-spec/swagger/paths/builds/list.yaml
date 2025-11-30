@@ -2,7 +2,7 @@ get:
   tags:
     - Builds
   summary: Get build list
-  description: returns all builds that related to algorithm
+  description: Returns all builds that related to algorithm
   parameters:
     - name: name
       in: path
@@ -27,27 +27,10 @@ get:
         type: integer
   responses:
     "200":
-      description: algorithm apply list response
-      content:
-        application/json:
-          schema:
-            items:
-              $ref: "#/components/schemas/defaultResponse"
+      $ref: "#/components/responses/builds_successGetMany"
     "400":
-      description: bad request
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
-    "404":
-      description: build Not Found
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/errorBadRequest"
+    "401":
+      $ref: "#/components/responses/unauthorized"
     default:
-      description: Unexpected error
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/default"

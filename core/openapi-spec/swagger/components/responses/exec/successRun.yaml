@@ -1,0 +1,10 @@
+description: Successfully executed pipeline
+content:
+  application/json:
+    schema:
+      type: object
+      properties:
+        jobId:
+          $ref: "#/components/schemas/jobId"
+    example:
+      jobId: "f7pblx02paxs"

@@ -1,0 +1,21 @@
+post:
+  tags:
+    - StorePipelines
+  summary: Get graph to preview
+  description: Get graph to preview
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: "#/components/schemas/graphPreview"
+    description: an object representing all information needed for pipeline execution
+    required: true
+  responses:
+    "200":
+      $ref: "#/components/responses/storePipelines_successGetGraph"
+    "400":
+      $ref: "#/components/responses/errorBadRequest"
+    "401":
+      $ref: "#/components/responses/unauthorized"
+    default:
+      $ref: "#/components/responses/default"

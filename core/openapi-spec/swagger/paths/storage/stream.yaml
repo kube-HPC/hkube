@@ -1,8 +1,8 @@
 get:
   tags:
     - Storage
-  summary: stream data
-  description: stream data according to path
+  summary: Stream data
+  description: Stream data according to path
   parameters:
     - name: path
       in: path
@@ -12,26 +12,12 @@ get:
         type: string
   responses:
     "200":
-      description: storage response
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/defaultResponse"
+      $ref: "#/components/responses/storage_successGetStream"
     "400":
-      description: bad request
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/errorBadRequest"
+    "401":
+      $ref: "#/components/responses/unauthorized"
     "404":
-      description: path Not Found
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/storage_notFound"
     default:
-      description: Unexpected error
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/default"

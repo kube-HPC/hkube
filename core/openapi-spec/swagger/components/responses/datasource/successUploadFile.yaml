@@ -1,0 +1,36 @@
+description: New datasource version
+content:
+  application/json:
+    schema:
+      $ref: '#/components/schemas/DataSourceWithMeta'
+    example:
+      id: "69161137d149027b6b3724ec"
+      name: "myTest"
+      versionDescription: "test"
+      commitHash: "66f1edc"
+      filesCount: 2
+      avgFileSize: 43879638.5
+      totalSize: 87759277
+      fileTypes:
+        - "text/markdown"
+        - "application/vnd.debian.binary-package"
+      git:
+        kind: "internal"
+        repositoryUrl: "http://gitea-http:3000/hkube/myTest.git"
+      storage:
+        kind: "internal"
+      files:
+        - id: "ser-g38o"
+          name: "bbb.md"
+          path: "/"
+          size: 9
+          type: "text/markdown"
+          description: ""
+          uploadedAt: 1763053879728
+        - id: "ser-4m30"
+          name: "mongodb-compass_1.28.1_amd64.deb"
+          path: "/"
+          size: 87759268
+          type: "application/vnd.debian.binary-package"
+          description: ""
+          uploadedAt: 1695891600994

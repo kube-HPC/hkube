@@ -1,15 +1,14 @@
 get:
     tags:
         - DataSource
-    summary: list a all the versions of a given dataSource name
+    summary: List all the versions of a given dataSource name
+    description: Showing all the versions of a given dataSource name
     parameters:
         - $ref: '#/components/parameters/nameParam'
     responses:
         '200':
-            description: A datasource item
-            content:
-                application/json:
-                    schema:
-                        type: array
-                        items:
-                            $ref: '#/components/schemas/DataSourceVersion'
+            $ref: '#/components/responses/datasource_successGetVersions'
+        "401":
+            $ref: "#/components/responses/unauthorized"
+        default:
+            $ref: "#/components/responses/default"

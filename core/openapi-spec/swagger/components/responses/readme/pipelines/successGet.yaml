@@ -1,0 +1,12 @@
+description: Get pipeline readme
+content:
+  application/json:
+    schema:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "simple"
+        readme:
+          type: string
+          example: "texttttt"

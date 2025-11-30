@@ -1,0 +1,13 @@
+description: List of experiments
+content:
+  application/json:
+    schema:
+      type: array
+      items:
+        $ref: "#/components/schemas/experiment"
+    example:
+      - name: "main"
+        description: "the default jobs place if experiment is not set"
+      - name: "free"
+        description: ""
+        created: 1658311318928

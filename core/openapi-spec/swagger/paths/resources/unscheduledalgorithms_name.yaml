@@ -1,0 +1,23 @@
+get:
+  tags:
+    - Resources
+  summary: Get status for an unscheduled algorithm
+  description: Gets missing resources (cpu, memory, gpu) per available node, conditions (nodeSelector), requests over node capacity, or any other reason the algorithm was not scheduled.
+  parameters:
+    - name: name
+      in: path
+      description: algorithm name to get his unscheduled reason
+      required: true
+      schema:
+        type: string
+  responses:
+    "200":
+      $ref: "#/components/responses/resources_successSingle"
+    "400":
+      $ref: "#/components/responses/errorBadRequest"
+    "401":
+      $ref: "#/components/responses/unauthorized"
+    "404":
+      $ref: "#/components/responses/resources_notFound"
+    default:
+      $ref: "#/components/responses/default"

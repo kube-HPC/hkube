@@ -1,0 +1,46 @@
+get:
+  tags:
+    - StorePipelines
+  summary: Get pipeline
+  description: Get specific pipeline from store
+  parameters:
+    - name: name
+      in: path
+      description: pipeline name to get from the store
+      required: true
+      schema:
+        type: string
+  responses:
+    "200":
+      $ref: "#/components/responses/storePipelines_successGetSingle"
+    "400":
+      $ref: "#/components/responses/errorBadRequest"
+    "401":
+      $ref: "#/components/responses/unauthorized"
+    "404":
+      $ref: "#/components/responses/errorNotFound"
+    default:
+      $ref: "#/components/responses/default"
+delete:
+  tags:
+    - StorePipelines
+  summary: Delete pipeline
+  description: Delete existing pipeline from store
+  parameters:
+    - name: name
+      in: path
+      description: pipeline name to get from the store
+      required: true
+      schema:
+        type: string
+  responses:
+    "200":
+      $ref: "#/components/responses/storePipelines_successDelete"
+    "400":
+      $ref: "#/components/responses/errorBadRequest"
+    "401":
+      $ref: "#/components/responses/unauthorized"
+    "404":
+      $ref: "#/components/responses/errorNotFound"
+    default:
+      $ref: "#/components/responses/default"

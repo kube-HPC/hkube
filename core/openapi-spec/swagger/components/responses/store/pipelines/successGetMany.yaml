@@ -1,0 +1,167 @@
+description: Get all pipelines data
+content:
+  application/json:
+    schema:
+      type: array
+      items:
+        $ref: "#/components/schemas/pipeline"
+    example:
+      - name: "streaming"
+        modified: 1754470107421
+        kind: "stream"
+        flowInput:
+          msgPerSec: 30
+          delay: 0.033
+        streaming:
+          flows:
+            analyze: "A >> B&C&D"
+        triggers:
+          cron:
+            enabled: false
+            pattern: "0 * * * *"
+        options:
+          batchTolerance: 80
+          concurrentPipelines:
+            amount: 2
+            rejectOnFailure: false
+          ttl: 3600
+          progressVerbosityLevel: "info"
+        priority: 3
+        nodes:
+          - stateType: "stateful"
+            nodeName: "A"
+            algorithmName: "stream-alg"
+            input:
+              - msgPerSec: "@flowInput.msgPerSec"
+            retry:
+              policy: "OnCrash"
+              limit: 3
+            ttl: 0
+            kind: "algorithm"
+            minStatelessCount: 0
+          - stateType: "stateless"
+            nodeName: "B"
+            algorithmName: "stream-alg"
+            minStatelessCount: 0
+            maxStatelessCount: 0
+            input:
+              - delay: "@flowInput.delay"
+            retry:
+              policy: "OnCrash"
+              limit: 3
+            ttl: 0
+            kind: "algorithm"
+          - stateType: "stateless"
+            nodeName: "C"
+            algorithmName: "stream-alg"
+            minStatelessCount: 3
+            input:
+              - delay: "@flowInput.delay"
+            retry:
+              policy: "OnCrash"
+              limit: 3
+            ttl: 0
+            kind: "algorithm"
+          - stateType: "stateless"
+            nodeName: "D"
+            algorithmName: "stream-alg"
+            minStatelessCount: 1
+            input:
+              - delay: "@flowInput.delay"
+            retry:
+              policy: "OnCrash"
+              limit: 3
+            ttl: 0
+            kind: "algorithm"
+        experimentName: "main"
+        version: "72vpofgqug"
+        auditTrail:
+          - user: "qqaa"
+            timestamp: 1754470107421
+            version: "72vpofgqug"
+          - user: "saaa"
+            timestamp: 1754462846381
+            version: "3vjx2t98gf"
+        
+      - name: "testuser4"
+        modified: 1663147078780
+        kind: "batch"
+        nodes:
+          - kind: "hyperparamsTuner"
+            nodeName: "node1"
+            spec:
+              objectivePipeline: "batch"
+              numberOfTrials: 3
+              sampler:
+                search_space:
+                  ddddd:
+                    - "fdsf"
+                    - "sdfs"
+                    - "sdfs"
+                name: "Grid"
+              mem: "512Mi"
+              cpu: 0.5
+            input: []
+        triggers:
+          cron:
+            enabled: false
+            pattern: "0 * * * *"
+        options:
+          batchTolerance: 80
+          concurrentPipelines:
+            amount: 10
+            rejectOnFailure: true
+          ttl: 3600
+          progressVerbosityLevel: "info"
+        priority: 3
+        experimentName: "main"
+        
+      - name: "failed-schedualing"
+        modified: 1685955143221
+        kind: "batch"
+        flowInput:
+          files:
+            links:
+              - "links-1"
+              - "links-2"
+              - "links-3"
+              - "links-4"
+              - "links-5"
+              - "links-6"
+              - "links-7"
+              - "links-8"
+              - "links-9"
+              - "links-10"
+        nodes:
+          - nodeName: "green"
+            algorithmName: "high-cpu-algo"
+            input:
+              - "#@flowInput.files.links"
+              - "@yellow"
+            batchOperation: "indexed"
+            kind: "algorithm"
+          - nodeName: "yellow"
+            algorithmName: "yellow-alg"
+            input: []
+            batchOperation: "indexed"
+            kind: "algorithm"
+          - nodeName: "black"
+            algorithmName: "black-alg"
+            input:
+              - "@yellow"
+            batchOperation: "indexed"
+            kind: "algorithm"
+        triggers:
+          cron:
+            enabled: false
+            pattern: "0 * * * *"
+          pipelines: []
+        options:
+          batchTolerance: 100
+          concurrentPipelines:
+            amount: 10
+            rejectOnFailure: true
+          ttl: 3600
+          progressVerbosityLevel: "debug"
+        priority: 3
+        experimentName: "main"

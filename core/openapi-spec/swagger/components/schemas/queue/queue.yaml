@@ -1,0 +1,35 @@
+type: object
+properties:
+  nextCount:
+    type: integer
+    description: the count of the next set of results
+  prevCount:
+    type: integer
+    description: the count of the previous set of results
+  returnList:
+    type: array
+    description: the list of records returned
+    items:
+      type: object
+      properties:
+        jobId:
+          $ref: "#/components/schemas/jobId"
+        experimentName:
+          type: string
+          description: The name of the experiment
+        pipelineName:
+          $ref: "#/components/schemas/pipelineName"
+        priority:
+          type: integer
+          description: The job priority
+        maxExceeded:
+          type: boolean
+          description: Whether the job exceeded maximum limits
+        entranceTime:
+          type: integer
+          description: Job creation time (timestamp)
+        tags:
+          type: array
+          description: List of tags associated with the job
+          items:
+            type: string

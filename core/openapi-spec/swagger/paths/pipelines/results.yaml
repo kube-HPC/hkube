@@ -2,7 +2,7 @@ get:
   tags:
     - Pipelines
   summary: Get stored pipeline results
-  description: return results of stored pipelines by given pipeline name
+  description: Return results of stored pipelines by given pipeline name
   parameters:
     - name: name
       in: query
@@ -31,28 +31,12 @@ get:
         type: integer
   responses:
     "200":
-      description: action summary
-      content:
-        application/json:
-          schema:
-            type: array
-            items:
-              $ref: "#/components/schemas/pipelineResult"
+      $ref: "#/components/responses/pipelines_successGetResults"
     "400":
-      description: bad request
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/errorBadRequest"
+    "401":
+      $ref: "#/components/responses/unauthorized"
     "404":
-      description: pipelines Not Found
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/errorNotFound"
     default:
-      description: Unexpected error
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/default"
