@@ -332,7 +332,7 @@ class TaskRunner {
 
         const activeTime = pipeline.activeTime || Date.now();
         pipeline.activeTime = activeTime;
-        let { queueTime } = pipeline.queueTime;
+        let { queueTime } = pipeline;
         if (!queueTime) {
             queueTime = moment(activeTime).diff(moment(pipeline.startTime), 'seconds', true);
         }
