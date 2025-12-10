@@ -201,6 +201,7 @@ const jobTypeDefs = gql`
     kind: String
     priority: Int
     startTime: Float
+    activeTime: Float
     queueTime: Float
     types: [String]
     tags: [String]
