@@ -1,0 +1,62 @@
+description: Unscheduled algorithm information
+content:
+  application/json:
+    schema:
+      type: object
+      properties:
+        algorithmName:
+          $ref: "#/components/schemas/algorithmName"
+        type:
+          type: string
+        reason:
+          type: string
+        surpassTimeout:
+          type: boolean
+          description: Indicates if the warning will instantly show or after a timeout
+        message:
+          type: string
+          description: Summary of the resource issues
+        timestamp:
+          type: number
+        code:
+          type: number
+        isError:
+          type: boolean
+        complexResourceDescriptor:
+          $ref: "#/components/schemas/complexResourceDescriptor"
+    example:
+      super-high-cpu-alg:
+        algorithmName: "super-high-cpu-alg"
+        type: "warning"
+        reason: "failedScheduling"
+        surpassTimeout: true
+        message: "Maximum capacity exceeded cpu (3)"
+        timestamp: 1762871849238
+        code: 1002
+        isError: false
+        complexResourceDescriptor:
+          nodes:
+            - nodeName: "i-043e2ec9d37495af8"
+              amountsMissing:
+                cpu: "13.26"
+                mem: 0
+                gpu: 0
+              requestsOverMaxCapacity:
+                - ["cpu", true]
+            - nodeName: "i-0841e11234626d826"
+              amountsMissing:
+                cpu: "16.03"
+                mem: 0
+                gpu: 0
+              requestsOverMaxCapacity:
+                - ["cpu", true]
+            - nodeName: "i-0902443e5f420c52b"
+              amountsMissing:
+                cpu: "13.05"
+                mem: 0
+                gpu: 0
+              requestsOverMaxCapacity:
+                - ["cpu", true]
+        requestedResources:
+          cpu: 16
+          memory: "768Mi"

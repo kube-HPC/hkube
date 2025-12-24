@@ -1,0 +1,11 @@
+description: Success message when algorithm is deleted from store
+content:
+  application/json:
+    schema:
+      type: object
+      properties:
+        message:
+          type: string
+          description: A success message describing the outcome of the operation.
+    example:
+      message: "algorithm test successfully deleted from store. related data deleted: 2 builds"

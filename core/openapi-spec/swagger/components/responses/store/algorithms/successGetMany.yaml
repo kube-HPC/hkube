@@ -1,0 +1,47 @@
+description: Get a list of algorithms
+content:
+  application/json:
+    schema:
+      type: array
+      items:
+        $ref: "#/components/schemas/algorithm"
+    example:
+      - name: "tensor1"
+        cpu: 2
+        gpu: 0
+        mem: "5Gi"
+        minHotWorkers: 0
+        algorithmImage: "docker.io/hkubedevtest/tensor11:v1.0.0"
+        type: "Image"
+        options:
+          debug: false
+          pending: false
+        reservedMemory: "1024Mi"
+        version: "tdw3eq0tjj"
+        created: 1644412738637
+        modified: 1678363424371
+      - env: "python"
+        cpu: 4
+        mem: "256Mi"
+        name: "xxx"
+        entryPoint: "alg12"
+        userInfo:
+          platform: "darwin"
+          hostname: "Yehiyams-MBP"
+          username: "yehil"
+        type: "Code"
+        options:
+          pending: false
+        minHotWorkers: 0
+        fileInfo:
+          fileExt: "gz"
+          checksum: "5f2f7834f0af11b8ff7f1b7efda4a277329d4c7d"
+          fileSize: 2030
+          path: "cicd-hkube-builds/xxx-jvh03k"
+        algorithmImage: "docker.io/hkubedevtest/xxx:vqh6zkhuf1"
+        version: "5r7m0wjude"
+        created: 1644827311380
+        modified: 1703431185327
+        gpu: 0
+        reservedMemory: "512Mi"
+        nodeSelector: {}

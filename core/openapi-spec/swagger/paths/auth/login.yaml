@@ -8,24 +8,14 @@ post:
       application/json:
         schema:
           $ref: "#/components/schemas/loginRequest"
-    description: algorithm descriptor to be added to the store
+    description: Algorithm descriptor to be added to the store
     required: true
   responses:
     "200":
-      description: login successfull
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/loginResponse"
+      $ref: "#/components/responses/auth_loginSuccess"
     "400":
-      description: bad request
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/errorBadRequest"
+    "500":
+      $ref: "#/components/responses/auth_loginFailed"
     default:
-      description: Unexpected error
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/default"

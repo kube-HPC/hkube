@@ -1,0 +1,23 @@
+get:
+  tags:
+    - StorePipelines
+  summary: Get pipeline graph
+  description: Get specific pipeline graph from store
+  parameters:
+    - name: name
+      in: path
+      description: pipeline name to get from the store
+      required: true
+      schema:
+        type: string
+  responses:
+    "200":
+      $ref: "#/components/responses/storePipelines_successGetGraph"
+    "400":
+      $ref: "#/components/responses/errorBadRequest"
+    "401":
+      $ref: "#/components/responses/unauthorized"
+    "404":
+      $ref: "#/components/responses/errorNotFound"
+    default:
+      $ref: "#/components/responses/default"

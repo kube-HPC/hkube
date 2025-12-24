@@ -2,27 +2,26 @@ get:
     tags:
         - DataSource
     summary: Fetch a single dataSource by name
+    description: Fetch a specific datasource meta data by its name
     parameters:
         - $ref: '#/components/parameters/nameParam'
         - $ref: '#/components/parameters/idQuery'
     responses:
         '200':
-            description: A datasource item
-            content:
-                application/json:
-                    schema:
-                        allOf:
-                            - $ref: '#/components/schemas/DataSource'
-                            - type: object
-                              properties:
-                                  files:
-                                      type: array
-                                      items:
-                                          $ref: '#/components/schemas/FileMeta'
+            $ref: '#/components/responses/datasource_successGetSingle'
+        "400":
+            $ref: "#/components/responses/errorBadRequest"
+        "401":
+            $ref: "#/components/responses/unauthorized"
+        "404":
+            $ref: "#/components/responses/errorNotFound"
+        default:
+            $ref: "#/components/responses/default"
 post:
     tags:
         - DataSource
-    summary: upload a new file to a given datasource
+    summary: Upload a new file to a given datasource
+    description: Upload a new file to a given datasource by its name
     parameters:
         - $ref: '#/components/parameters/nameParam'
     requestBody:
@@ -34,25 +33,30 @@ post:
         required: true
     responses:
         '201':
-            description: new datasource version
-            content:
-                application/json:
-                    schema:
-                        $ref: '#/components/schemas/DataSourceWithMeta'
+            $ref: '#/components/responses/datasource_successUploadFile'
+        "400":
+            $ref: "#/components/responses/errorBadRequest"
+        "401":
+            $ref: "#/components/responses/unauthorized"
+        "404":
+            $ref: "#/components/responses/errorNotFound"
+        default:
+            $ref: "#/components/responses/default"
 delete:
     tags:
         - DataSource
-    summary: delete a datasource by name
+    summary: Deletes a datasource by name
+    description: Deletes a datasource by its name
     parameters:
         - $ref: '#/components/parameters/nameParam'
     responses:
         '200':
-            description: successfully deleted the datasource
-            content:
-                application/json:
-                    schema:
-                        type: object
-                        properties:
-                            deleted:
-                                type: string
-                                description: a delete acknowledgement
+            $ref: '#/components/responses/datasource_successDelete'
+        "400":
+            $ref: "#/components/responses/errorBadRequest"
+        "401":
+            $ref: "#/components/responses/unauthorized"
+        "404":
+            $ref: "#/components/responses/errorNotFound"
+        default:
+            $ref: "#/components/responses/default"

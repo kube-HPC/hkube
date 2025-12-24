@@ -1,0 +1,14 @@
+description: Get triggers hierarchy tree
+content:
+  application/json:
+    schema:
+      type: array
+      items:
+        $ref: "#/components/schemas/trigger"
+    example:
+      - name: "trigger"
+        children:
+          - name: "LiN6i0H8"
+            children: []
+          - name: "J7sbk1dv"
+            children: []

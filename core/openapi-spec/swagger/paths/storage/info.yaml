@@ -2,11 +2,11 @@ get:
   tags:
     - Storage
   summary: Get storage info
-  description: returns the storage info
+  description: Returns the storage info
   responses:
     "200":
-      description: storage response
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/defaultResponse"
+      $ref: "#/components/responses/storage_successGetInfo"
+    "401":
+      $ref: "#/components/responses/unauthorized"
+    default:
+      $ref: "#/components/responses/default"

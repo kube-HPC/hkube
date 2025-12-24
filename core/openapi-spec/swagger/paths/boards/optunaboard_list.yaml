@@ -1,24 +1,12 @@
 get:
   tags:
     - Boards
-  summary: Board list
-  description: Board list
+  summary: OptunaBoard list
+  description: OptunaBoard list
   responses:
     "200":
-      description: start board response
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/listBoardResponse"
-    "400":
-      description: bad request
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/boards_successListOptuna"
+    "401":
+      $ref: "#/components/responses/unauthorized"
     default:
-      description: Unexpected error
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/default"

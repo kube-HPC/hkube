@@ -1,0 +1,27 @@
+description: Get storage info
+content:
+  application/json:
+    schema:
+      type: object
+      properties:
+        type:
+          type: string
+          description: The type of storage used.
+        encoding:
+          type: string
+          description: The encoding format for the storage.
+        clusterName:
+          type: string
+          description: The name of the cluster.
+        moduleName:
+          type: string
+          description: The module name responsible for the storage.
+        storageResultsThreshold:
+          type: string
+          description: The threshold for storage results.
+    example:
+      type: "fs"
+      encoding: "msgpack"
+      clusterName: "cicd"
+      moduleName: "@hkube/fs-adapter"
+      storageResultsThreshold: "100Ki"

@@ -1,0 +1,13 @@
+description: Successfully stopped pipelines
+content:
+  application/json:
+    schema:
+      type: object
+      properties:
+        stoppedJobIds:
+          type: array
+          items:
+            $ref: "#/components/schemas/jobId"
+    example:
+      stoppedJobIds:
+        - "v7109gspifq8"

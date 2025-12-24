@@ -1,0 +1,11 @@
+description: Delete board response
+content:
+  application/json:
+    schema:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Confirmation message for board deletion
+    example:
+      message: "Board deleted"

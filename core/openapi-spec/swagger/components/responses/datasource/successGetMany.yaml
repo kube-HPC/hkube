@@ -1,0 +1,24 @@
+description: A collection of dataSources
+content:
+  application/json:
+    schema:
+      type: array
+      items:
+        $ref: '#/components/schemas/DataSourceMeta'
+    example:
+      - versionDescription: "initial version"
+        name: "ds1"
+        filesCount: 1
+        avgFileSize: 10
+        totalSize: 10
+        fileTypes:
+          - "application/json"
+        id: "6358e914ce505511b3b7200a"
+      - versionDescription: "initial version"
+        name: "check"
+        filesCount: 1
+        avgFileSize: 17
+        totalSize: 17
+        fileTypes:
+          - "text/csv"
+        id: "6412c85c1bf9d6296f0e01dc"

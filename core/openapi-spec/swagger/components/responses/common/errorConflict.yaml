@@ -1,0 +1,17 @@
+description: Request failed due to a conflict error.
+content:
+  application/json:
+    schema:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: integer
+            message:
+              type: string
+    example:
+      error:
+        code: 409
+        message: "could not create experiment, name is already taken"

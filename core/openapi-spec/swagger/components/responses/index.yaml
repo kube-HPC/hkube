@@ -1,0 +1,301 @@
+# auth
+auth_loginFailed:
+  $ref: ./auth/loginFailed.yaml
+auth_loginSuccess:
+  $ref: ./auth/loginSuccess.yaml
+
+# boards
+boards_successDelete:
+  $ref: ./boards/successDelete.yaml
+boards_successGetOptuna:
+  $ref: ./boards/successGetOptuna.yaml
+boards_successGetTensor:
+  $ref: ./boards/successGetTensor.yaml
+boards_successListOptuna:
+  $ref: ./boards/successListOptuna.yaml
+boards_successListTensor:
+  $ref: ./boards/successListTensor.yaml
+boards_successStartOptuna:
+  $ref: ./boards/successStartOptuna.yaml
+boards_successStartTensor:
+  $ref: ./boards/successStartTensor.yaml
+
+# builds
+builds_successGetMany:
+  $ref: ./builds/successGetMany.yaml
+builds_successGetSingle:
+  $ref: ./builds/successGetSingle.yaml
+builds_successWebhook:
+  $ref: ./builds/successWebhook.yaml
+
+# common
+errorBadRequest:
+  $ref: ./common/errorBadRequest.yaml
+default:
+  $ref: ./common/default.yaml
+errorConflict:
+  $ref: ./common/errorConflict.yaml
+errorInternalServerError:
+  $ref: ./common/errorInternalServerError.yaml
+errorNotFound:
+  $ref: ./common/errorNotFound.yaml
+success:
+  $ref: ./common/success.yaml
+unauthorized:
+  $ref: ./common/unauthorized.yaml
+
+# cron
+cron_successList:
+  $ref: ./cron/successList.yaml
+cron_successResults:
+  $ref: ./cron/successResults.yaml
+cron_successStatus:
+  $ref: ./cron/successStatus.yaml
+
+# datasource - snapshots
+datasource_snapshots_successCreate:
+  $ref: ./datasource/snapshots/successCreate.yaml
+datasource_snapshots_successGetByDatasource:
+  $ref: ./datasource/snapshots/successGetByDatasource.yaml
+datasource_snapshots_successGetMany:
+  $ref: ./datasource/snapshots/successGetMany.yaml
+datasource_snapshots_successGetPreview:
+  $ref: ./datasource/snapshots/successGetPreview.yaml
+datasource_snapshots_successGetSingle:
+  $ref: ./datasource/snapshots/successGetSingle.yaml
+
+# datasource
+datasource_internalServerError:
+  $ref: ./datasource/internalServerError.yaml
+datasource_successCreate:
+  $ref: ./datasource/successCreate.yaml
+datasource_successCredentialsUpdate:
+  $ref: ./datasource/successCredentialsUpdate.yaml
+datasource_successDelete:
+  $ref: ./datasource/successDelete.yaml
+datasource_successDownloadCreate:
+  $ref: ./datasource/successDownloadCreate.yaml
+datasource_successDownloadGet:
+  $ref: ./datasource/successDownloadGet.yaml
+datasource_successGetMany:
+  $ref: ./datasource/successGetMany.yaml
+datasource_successGetSingle:
+  $ref: ./datasource/successGetSingle.yaml
+datasource_successGetVersions:
+  $ref: ./datasource/successGetVersions.yaml
+datasource_successSync:
+  $ref: ./datasource/successSync.yaml
+datasource_successUploadFile:
+  $ref: ./datasource/successUploadFile.yaml
+datasource_successValidate:
+  $ref: ./datasource/successValidate.yaml
+
+# exec
+exec_successAudit:
+  $ref: ./exec/successAudit.yaml
+exec_successFlowInput:
+  $ref: ./exec/successFlowInput.yaml
+exec_successGetSinglePipeline:
+  $ref: ./exec/successGetSinglePipeline.yaml
+exec_successGetManyPipeline:
+  $ref: ./exec/successGetManyPipeline.yaml
+exec_successJobs:
+  $ref: ./exec/successJobs.yaml
+exec_successResults:
+  $ref: ./exec/successResults.yaml
+exec_successRun:
+  $ref: ./exec/successRun.yaml
+exec_successSearch:
+  $ref: ./exec/successSearch.yaml
+exec_successStatus:
+  $ref: ./exec/successStatus.yaml
+exec_successStop:
+  $ref: ./exec/successStop.yaml
+exec_successTree:
+  $ref: ./exec/successTree.yaml
+
+# experiment
+experiment_failedInsert:
+  $ref: ./experiment/failedInsert.yaml
+experiment_successDelete:
+  $ref: ./experiment/successDelete.yaml
+experiment_successInsert:
+  $ref: ./experiment/successInsert.yaml
+experiment_successMany:
+  $ref: ./experiment/successMany.yaml
+experiment_successSingle:
+  $ref: ./experiment/successSingle.yaml
+
+# gateway
+gateway_successMany:
+  $ref: ./gateway/successMany.yaml
+gateway_successSingle:
+  $ref: ./gateway/successSingle.yaml
+
+# gc
+gc_successClean:
+  $ref: ./gc/successClean.yaml
+gc_successCleanType:
+  $ref: ./gc/successCleanType.yaml
+gc_successStatus:
+  $ref: ./gc/successStatus.yaml
+gc_successStatusType:
+  $ref: ./gc/successStatusType.yaml
+
+# graph
+graph_successGraph:
+  $ref: ./graph/successGraph.yaml
+
+# kubernetes
+kubernetes_errorInternalServerError:
+  $ref: ./kubernetes/errorInternalServerError.yaml
+kubernetes_jobSuccess:
+  $ref: ./kubernetes/jobSuccess.yaml
+kubernetes_notFound:
+  $ref: ./kubernetes/notFound.yaml
+kubernetes_podSuccess:
+  $ref: ./kubernetes/podSuccess.yaml
+
+# managed
+managed_successList:
+  $ref: ./managed/successList.yaml
+managed_successPipeline:
+  $ref: ./managed/successPipeline.yaml
+managed_successTag:
+  $ref: ./managed/successTag.yaml
+
+# pipelines
+pipelines_successGetResults:
+  $ref: ./pipelines/successGetResults.yaml
+pipelines_successGetStatus:
+  $ref: ./pipelines/successGetStatus.yaml
+pipelines_successGetTree:
+  $ref: ./pipelines/successGetTree.yaml
+
+# preferred
+preferred_successAdd:
+  $ref: ./preferred/successAdd.yaml
+preferred_successDelete:
+  $ref: ./preferred/successDelete.yaml
+preferred_successList:
+  $ref: ./preferred/successList.yaml
+preferred_successPipeline:
+  $ref: ./preferred/successPipeline.yaml
+preferred_successTag:
+  $ref: ./preferred/successTag.yaml
+
+# queue
+queue_success:
+  $ref: ./queue/success.yaml
+
+# readme - algorithms
+readmeAlgorithms_successDelete:
+  $ref: ./readme/algorithms/successDelete.yaml
+readmeAlgorithms_successGet:
+  $ref: ./readme/algorithms/successGet.yaml
+readmeAlgorithms_successInsert:
+  $ref: ./readme/algorithms/successInsert.yaml
+readmeAlgorithms_successUpdate:
+  $ref: ./readme/algorithms/successUpdate.yaml
+
+# readme - pipelines
+readmePipelines_successDelete:
+  $ref: ./readme/pipelines/successDelete.yaml
+readmePipelines_successGet:
+  $ref: ./readme/pipelines/successGet.yaml
+readmePipelines_successInsert:
+  $ref: ./readme/pipelines/successInsert.yaml
+readmePipelines_successUpdate:
+  $ref: ./readme/pipelines/successUpdate.yaml
+
+# resources
+resources_notFound:
+  $ref: ./resources/notFound.yaml
+resources_successMany:
+  $ref: ./resources/successMany.yaml
+resources_successSingle:
+  $ref: ./resources/successSingle.yaml
+
+# status
+status_success:
+  $ref: ./status/success.yaml
+
+# store - algorithms
+storeAlgorithms_successApply:
+  $ref: ./store/algorithms/successApply.yaml
+storeAlgorithms_successDelete:
+  $ref: ./store/algorithms/successDelete.yaml
+storeAlgorithms_successGetMany:
+  $ref: ./store/algorithms/successGetMany.yaml
+storeAlgorithms_successGetSingle:
+  $ref: ./store/algorithms/successGetSingle.yaml
+storeAlgorithms_successInsert:
+  $ref: ./store/algorithms/successInsert.yaml
+storeAlgorithms_successSearch:
+  $ref: ./store/algorithms/successSearch.yaml
+storeAlgorithms_successUpdate:
+  $ref: ./store/algorithms/successUpdate.yaml
+
+# store - pipelines
+storePipelines_successDelete:
+  $ref: ./store/pipelines/successDelete.yaml
+storePipelines_successGetGraph:
+  $ref: ./store/pipelines/successGetGraph.yaml
+storePipelines_successGetMany:
+  $ref: ./store/pipelines/successGetMany.yaml
+storePipelines_successGetSingle:
+  $ref: ./store/pipelines/successGetSingle.yaml
+storePipelines_successInsert:
+  $ref: ./store/pipelines/successInsert.yaml
+storePipelines_successUpdate:
+  $ref: ./store/pipelines/successUpdate.yaml
+
+# versions
+versions_successDelete:
+  $ref: ./versions/successDelete.yaml
+
+# versions - algorithms
+versionsAlgorithms_successAlias:
+  $ref: ./versions/algorithms/successAlias.yaml
+versionsAlgorithms_successApply:
+  $ref: ./versions/algorithms/successApply.yaml
+versionsAlgorithms_successGetMany:
+  $ref: ./versions/algorithms/successGetMany.yaml
+versionsAlgorithms_successGetSingle:
+  $ref: ./versions/algorithms/successGetSingle.yaml
+versionsAlgorithms_successTag:
+  $ref: ./versions/algorithms/successTag.yaml
+
+# versions - pipelines
+versionsPipelines_successApply:
+  $ref: ./versions/pipelines/successApply.yaml
+versionsPipelines_successGetMany:
+  $ref: ./versions/pipelines/successGetMany.yaml
+versionsPipelines_successGetSingle:
+  $ref: ./versions/pipelines/successGetSingle.yaml
+versionsPipelines_successTag:
+  $ref: ./versions/pipelines/successTag.yaml
+
+# storage
+storage_notFound:
+  $ref: ./storage/notFound.yaml
+storage_successGetData:
+  $ref: ./storage/successGetData.yaml
+storage_successGetDownload:
+  $ref: ./storage/successGetDownload.yaml
+storage_successGetInfo:
+  $ref: ./storage/successGetInfo.yaml
+storage_successGetKeys:
+  $ref: ./storage/successGetKeys.yaml
+storage_successGetStream:
+  $ref: ./storage/successGetStream.yaml
+storage_successGetTypes:
+  $ref: ./storage/successGetTypes.yaml
+
+# webhooks
+webhooks_successList:
+  $ref: ./webhooks/successList.yaml
+webhooks_successResult:
+  $ref: ./webhooks/successResult.yaml
+webhooks_successStatus:
+  $ref: ./webhooks/successStatus.yaml

@@ -1,0 +1,34 @@
+description: List of versions for a given pipeline
+content:
+  application/json:
+    schema:
+      type: array
+      items:
+        $ref: "#/components/schemas/pipeline"
+    example:
+      - version: "avtuqvimpe"
+        semver: "1.0.0"
+        created: 1728477138990
+        name: "simple"
+        pipeline:
+          name: "simple"
+          nodes:
+            - nodeName: "green"
+              algorithmName: "green-alg"
+              input:
+                - "@flowInput.files.link"
+            - nodeName: "yellow"
+              algorithmName: "yellow-alg"
+              input:
+                - "@green"
+            - nodeName: "black"
+              algorithmName: "black-alg"
+              input:
+                - "@yellow"
+          flowInput:
+            files:
+              link: "links-1"
+          options:
+            batchTolerance: 100
+            progressVerbosityLevel: "debug"
+          version: "avtuqvimpe"

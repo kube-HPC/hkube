@@ -1,0 +1,44 @@
+description: Successfully retrieved pipeline status
+content:
+  application/json:
+    schema:
+      type: object
+      properties:
+        jobId:
+          type: string
+        timestamp:
+          type: number
+        status:
+          type: string
+        level:
+          type: string
+        pipeline:
+          type: string
+        data:
+          type: object
+          properties:
+            progress:
+              type: number
+            states:
+              type: object
+              additionalProperties:
+                type: number
+            details:
+              type: string
+        netTimeTook:
+          type: number
+        grossTimeTook:
+          type: number
+    example:
+      jobId: "qohsjh0in1a4"
+      timestamp: 1763643358294
+      status: "completed"
+      level: "info"
+      pipeline: "simple"
+      data:
+        progress: 100
+        states:
+          succeed: 3
+        details: "100% completed, 3 succeed"
+      netTimeTook: 3.576
+      grossTimeTook: 3.632

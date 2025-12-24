@@ -1,0 +1,11 @@
+description: A link to the generated zip file
+content:
+  application/json:
+    schema:
+      type: object
+      properties:
+        href:
+          type: string
+          format: uri
+    example:
+      href: "https://files.example.com/downloads/zip-12345.zip"

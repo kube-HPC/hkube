@@ -1,0 +1,10 @@
+description: Binary zip archive
+content:
+  application/octet-stream:
+    schema:
+      type: string
+      format: binary
+    examples:
+      sample:
+        summary: Example binary response (represented as a filename here)
+        value: "archive.zip"

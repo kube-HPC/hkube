@@ -12,20 +12,10 @@ post:
     required: true
   responses:
     "200":
-      description: success response
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/response"
+      $ref: "#/components/responses/gc_successClean"
     "400":
-      description: bad request
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/errorBadRequest"
+    "401":
+      $ref: "#/components/responses/unauthorized"
     default:
-      description: Unexpected error
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/default"

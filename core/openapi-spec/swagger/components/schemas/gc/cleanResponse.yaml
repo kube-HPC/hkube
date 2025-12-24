@@ -1,0 +1,44 @@
+type: array
+description: A list of cleaner service components with their object counts and samples.
+items:
+  type: object
+  properties:
+    name:
+      type: string
+      description: Name of the component (e.g., etcd, redis, storage)
+    count:
+      type: integer
+      description: Number of items found in the component.
+    sample:
+      description: A list or object containing sample keys or paths from the component.
+      oneOf:
+        - type: array
+          items:
+            type: string
+          description: A list of string paths or keys.
+        - type: object
+          properties:
+            results:
+              type: array
+              items:
+                type: string
+            temp:
+              type: array
+              items:
+                type: string
+            indices:
+              type: array
+              items:
+                type: string
+            builds:
+              type: array
+              items:
+                type: object
+                properties:
+                  path:
+                    type: string
+                  size:
+                    type: integer
+                  mtime:
+                    type: string
+                    format: date-time

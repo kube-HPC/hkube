@@ -1,0 +1,9 @@
+description: Bad request
+content:
+  application/json:
+    schema:
+      $ref: "#/components/schemas/error"
+    example:
+      error:
+        code: 400
+        message: "Unexpected token @ in JSON at position 14"

@@ -1,0 +1,19 @@
+description: Get cron job results successfully
+content:
+  application/json:
+    schema:
+      type: array
+      items:
+        $ref: "#/components/schemas/pipelineResult"
+    example:
+      - jobId: "i06o1nrn7q7c"
+        startTime: 1763308500094
+        pipeline: "pipe1"
+        data:
+          - nodeName: "evalmul"
+            algorithmName: "eval-alg"
+            result: 24
+        status: "completed"
+        timestamp: 1763308500500
+        timeTook: 0.406
+        storageModule: "@hkube/fs-adapter"

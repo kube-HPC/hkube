@@ -1,0 +1,10 @@
+type: object
+properties:
+  jobId:
+    $ref: "#/components/schemas/jobId"
+  timestamp:
+    type: string
+  edges:
+    $ref: "#/components/schemas/graphEdges"
+  nodes:
+    $ref: "#/components/schemas/graphNodes"

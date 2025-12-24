@@ -1,0 +1,48 @@
+get:
+  tags:
+    - StoreAlgorithms
+  summary: Get algorithm
+  description: Get specific algorithm from store
+  parameters:
+    - name: name
+      in: path
+      description: algorithm name to get from the store
+      required: true
+      schema:
+        type: string
+  responses:
+    "200":
+      $ref: "#/components/responses/storeAlgorithms_successGetSingle"
+    "401":
+      $ref: "#/components/responses/unauthorized"
+    "404":
+      $ref: "#/components/responses/errorNotFound"
+    default:
+      $ref: "#/components/responses/default"
+delete:
+  tags:
+    - StoreAlgorithms
+  summary: Delete algorithm
+  description: Delete existing algorithm from store
+  parameters:
+    - name: name
+      in: path
+      description: algorithm name to get from the store
+      required: true
+      schema:
+        type: string
+    - name: force
+      in: query
+      description: should also delete all related data, e.g. pipelines, builds, versions.
+      required: false
+      schema:
+        type: boolean
+  responses:
+    "200":
+      $ref: "#/components/responses/storeAlgorithms_successDelete"
+    "401":
+      $ref: "#/components/responses/unauthorized"
+    "404":
+      $ref: "#/components/responses/errorNotFound"
+    default:
+      $ref: "#/components/responses/default"

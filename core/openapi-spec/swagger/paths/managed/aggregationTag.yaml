@@ -1,0 +1,13 @@
+get:
+  tags:
+    - Managed
+  summary: Get managed
+  description: Get managed queue grouped by tags
+  responses:
+    "200":
+      $ref: "#/components/responses/managed_successTag"
+    "401":
+      $ref: "#/components/responses/unauthorized"
+    default:
+      $ref: "#/components/responses/default"
+            

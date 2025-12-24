@@ -1,0 +1,23 @@
+description: Get managed queue jobs
+content:
+  application/json:
+    schema:
+      $ref: "#/components/schemas/queue"
+    example:
+      nextCount: 0
+      prevCount: 0
+      returnList:
+        - jobId: "2vcurcxzvjlo"
+          experimentName: "main"
+          pipelineName: "sub-ein"
+          priority: 3
+          maxExceeded: true
+          entranceTime: 1762951686520
+          tags: []
+        - jobId: "v6cbu752upxx"
+          experimentName: "main"
+          pipelineName: "sub-ein"
+          priority: 3
+          maxExceeded: true
+          entranceTime: 1762951696523
+          tags: []

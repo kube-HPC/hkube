@@ -1,0 +1,9 @@
+description: Successfully get an experiment details
+content:
+  application/json:
+    schema:
+      $ref: "#/components/schemas/experiment"
+    example:
+      name: "free"
+      description: ""
+      created: 1658311318928

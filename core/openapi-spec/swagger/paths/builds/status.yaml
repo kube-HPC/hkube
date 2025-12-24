@@ -2,7 +2,7 @@ get:
   tags:
     - Builds
   summary: Get build status
-  description: returns the build status by specific build id
+  description: Returns the build status by specific build id
   parameters:
     - name: buildId
       in: path
@@ -12,26 +12,10 @@ get:
         type: string
   responses:
     "200":
-      description: algorithm apply response
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/defaultResponse"
-    "400":
-      description: bad request
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/builds_successGetSingle"
+    "401":
+      $ref: "#/components/responses/unauthorized"
     "404":
-      description: build Not Found
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/errorNotFound"
     default:
-      description: Unexpected error
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/default"
