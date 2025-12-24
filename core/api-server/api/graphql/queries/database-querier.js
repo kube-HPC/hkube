@@ -122,7 +122,7 @@ class DatabaseQuerier extends Events {
         return jobs;
     }
 
-    async jobSCountByQuery({ experimentName, pipelineName, pipelineType, pipelineStatus, algorithmName, datesRange, tag }, searchByPrefix = false) {
+    async jobSCountByQuery({ experimentName, pipelineName, pipelineType, pipelineStatus, algorithmName, datesRange, tags }, searchByPrefix = false) {
         const query = {
             experimentName,
             pipelineName,
@@ -130,7 +130,7 @@ class DatabaseQuerier extends Events {
             pipelineStatus,
             algorithmName,
             datesRange,
-            tag
+            tags
         };
         const jobsCount = await this._db.jobs.count({ query }, searchByPrefix);
         return jobsCount;
