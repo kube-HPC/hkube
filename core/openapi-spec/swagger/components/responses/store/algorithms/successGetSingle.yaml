@@ -1,0 +1,37 @@
+description: Get an algorithm data
+content:
+  application/json:
+    schema:
+      $ref: "#/components/schemas/algorithm"
+    example:
+      name: "green-alg"
+      algorithmImage: "hkube/algorithm-example-python"
+      cpu: 0.1
+      mem: "256Mi"
+      options:
+        pending: false
+      minHotWorkers: 0
+      type: "Image"
+      gpu: 0
+      reservedMemory: "512Mi"
+      version: "y40ietf7km"
+      created: 1671352085066
+      modified: 1757335500573
+      env: "nodejs"
+      workerEnv:
+        INACTIVE_WORKER_TIMEOUT_MS: 5000
+      buildStats:
+        total: 0
+        pending: 0
+        creating: 0
+        active: 0
+        completed: 0
+        failed: 0
+        stopped: 0
+      image:
+        algorithmImage: "hkube/algorithm-example-python"
+      algorithmEnv: {}
+      auditTrail:
+        - user: "usr"
+          timestamp: 1757335500573
+          version: "y40ietf7km"

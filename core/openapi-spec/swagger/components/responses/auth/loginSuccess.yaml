@@ -1,0 +1,35 @@
+description: Login Successful
+content:
+  application/json:
+    schema:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            access_token:
+              type: string
+            expires_in:
+              type: integer
+            refresh_expires_in:
+              type: integer
+            refresh_token:
+              type: string
+            token_type:
+              type: string
+            not-before-policy:
+              type: integer
+            session_state:
+              type: string
+            scope:
+              type: string
+    example:
+      data:
+        access_token: "token"
+        expires_in: 1800
+        refresh_expires_in: 1800
+        refresh_token: "token"
+        token_type: "Bearer"
+        not-before-policy: 1738661876
+        session_state: "1a66044a-d663-4f1b-96bb-660e066e6745"
+        scope: "profile email"

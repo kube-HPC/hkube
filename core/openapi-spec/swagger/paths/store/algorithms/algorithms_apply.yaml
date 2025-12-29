@@ -1,0 +1,32 @@
+post:
+  tags:
+    - StoreAlgorithms
+  summary: Apply algorithm
+  description: "Create or update algorithm, build id will be returned if build was triggered"
+  requestBody:
+    content:
+      multipart/form-data:
+        schema:
+          type: object
+          properties:
+            payload:
+              $ref: "#/components/schemas/algorithm"
+            options:
+              $ref: "#/components/schemas/algorithmApplyOptions"
+            file:
+              type: string
+              format: binary
+              description: "the algorithm source code (file types: zip, tar.gz)"
+    description: algorithm descriptor to be added to the store
+    required: true
+  responses:
+    "200":
+      $ref: "#/components/responses/storeAlgorithms_successApply"
+    "400":
+      $ref: "#/components/responses/errorBadRequest"
+    "401":
+      $ref: "#/components/responses/unauthorized"
+    "500":
+      $ref: "#/components/responses/errorInternalServerError"
+    default:
+      $ref: "#/components/responses/default"

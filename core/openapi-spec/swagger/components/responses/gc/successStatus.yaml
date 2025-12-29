@@ -1,0 +1,44 @@
+description: GC status response
+content:
+  application/json:
+    schema:
+      type: array
+      items:
+        $ref: "#/components/schemas/statusResponse"
+    example:
+      - name: datasource
+        enabled: true
+        isHealthy: true
+        cron: "0 0 * * *"
+        cronText: "At 12:00 AM (0 0 * * *)"
+        cronNextTick: "2025-11-14T00:00:00.000Z"
+        maxAge: 2880
+        lastCronStartTime: "13/11/2025 05:52:16"
+        lastCronEndTime: "13/11/2025 05:52:16"
+        totalCleaned: 0
+      - name: jobs
+        enabled: true
+        isHealthy: true
+        cron: "*/1 * * * *"
+        cronText: "Every minute (*/1 * * * *)"
+        cronNextTick: "2025-11-13T16:48:00.000Z"
+        maxAge:
+          completedMaxAge: 1
+          failedMaxAge: 1
+          pendingMaxAge: 1
+        lastCronStartTime: "13/11/2025 16:47:00"
+        lastCronEndTime: "13/11/2025 16:47:00"
+        totalCleaned: 0
+      - name: storage
+        enabled: true
+        isHealthy: true
+        cron: "0 2 * * *"
+        cronText: "At 02:00 AM (0 2 * * *)"
+        cronNextTick: "2025-11-14T02:00:00.000Z"
+        maxAge:
+          results: 14400
+          temp: 7200
+          builds: 14400
+        lastCronStartTime: "13/11/2025 05:52:16"
+        lastCronEndTime: "13/11/2025 05:52:16"
+        totalCleaned: 5

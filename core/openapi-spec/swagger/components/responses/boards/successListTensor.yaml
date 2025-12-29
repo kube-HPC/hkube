@@ -1,0 +1,68 @@
+description: Get Tensorboard list response
+content:
+  application/json:
+    schema:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: string
+            description: Unique identifier of the board
+          boardReference:
+            type: string
+            description: Reference key for the board
+          boardLink:
+            type: string
+            description: URL link to access the board
+          logDir:
+            type: string
+            description: Directory path where board logs are stored
+          status:
+            type: string
+            description: Current status of the board
+          result:
+            type: string
+            nullable: true
+            description: Result data if available
+          error:
+            type: string
+            nullable: true
+            description: Error message if any
+          endTime:
+            type: number
+            nullable: true
+            description: Timestamp when the board ended
+          startTime:
+            type: number
+            description: Timestamp when the board started
+          type:
+            type: string
+            description: Type of board (e.g., batch, streaming)
+          jobId:
+            type: string
+            description: Related job ID
+          nodeName:
+            type: string
+            description: Node name associated with the board
+          pipelineName:
+            type: string
+            description: Pipeline name associated with the board
+          timestamp:
+            type: number
+            description: Timestamp of the record
+    example:
+      - id: "4ispixlx3ka6:A"
+        boardReference: "bjkz"
+        boardLink: "hkube/board/bjkz/"
+        logDir: "/hkubedata/dev1-spot-hkube-algo-metrics/streaming/A/4ispixlx3ka6"
+        status: "running"
+        result: null
+        error: null
+        endTime: null
+        startTime: 1762959733001
+        type: "batch"
+        jobId: "4ispixlx3ka6"
+        nodeName: "A"
+        pipelineName: "streaming"
+        timestamp: 1762959789960

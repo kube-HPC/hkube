@@ -1,0 +1,16 @@
+description: New datasource version
+content:
+  application/json:
+    schema:
+      $ref: '#/components/schemas/DataSourceWithMeta'
+    example:
+      id: "69161346d1490230cf3724ee"
+      name: "myTest"
+      versionDescription: "test"
+      commitHash: "66f1edc"
+      filesCount: 2
+      avgFileSize: 43879638.5
+      totalSize: 87759277
+      fileTypes:
+        - "text/markdown"
+        - "application/vnd.debian.binary-package"

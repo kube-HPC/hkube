@@ -1,0 +1,13 @@
+description: Success Insert of New Experiment
+content:
+  application/json:
+    schema:
+      type: object
+      properties:
+        message:
+          type: string
+        name:
+          type: string
+    example:
+      message: "OK"
+      name: "expName123"

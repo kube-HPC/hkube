@@ -1,0 +1,16 @@
+description: System status
+content:
+  application/json:
+    schema:
+      type: object
+      properties:
+        systemVersion:
+          type: string
+        clusterName:
+          type: string
+        storage:
+          type: string
+    example:
+      systemVersion: "2.9.43-added-resilience_mechanism.19031413133"
+      clusterName: "dev1-spot"
+      storage: "fs"

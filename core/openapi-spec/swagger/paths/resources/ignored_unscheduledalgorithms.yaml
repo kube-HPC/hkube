@@ -1,0 +1,14 @@
+get:
+  tags:
+    - Resources
+  summary: Get resource status for all ignored unscheduled algorithms
+  description: Gets the history of algorithms that were unscheduled for reasons like resources or nodeSelector, but were scheduled later.
+  responses:
+    "200":
+      $ref: "#/components/responses/resources_successMany"
+    "400":
+      $ref: "#/components/responses/errorBadRequest"
+    "401":
+      $ref: "#/components/responses/unauthorized"
+    default:
+      $ref: "#/components/responses/default"

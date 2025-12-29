@@ -1,0 +1,84 @@
+get:
+  tags:
+    - StoreAlgorithms
+  summary: Get all algorithms
+  description: Get all available algorithms from store
+  parameters:
+    - name: sort
+      in: query
+      description: sort by
+      schema:
+        type: string
+  responses:
+    "200":
+      $ref: "#/components/responses/storeAlgorithms_successGetMany"
+    "400":
+      $ref: "#/components/responses/errorBadRequest"
+    "401":
+      $ref: "#/components/responses/unauthorized"
+    default:
+      $ref: "#/components/responses/default"
+post:
+  tags:
+    - StoreAlgorithms
+  summary: Insert algorithm
+  description: Insert new algorithm to store if not exists
+  requestBody:
+    content:
+      multipart/form-data:
+        schema:
+          type: object
+          properties:
+            payload:
+              $ref: "#/components/schemas/algorithm"
+            options:
+              $ref: "#/components/schemas/algorithmInsertOptions"
+            file:
+              type: string
+              format: binary
+              description: "the algorithm source code (file types: zip, tar.gz). Works only when inserting one algorithm."
+    description: algorithm descriptor to be added to the store
+    required: true
+  responses:
+    "201":
+      $ref: "#/components/responses/storeAlgorithms_successInsert"
+    "401":
+      $ref: "#/components/responses/unauthorized"
+    "409":
+      $ref: "#/components/responses/errorConflict"
+    "500":
+      $ref: "#/components/responses/errorInternalServerError"
+    default:
+      $ref: "#/components/responses/default"
+put:
+  tags:
+    - StoreAlgorithms
+  summary: Update algorithm
+  description: Update existing algorithm
+  requestBody:
+    content:
+      multipart/form-data:
+        schema:
+          type: object
+          properties:
+            payload:
+              $ref: "#/components/schemas/algorithm"
+            options:
+              $ref: "#/components/schemas/algorithmUpdateOptions"
+            file:
+              type: string
+              format: binary
+              description: "the algorithm source code (file types: zip, tar.gz)."
+    description: algorithm descriptor to be added to the store
+    required: true
+  responses:
+    "200":
+      $ref: "#/components/responses/storeAlgorithms_successUpdate"
+    "401":
+      $ref: "#/components/responses/unauthorized"
+    "404":
+      $ref: "#/components/responses/errorNotFound"
+    "500":
+      $ref: "#/components/responses/errorInternalServerError"
+    default:
+      $ref: "#/components/responses/default"

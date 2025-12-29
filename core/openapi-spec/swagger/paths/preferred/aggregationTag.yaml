@@ -1,0 +1,13 @@
+get:
+  tags:
+    - Preferred
+  summary: Get preferred
+  description: Get preferred queue grouped by tags
+  responses:
+    "200":
+      $ref: "#/components/responses/preferred_successTag"
+    "401":
+      $ref: "#/components/responses/unauthorized"
+    default:
+      $ref: "#/components/responses/default"
+            

@@ -1,0 +1,59 @@
+description: Gets pipeline status
+content:
+  application/json:
+    schema:
+      type: array
+      items:
+        type: object
+        properties:
+          jobId:
+            type: string
+            description: Unique identifier of the job
+          timestamp:
+            type: integer
+            description: Unix timestamp of the log entry
+          status:
+            type: string
+            description: Current status of the pipeline (e.g., completed, running)
+          level:
+            type: string
+            description: Log level (info, warning, error)
+          pipeline:
+            type: string
+            description: Name of the pipeline
+          data:
+            type: object
+            properties:
+              progress:
+                type: integer
+                description: Percentage of pipeline completion
+              states:
+                type: object
+                properties:
+                  succeed:
+                    type: integer
+                    description: Number of succeeded nodes
+              details:
+                type: string
+                description: Human-readable description of the pipeline progress
+          netTimeTook:
+            type: number
+            format: float
+            description: Net execution time of the pipeline
+          grossTimeTook:
+            type: number
+            format: float
+            description: Gross execution time of the pipeline
+    example:
+      - jobId: "rpm3fxjtfsa5"
+        timestamp: 1762432098128
+        status: "completed"
+        level: "info"
+        pipeline: "simple"
+        data:
+          progress: 100
+          states:
+            succeed: 3
+          details: "100% completed, 3 succeed"
+        netTimeTook: 9.649
+        grossTimeTook: 9.674

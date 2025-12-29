@@ -1,0 +1,13 @@
+description: Ensure a datasource exists by name, version or snapshot
+content:
+  application/json:
+    schema:
+      type: object
+      properties:
+        exists:
+          type: boolean
+        id:
+          type: string
+    example:
+      exists: true
+      id: "69161346d1490230cf3724ee"

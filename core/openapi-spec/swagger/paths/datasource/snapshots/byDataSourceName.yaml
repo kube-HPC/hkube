@@ -1,7 +1,8 @@
 post:
     tags:
         - DataSource
-    summary: create a new snapshot for a given datasource version
+    summary: Create a new snapshot for a given datasource version
+    description: Create a new snapshot for a given datasource version
     parameters:
         - $ref: "#/components/parameters/nameParam"
     requestBody:
@@ -11,23 +12,26 @@ post:
                     $ref: "#/components/schemas/SnapshotRequest"
     responses:
         "201":
-            description: A newly created snapshot
-            content:
-                application/json:
-                    schema:
-                        $ref: "#/components/schemas/Snapshot"
+            $ref: "#/components/responses/datasource_snapshots_successGetSingle"
+        "400":
+            $ref: "#/components/responses/errorBadRequest"
+        "401":
+            $ref: "#/components/responses/unauthorized"
+        "404":
+            $ref: "#/components/responses/errorNotFound"
+        default:
+            $ref: "#/components/responses/default"
 get:
     tags:
         - DataSource
-    summary: fetch all snapshots for a given datasource
+    summary: Fetch all snapshots for a given datasource
+    description: Fetch all snapshots for a given datasource
     parameters:
         - $ref: "#/components/parameters/nameParam"
     responses:
         "200":
-            description: A collection of snapshots
-            content:
-                application/json:
-                    schema:
-                        type: array
-                        items:
-                            $ref: "#/components/schemas/Snapshot"
+            $ref: "#/components/responses/datasource_snapshots_successGetMany"
+        "401":
+            $ref: "#/components/responses/unauthorized"
+        default:
+            $ref: "#/components/responses/default"

@@ -1,0 +1,19 @@
+description: Get storage types
+content:
+  application/json:
+    schema:
+      type: array
+      items:
+        type: string
+        description: A name representing a specific storage or service.
+    example:
+      - "cicd-hkube"
+      - "cicd-hkube-persistency"
+      - "cicd-hkube-results"
+      - "cicd-hkube-metadata"
+      - "cicd-hkube-store"
+      - "cicd-hkube-execution"
+      - "cicd-hkube-index"
+      - "cicd-hkube-builds"
+      - "cicd-hkube-algo-metrics"
+      - "cicd-hkube-datasource"

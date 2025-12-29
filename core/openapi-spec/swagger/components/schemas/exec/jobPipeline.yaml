@@ -1,0 +1,103 @@
+type: object
+properties:
+  jobId:
+    $ref: "#/components/schemas/jobId"
+  name:
+    type: string
+  nodes:
+    type: array
+    items:
+      type: object
+      properties:
+        nodeName:
+          type: string
+        algorithmName:
+          $ref: "#/components/schemas/algorithmName"
+        input:
+          type: array
+          items:
+            type: string
+        kind:
+          type: string
+        minStatelessCount:
+          type: integer
+  options:
+    type: object
+    properties:
+      batchTolerance:
+        type: integer
+      progressVerbosityLevel:
+        type: string
+      ttl:
+        type: integer
+  auditTrail:
+    type: array
+    items:
+      type: object
+      properties:
+        timestamp:
+          nullable: true
+        version:
+          type: string
+  created:
+    type: integer
+  modified:
+    type: integer
+  version:
+    type: string
+  triggers:
+    type: object
+    properties:
+      cron:
+        type: object
+        properties:
+          enabled:
+            type: boolean
+          pattern:
+            type: string
+  webhooks:
+    type: object
+    properties:
+      progress:
+        type: string
+      result:
+        type: string
+  priority:
+    type: integer
+  kind:
+    type: string
+  experimentName:
+    type: string
+  flowInput:
+    type: object
+  flowInputMetadata:
+    type: object
+    properties:
+      metadata:
+        type: object
+        additionalProperties:
+          type: object
+      storageInfo:
+        type: object
+        properties:
+          path:
+            type: string
+  maxExceeded:
+    type: boolean
+  startTime:
+    type: integer
+  lastRunResult:
+    type: object
+    properties:
+      timestamp:
+        type: integer
+      status:
+        type: string
+      timeTook:
+        type: number
+  types:
+    type: array
+    items:
+      type: string
+  activeTime:
+    type: integer

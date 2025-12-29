@@ -1,0 +1,360 @@
+description: Successfully retrieved list of jobs
+content:
+  application/json:
+    schema:
+      type: object
+      properties:
+        hits:
+          type: array
+          items:
+            type: object
+            properties:
+              jobId:
+                type: string
+              userPipeline:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  nodes:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        nodeName:
+                          type: string
+                        algorithmName:
+                          $ref: "#/components/schemas/algorithmName"
+                        input:
+                          type: array
+                          items: {}
+                        kind:
+                          type: string
+              pipeline:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  nodes:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        nodeName:
+                          type: string
+                        algorithmName:
+                          type: string
+                        input:
+                          type: array
+                          items: {}
+                        kind:
+                          type: string
+                        minStatelessCount:
+                          type: integer
+                  kind:
+                    type: string
+                  experimentName:
+                    type: string
+                  options:
+                    type: object
+                    properties:
+                      ttl:
+                        type: integer
+                      batchTolerance:
+                        type: integer
+                      progressVerbosityLevel:
+                        type: string
+                  priority:
+                    type: integer
+                  flowInput:
+                    type: object
+                    nullable: true
+                  maxExceeded:
+                    type: boolean
+                  startTime:
+                    type: integer
+                  lastRunResult:
+                    type: object
+                    properties:
+                      timestamp:
+                        type: integer
+                      status:
+                        type: string
+                      timeTook:
+                        type: number
+                  types:
+                    type: array
+                    items:
+                      type: string
+                  activeTime:
+                    type: integer
+              status:
+                type: object
+                properties:
+                  timestamp:
+                    type: integer
+                  status:
+                    type: string
+                  level:
+                    type: string
+                  pipeline:
+                    type: string
+                    nullable: true
+                  activeTime:
+                    type: integer
+                  data:
+                    type: object
+                    properties:
+                      progress:
+                        type: integer
+                      states:
+                        type: object
+                        additionalProperties:
+                          type: integer
+                      details:
+                        type: string
+                  reason:
+                    type: string
+                    nullable: true
+                  auditEntry:
+                    type: object
+                    properties:
+                      timestamp:
+                        type: integer
+                      user:
+                        type: string
+                      action:
+                        type: string
+              completion:
+                type: boolean
+              auditTrail:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    timestamp:
+                      type: integer
+                    user:
+                      type: string
+                    action:
+                      type: string
+              graph:
+                type: object
+                properties:
+                  jobId:
+                    type: string
+                  timestamp:
+                    type: integer
+                  edges:
+                    type: array
+                    items: {}
+                  nodes:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        nodeName:
+                          type: string
+                        algorithmName:
+                          type: string
+                        algorithmVersion:
+                          type: string
+                        taskId:
+                          type: string
+                        input:
+                          type: array
+                          items: {}
+                        podName:
+                          type: string
+                        status:
+                          type: string
+                        warnings:
+                          type: array
+                          items:
+                            type: string
+                          nullable: true
+                        startTime:
+                          type: integer
+                        endTime:
+                          type: integer
+                          nullable: true
+                        level:
+                          type: integer
+              pdIntervalTimestamp:
+                type: integer
+              result:
+                type: object
+                nullable: true
+                properties:
+                  startTime:
+                    type: integer
+                  pipeline:
+                    type: string
+                  reason:
+                    type: string
+                  status:
+                    type: string
+                  timestamp:
+                    type: integer
+                  timeTook:
+                    type: number
+        cursor:
+          type: string
+        timeTook:
+          type: string
+    example:
+      hits:
+        - jobId: "2xbtrycgafyc"
+          userPipeline:
+            name: "stayup"
+            nodes:
+              - nodeName: "stayup"
+                algorithmName: "stayup"
+                input: []
+                kind: "algorithm"
+            flowInput: null
+          pipeline:
+            name: "stayup"
+            nodes:
+              - nodeName: "stayup"
+                algorithmName: "stayup"
+                input: []
+                kind: "algorithm"
+                minStatelessCount: 0
+            kind: "batch"
+            experimentName: "main"
+            options:
+              ttl: 3600
+              batchTolerance: 80
+              progressVerbosityLevel: "info"
+            priority: 3
+            flowInput: null
+            maxExceeded: false
+            startTime: 1763569796132
+            lastRunResult:
+              timestamp: 1763569584804
+              status: "stopped"
+              timeTook: 8.329
+            types: ["algorithm"]
+            activeTime: 1763569796159
+          status:
+            timestamp: 1763569923241
+            status: "active"
+            level: "info"
+            activeTime: 1763569796159
+            data:
+              progress: 0
+              states: { active: 1 }
+              details: "0% completed, 1 active"
+            auditEntry:
+              timestamp: 1763569923210
+              user: "user"
+              action: "resume"
+          completion: false
+          auditTrail:
+            - timestamp: 1763569923210
+              user: "user"
+              action: "resume"
+            - timestamp: 1763569829120
+              user: "user"
+              action: "pause"
+            - timestamp: 1763569796132
+              user: "user"
+              action: "run"
+          graph:
+            jobId: "2xbtrycgafyc"
+            timestamp: 1763569923254
+            edges: []
+            nodes:
+              - nodeName: "stayup"
+                algorithmName: "stayup"
+                algorithmVersion: "f0wrnyr1i8"
+                taskId: "8h7nwltq"
+                input: []
+                podName: "stayup-7b2xd-8kmvn"
+                status: "active"
+                startTime: 1763569821514
+                level: 0
+          pdIntervalTimestamp: 1763571431392
+        - jobId: "86xs4wj75dm5"
+          userPipeline:
+            name: "stayup"
+            nodes:
+              - nodeName: "stayup"
+                algorithmName: "stayup"
+                input: []
+                kind: "algorithm"
+            flowInput: null
+          pipeline:
+            name: "stayup"
+            nodes:
+              - nodeName: "stayup"
+                algorithmName: "stayup"
+                input: []
+                kind: "algorithm"
+                minStatelessCount: 0
+            kind: "batch"
+            experimentName: "main"
+            options:
+              ttl: 3600
+              batchTolerance: 80
+              progressVerbosityLevel: "info"
+            priority: 3
+            flowInput: null
+            maxExceeded: false
+            startTime: 1763569687522
+            lastRunResult:
+              timestamp: 1763569584804
+              status: "stopped"
+              timeTook: 8.329
+            types: ["algorithm", "rerun"]
+            activeTime: 1763569687550
+          status:
+            timestamp: 1763569822474
+            status: "stopped"
+            level: "debug"
+            pipeline: "stayup"
+            data:
+              progress: 0
+              states: { stopped: 1 }
+              details: "0% completed, 1 stopped"
+            reason: "Request from simulator, Algorithms-tab Delete action"
+            auditEntry:
+              timestamp: 1763569811458
+              user: "user"
+              action: "stop"
+          completion: true
+          auditTrail:
+            - timestamp: 1763569811458
+              user: "user"
+              action: "stop"
+            - timestamp: 1763569687522
+              user: "user"
+              action: "run"
+          graph:
+            jobId: "86xs4wj75dm5"
+            timestamp: 1763569821507
+            edges: []
+            nodes:
+              - nodeName: "stayup"
+                algorithmName: "stayup"
+                algorithmVersion: "lmt8tlcq9o"
+                taskId: "7f42vfs7"
+                input: []
+                podName: "stayup-7b2xd-8kmvn"
+                status: "stopped"
+                warnings:
+                  - "Insufficient cpu (3)\nNode: ... resource requests."
+                startTime: 1763569798891
+                endTime: 1763569821480
+                level: 0
+          pdIntervalTimestamp: 1763569821508
+          result:
+            startTime: 1763569687522
+            pipeline: "stayup"
+            reason: "Request from simulator, Algorithms-tab Delete action"
+            status: "stopped"
+            timestamp: 1763569811471
+            timeTook: 123.95
+      cursor: "691dee33219967f118f5bdfe"
+      timeTook: "1.62ms"

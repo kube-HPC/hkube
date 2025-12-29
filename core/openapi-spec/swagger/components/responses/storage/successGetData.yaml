@@ -1,0 +1,10 @@
+description: Get storage data
+content:
+  application/json:
+    schema:
+      type: array
+      items:
+        type: string
+        description: A storage prefix or name.
+    example:
+      - "jnk"

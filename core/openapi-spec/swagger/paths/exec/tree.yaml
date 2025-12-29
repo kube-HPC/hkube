@@ -9,29 +9,15 @@ get:
       description: Unique identifier representing pipeline execution
       required: true
       schema:
-        type: string
+        $ref: "#/components/schemas/jobId"
   responses:
     "200":
-      description: pipeline tree
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/execTreeResult"
+      $ref: "#/components/responses/exec_successTree"
     "400":
-      description: bad request
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/errorBadRequest"
+    "401":
+      $ref: "#/components/responses/unauthorized"
     "404":
-      description: jobId Not Found
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/errorNotFound"
     default:
-      description: Unexpected error
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/default"

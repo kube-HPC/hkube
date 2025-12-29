@@ -1,0 +1,5 @@
+description: webhook created
+content:
+  application/json:
+    schema:
+      $ref: "#/components/schemas/defaultResponse"

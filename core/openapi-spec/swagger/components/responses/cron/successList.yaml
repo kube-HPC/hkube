@@ -1,0 +1,26 @@
+description: List of pipelines with cron settings
+content:
+  application/json:
+    schema:
+      type: array
+      items:
+        type: object
+        properties:
+          name:
+            type: string
+          cron:
+            type: object
+            properties:
+              enabled:
+                type: boolean
+              pattern:
+                type: string
+    example:
+      - name: "pipeline1"
+        cron:
+          enabled: true
+          pattern: "0 * * * *"
+      - name: "pipeline2"
+        cron:
+          enabled: false
+          pattern: "30 2 * * *"

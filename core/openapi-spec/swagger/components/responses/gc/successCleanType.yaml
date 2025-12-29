@@ -1,0 +1,14 @@
+description: success response
+content:
+  application/json:
+    schema:
+      $ref: "#/components/schemas/cleanResponse"
+    example:
+      - name: etcd
+        count: 5
+        sample:
+          - "/jobs/status/faixtl11f5mv"
+          - "/jobs/status/x8i96aahqahu"
+          - "/jobs/results/faixtl11f5mv"
+          - "/jobs/results/x8i96aahqahu"
+          - "/algorithms/queue/eval-alg"

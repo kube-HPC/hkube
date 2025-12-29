@@ -1,0 +1,12 @@
+type: object
+properties:
+  name:
+    type: string
+    description: Name of the node
+  children:
+    type: array
+    description: Child nodes (only one level deep)
+    items:
+      type: object
+      description: Empty array (might have children as well)
+      items: {}
