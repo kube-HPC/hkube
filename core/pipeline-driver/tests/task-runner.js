@@ -109,9 +109,11 @@ describe('TaskRunner', function () {
         nodesMap.setNode(node1);
         nodesMap.setNode(node2);
         const status = { status: 'active' };
+        const startTime = Date.now();
+        await delay(1500);
         const activeTime = Date.now();
         await stateManager.createJob({ jobId, pipeline, status });
-        await stateManager.updatePipeline({ jobId, activeTime });
+        await stateManager.updatePipeline({ jobId, activeTime, startTime });
         await stateManager._etcd.jobs.tasks.set({ jobId, taskId: node1.taskId, status: 'succeed' });
         await stateManager._etcd.jobs.tasks.set({ jobId, taskId: node2.taskId, status: 'succeed' });
         const spy = sinon.spy(taskRunner, "_recoverPipeline");
@@ -119,6 +121,8 @@ describe('TaskRunner', function () {
         await taskRunner.start(job)
         expect(spy.calledOnce).to.equal(true);
         expect(taskRunner.pipeline.activeTime).to.equal(activeTime);
+        expect(taskRunner.pipeline.queueTime).to.be.equal(
+        require('moment')(taskRunner.pipeline.activeTime).diff(require('moment')(taskRunner.pipeline.startTime), 'seconds', true));
     });
 
     it.skip('should recover succeed tasks', async function () {
