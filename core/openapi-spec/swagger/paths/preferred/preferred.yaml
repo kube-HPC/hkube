@@ -1,19 +1,19 @@
 get:
   tags:
     - Preferred
-  summary: Get preferred
-  description: Get preferred
+  summary: Get preferred list
+  description: Get preferred queue list
   parameters:
     - name: firstJobId
       in: query
       description: from this job and on
       schema:
-        type: string
+        $ref: "#/components/schemas/jobId"
     - name: lastJobId
       in: query
       description: up to this job
       schema:
-        type: string 
+        $ref: "#/components/schemas/jobId"
     - name: pageSize
       in: query
       required: true
@@ -23,7 +23,7 @@ get:
     - name: pipelineName
       in: query
       schema:
-        type: string         
+        $ref: "#/components/schemas/pipelineName"       
       description: filter by pipeline       
     - name: tag
       in: query 
@@ -37,23 +37,11 @@ get:
       description: Should get the jobs from the end of the list                  
   responses:
     "200":
-      description: Get preferred
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/searchJobsResponse"
-    "400":
-      description: Bad request
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/preferred_successList"
+    "401":
+      $ref: "#/components/responses/unauthorized"
     default:
-      description: Unexpected error
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/default"
 post:
   tags:
     - Preferred
@@ -67,22 +55,12 @@ post:
     required: true
   responses:
     "200":
-      description: start board response
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/addToPreferredRequest"
+      $ref: "#/components/responses/preferred_successAdd"
     "400":
-      description: bad request
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/errorBadRequest"
+    "401":
+      $ref: "#/components/responses/unauthorized"
     default:
-      description: Unexpected error
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/default"
 
 

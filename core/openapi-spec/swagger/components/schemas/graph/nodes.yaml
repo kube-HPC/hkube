@@ -1,0 +1,54 @@
+type: array
+items:
+  type: object
+  properties:
+    nodeName:
+      type: string
+    algorithmName:
+      $ref: "#/components/schemas/algorithmName"
+    algorithmVersion:
+      type: string
+    taskId:
+      type: string
+    input:
+      type: array
+      items:
+        type: object
+        properties:
+          path:
+            type: string
+          size:
+            type: integer
+    output:
+      type: object
+      properties:
+        storageInfo:
+          type: object
+          properties:
+            path:
+              type: string
+            size:
+              type: integer
+        metadata:
+          type: object
+          additionalProperties:
+            type: object
+        discovery:
+          type: object
+          properties:
+            host:
+              type: string
+            port:
+              type: string
+        taskId:
+          type: string
+    podName:
+      type: string
+    status:
+      type: string
+    startTime:
+      type: integer
+    endTime:
+      type: integer
+    level:
+      type: integer

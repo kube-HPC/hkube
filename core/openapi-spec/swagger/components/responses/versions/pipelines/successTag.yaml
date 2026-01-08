@@ -1,0 +1,43 @@
+description: Tag version success
+content:
+  application/json:
+    schema:
+      $ref: "#/components/schemas/pipeline"
+    example:
+      version: "np5m8zqrmg"
+      semver: "1.0.0"
+      created: 1737364974899
+      name: "simple2"
+      pipeline:
+        modified: 1737364974897
+        name: "simple2"
+        kind: "batch"
+        nodes:
+          - nodeName: "green"
+            algorithmName: "eval-alg"
+            input:
+              - "#@flowInput.inp"
+            kind: "algorithm"
+            minStatelessCount: 0
+          - nodeName: "yellow"
+            algorithmName: "yellow-alg"
+            input:
+              - "#@green.0"
+            kind: "algorithm"
+            minStatelessCount: 0
+          - nodeName: "black"
+            algorithmName: "black-alg"
+            input:
+              - "@yellow"
+            kind: "algorithm"
+            minStatelessCount: 0
+        triggers:
+          pipelines: []
+        options:
+          batchTolerance: 80
+          ttl: 3600
+          progressVerbosityLevel: "info"
+        priority: 3
+        experimentName: "main"
+        version: "np5m8zqrmg"
+      versionAlias: "yestest"

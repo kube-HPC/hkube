@@ -30,8 +30,8 @@ const routes = (options) => {
         res.json({ message: 'OK' });
     });
     router.post('/stop', keycloak.getProtect(keycloakRoles.API_EXECUTE), async (req, res) => {
-        const { name, pattern } = req.body;
-        await Cron.stopCronJob({ name, pattern });
+        const { name } = req.body;
+        await Cron.stopCronJob({ name });
         res.json({ message: 'OK' });
     });
 

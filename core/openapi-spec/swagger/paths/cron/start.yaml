@@ -11,26 +11,12 @@ post:
     required: true
   responses:
     "200":
-      description: action summary
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/defaultResponse"
+      $ref: "#/components/responses/success"
     "400":
-      description: bad request
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/errorBadRequest"
+    "401":
+      $ref: "#/components/responses/unauthorized"
     "404":
-      description: pipeline Not Found
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/errorNotFound"
     default:
-      description: Unexpected error
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/default"

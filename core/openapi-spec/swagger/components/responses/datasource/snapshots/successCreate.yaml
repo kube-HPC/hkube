@@ -1,0 +1,21 @@
+description: A newly created snapshot
+content:
+  application/json:
+    schema:
+      $ref: "#/components/schemas/Snapshot"
+    example:
+      name: "string"
+      query: "string"
+      dataSource:
+        id: "6515408e9f1b8b387483a4d1"
+        name: "myTest"
+      filteredFilesList: []
+      droppedFiles:
+        - path: "/"
+          id: "ser-4m30"
+          name: "mongodb-compass_1.28.1_amd64.deb"
+          size: 87759268
+          type: "application/vnd.debian.binary-package"
+          meta: ""
+          uploadedAt: 1695891600994
+      id: "69161401d149024e6c3724ef"

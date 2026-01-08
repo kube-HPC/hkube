@@ -1,0 +1,20 @@
+post:
+  tags:
+    - Boards
+  summary: Start Tensorboard
+  description: Start Tensorboard
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: "#/components/schemas/createBoardRequest"
+    required: true
+  responses:
+    "200":
+      $ref: "#/components/responses/boards_successStartTensor"
+    "400":
+      $ref: "#/components/responses/errorBadRequest"
+    "401":
+      $ref: "#/components/responses/unauthorized"
+    default:
+      $ref: "#/components/responses/default"

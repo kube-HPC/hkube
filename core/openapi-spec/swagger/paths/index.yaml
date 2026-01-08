@@ -78,23 +78,25 @@
 /datasource/validate:
   $ref: ./datasource/validate.yaml
 
-# store
+# store - Algorithms
 /store/algorithms/{name}:
-  $ref: ./store/algorithms_name.yaml
+  $ref: ./store/algorithms/algorithms_name.yaml
 /store/algorithmsFilter:
-  $ref: ./store/algorithms_search.yaml
+  $ref: ./store/algorithms/algorithms_search.yaml
 /store/algorithms:
-  $ref: ./store/algorithms.yaml
+  $ref: ./store/algorithms/algorithms.yaml
 /store/algorithms/apply:
-  $ref: ./store/algorithms_apply.yaml
+  $ref: ./store/algorithms/algorithms_apply.yaml
+
+# store - Pipelines
 /store/pipelines/{name}:
-  $ref: ./store/pipelines_name.yaml
+  $ref: ./store/pipelines/pipelines_name.yaml
 /store/pipelines/graph/{name}:
-  $ref: ./store/pipeline_graph.yaml
+  $ref: ./store/pipelines/pipeline_graph.yaml
 /store/pipelines/graph:
-  $ref: ./store/pipeline_graph_object.yaml
+  $ref: ./store/pipelines/pipeline_graph_object.yaml
 /store/pipelines:
-  $ref: ./store/pipelines.yaml
+  $ref: ./store/pipelines/pipelines.yaml
 
 # webhooks
 /webhooks/status/{jobId}:
@@ -106,13 +108,13 @@
 
 # boards
 /boards/tensors:
-  $ref: ./boards/tensorboard_create.yaml
+  $ref: ./boards/tensorboard_start.yaml
 /boards/tensors/{id}:
   $ref: ./boards/tensorboard_single.yaml
 /boards/tensors/:
   $ref: ./boards/tensorboard_list.yaml
 /boards/optunas:
-  $ref: ./boards/optunaboard_create.yaml
+  $ref: ./boards/optunaboard_start.yaml
 /boards/optunas/{id}:
   $ref: ./boards/optunaboard_single.yaml
 /boards/optunas/:
@@ -124,16 +126,17 @@
 /queue/preferred/deletes:
   $ref: ./preferred/deletes.yaml
 /queue/preferred/aggregation/pipeline:
-  $ref: ./aggregation/preferred.yaml
+  $ref: ./preferred/aggregationPipeline.yaml
 /queue/preferred/aggregation/tag:
-  $ref: ./aggregation/preferred.yaml
+  $ref: ./preferred/aggregationTag.yaml
+
 # managed
-/queue/managed/aggregation/pipeline:
-  $ref: ./aggregation/managed.yaml
-/queue/managed/aggregation/tag:
-  $ref: ./aggregation/managed.yaml
 /queue/managed/:
   $ref: ./managed/list.yaml
+/queue/managed/aggregation/pipeline:
+  $ref: ./managed/aggregationPipeline.yaml
+/queue/managed/aggregation/tag:
+  $ref: ./managed/aggregationTag.yaml
 
 # queue
 /queue/count:
@@ -239,18 +242,22 @@
 /status/version:
   $ref: ./status/version.yaml
 
-#resource
+# resources
 /resources/unscheduledalgorithms/:
   $ref: ./resources/unscheduledalgorithms.yaml
-/resources/unscheduledalgorithms/{algorithmName}:
-  $ref: ./resources/unscheduledalgorithms_algorithmName.yaml
+/resources/unscheduledalgorithms/{name}:
+  $ref: ./resources/unscheduledalgorithms_name.yaml
+/resources/ignoredunscheduledalgorithms/:
+  $ref: ./resources/ignored_unscheduledalgorithms.yaml
+/resources/ignoredunscheduledalgorithms/{name}:
+  $ref: ./resources/ignored_unscheduledalgorithms_name.yaml
 
-#kubernetes
+# kubernetes
 /kubernetes/algorithms/pods/{algName}:
   $ref: ./kubernetes/algorithms_pods_algname.yaml
 /kubernetes/algorithms/jobs/{algName}:
   $ref: ./kubernetes/algorithms_jobs_algname.yaml
 
-#auth
+# auth
 /auth/login:
   $ref: ./auth/login.yaml

@@ -1,0 +1,6 @@
+description: Algorithm Not Found in Unscheduled List
+content:
+  application/json:
+    schema:
+      type: string
+    example: "Algorithm alg-name not found in the unscheduled list"

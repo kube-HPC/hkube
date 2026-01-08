@@ -1,0 +1,55 @@
+description: Start Optunasboard response
+content:
+  application/json:
+    schema:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier of the started board
+        message:
+          type: string
+          description: Confirmation message for board start
+        boardUrl:
+          type: object
+          description: Board details and status
+          properties:
+            id:
+              type: string
+              description: Unique board identifier
+            boardReference:
+              type: string
+              description: Reference key for the board
+            boardLink:
+              type: string
+              description: URL link to access the board
+            status:
+              type: string
+              description: Current status of the board
+            result:
+              type: string
+              nullable: true
+              description: Board result data (if any)
+            error:
+              type: string
+              nullable: true
+              description: Error message (if any)
+            endTime:
+              type: number
+              nullable: true
+              description: Timestamp when the board ended
+            startTime:
+              type: number
+              description: Timestamp when the board started
+    example:
+      id: "aaa"
+      message: "Board started successfully"
+      boardUrl:
+        id: "aaa"
+        boardReference: "erlz"
+        boardLink: "hkube/board/erlz/dashboard"
+        status: "pending"
+        result: null
+        error: null
+        endTime: null
+        startTime: 1762959877219

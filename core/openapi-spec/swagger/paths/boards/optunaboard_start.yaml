@@ -1,0 +1,20 @@
+post:
+  tags:
+    - Boards
+  summary: Start Optunaboard
+  description: Start Optunaboard
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: "#/components/schemas/createOptunaboardRequest"
+    required: true
+  responses:
+    "200":
+      $ref: "#/components/responses/boards_successStartOptuna"
+    "400":
+      $ref: "#/components/responses/errorBadRequest"
+    "401":
+      $ref: "#/components/responses/unauthorized"
+    default:
+      $ref: "#/components/responses/default"

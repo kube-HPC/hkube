@@ -1,0 +1,15 @@
+description: Successfully retrieved execution tree
+content:
+  application/json:
+    schema:
+      $ref: "#/components/schemas/execTreeResult"
+    example:
+      jobId: "2n3j1j13htek"
+      name: "trigger"
+      children:
+        - name: "LiN6i0H8"
+          jobId: "3d03hgzufh2z"
+          children: []
+        - name: "J7sbk1dv"
+          jobId: "iqsd220kaicg"
+          children: []

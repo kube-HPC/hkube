@@ -1,0 +1,26 @@
+description: Define pipeline edges and nodes
+content:
+  application/json:
+    schema:
+      $ref: "#/components/schemas/graph"
+    example:
+      edges:
+        - from: "green"
+          to: "yellow"
+          value:
+            types:
+              - "waitNode"
+              - "input"
+        - from: "yellow"
+          to: "black"
+          value:
+            types:
+              - "waitNode"
+              - "input"
+      nodes:
+        - nodeName: "green"
+          algorithmName: "green-alg"
+        - nodeName: "yellow"
+          algorithmName: "yellow-alg"
+        - nodeName: "black"
+          algorithmName: "black-alg"

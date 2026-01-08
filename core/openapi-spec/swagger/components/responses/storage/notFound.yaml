@@ -1,0 +1,23 @@
+description: The specified resource could not be found.
+content:
+  application/json:
+    schema:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: integer
+              description: The error code.
+            message:
+              type: string
+              description: A brief error message indicating the nature of the issue.
+            details:
+              type: string
+              description: A more detailed message providing additional context, such as the specific file or directory that could not be found.
+    example:
+      error:
+        code: 404
+        message: "prefix cicd-hkube111 Not Found"
+        details: "ENOENT: no such file or directory, scandir '/hkubedata/cicd-hkube111'"

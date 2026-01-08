@@ -1,0 +1,10 @@
+description: Success response for version deletion
+content:
+  application/json:
+    schema:
+      type: object
+      properties:
+        deleted:
+          type: integer
+    example:
+      deleted: 1
