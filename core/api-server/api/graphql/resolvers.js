@@ -277,7 +277,8 @@ class GraphqlResolvers {
             },
             AggregatedJobs: {
                 async jobsCount(parent, args, context) {
-                    const count = await dbQueires.jobSCountByQuery(context && context.args ? context.args : {}) || 0;
+                    const searchByPrefix = true;
+                    const count = await dbQueires.jobSCountByQuery(context && context.args ? context.args : {}, searchByPrefix) || 0;
                     return count;
                 }
             },

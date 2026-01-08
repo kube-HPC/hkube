@@ -129,10 +129,12 @@ jobs:
           DOCKER_BUILD_PUSH_USERNAME: ${{ secrets.DOCKER_BUILD_PUSH_USERNAME }}
           IMAGE_PULL_USERNAME: ${{ secrets.IMAGE_PULL_USERNAME }}
           IMAGE_PULL_PASSWORD: ${{ secrets.IMAGE_PULL_PASSWORD }}
+          KEYCLOAK_ADMIN_PASS: ${{ secrets.KC_ADMIN_PASSWORD }}
       - uses: actions/upload-artifact@v4
         with:
           name: dev1.yml
           path: /tmp/dev1.yml
+          retention-days: 1
       - name: set deployment status to failure
         id: failed_deployment
         uses: octokit/request-action@v2.x
