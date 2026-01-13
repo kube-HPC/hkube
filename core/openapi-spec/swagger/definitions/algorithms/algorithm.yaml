@@ -226,7 +226,7 @@ properties:
     type: object
     properties:
       fsGroup:
-        type: string
+        type: number
       hasFsGroupChangePolicy:
         type: string
 required:
