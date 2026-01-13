@@ -161,8 +161,9 @@ const _processAllRequests = (
         const resourceRequests = createContainerResource(algorithmTemplate);
         const workerResourceRequests = createContainerResource(workerResources);
 
+        // eslint-disable-next-line max-len
         const { kind, workerEnv, algorithmEnv, labels, annotations, version: algorithmVersion, nodeSelector,
-            entryPoint, options: algorithmOptions, reservedMemory, mounts, env, sideCars, volumes, volumeMounts } = algorithmTemplate;
+            entryPoint, options: algorithmOptions, reservedMemory, mounts, env, sideCars, volumes, volumeMounts, securityContext } = algorithmTemplate;
 
         // Add request details for new job creation (will need to get confirmation via matchJobsToResources)
         createDetails.push({
@@ -187,6 +188,7 @@ const _processAllRequests = (
                 algorithmOptions,
                 mounts,
                 reservedMemory,
+                securityContext,
                 sideCars,
                 workerCustomResources,
                 volumes,

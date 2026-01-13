@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "2.8.10",
+    "version": "2.8.11",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -7154,6 +7154,17 @@
                           }
                         }
                       ]
+                    },
+                    "securityContext": {
+                      "type": "object",
+                      "properties": {
+                        "fsGroup": {
+                          "type": "number"
+                        },
+                        "hasFsGroupChangePolicy": {
+                          "type": "string"
+                        }
+                      }
                     }
                   },
                   "required": [
@@ -7838,6 +7849,17 @@
                             }
                           }
                         ]
+                      },
+                      "securityContext": {
+                        "type": "object",
+                        "properties": {
+                          "fsGroup": {
+                            "type": "number"
+                          },
+                          "hasFsGroupChangePolicy": {
+                            "type": "string"
+                          }
+                        }
                       }
                     },
                     "required": [
@@ -8328,6 +8350,17 @@
                             }
                           }
                         ]
+                      },
+                      "securityContext": {
+                        "type": "object",
+                        "properties": {
+                          "fsGroup": {
+                            "type": "number"
+                          },
+                          "hasFsGroupChangePolicy": {
+                            "type": "string"
+                          }
+                        }
                       }
                     },
                     "required": [
@@ -8813,6 +8846,17 @@
                         }
                       }
                     ]
+                  },
+                  "securityContext": {
+                    "type": "object",
+                    "properties": {
+                      "fsGroup": {
+                        "type": "number"
+                      },
+                      "hasFsGroupChangePolicy": {
+                        "type": "string"
+                      }
+                    }
                   }
                 },
                 "required": [
@@ -9354,6 +9398,17 @@
                         }
                       }
                     ]
+                  },
+                  "securityContext": {
+                    "type": "object",
+                    "properties": {
+                      "fsGroup": {
+                        "type": "number"
+                      },
+                      "hasFsGroupChangePolicy": {
+                        "type": "string"
+                      }
+                    }
                   }
                 },
                 "required": [
@@ -9870,6 +9925,17 @@
                             }
                           }
                         ]
+                      },
+                      "securityContext": {
+                        "type": "object",
+                        "properties": {
+                          "fsGroup": {
+                            "type": "number"
+                          },
+                          "hasFsGroupChangePolicy": {
+                            "type": "string"
+                          }
+                        }
                       }
                     },
                     "required": [
@@ -10350,6 +10416,17 @@
                               }
                             }
                           ]
+                        },
+                        "securityContext": {
+                          "type": "object",
+                          "properties": {
+                            "fsGroup": {
+                              "type": "number"
+                            },
+                            "hasFsGroupChangePolicy": {
+                              "type": "string"
+                            }
+                          }
                         }
                       },
                       "required": [
@@ -17992,6 +18069,17 @@
                             }
                           }
                         ]
+                      },
+                      "securityContext": {
+                        "type": "object",
+                        "properties": {
+                          "fsGroup": {
+                            "type": "number"
+                          },
+                          "hasFsGroupChangePolicy": {
+                            "type": "string"
+                          }
+                        }
                       }
                     },
                     "required": [
@@ -18535,6 +18623,17 @@
                             }
                           }
                         ]
+                      },
+                      "securityContext": {
+                        "type": "object",
+                        "properties": {
+                          "fsGroup": {
+                            "type": "number"
+                          },
+                          "hasFsGroupChangePolicy": {
+                            "type": "string"
+                          }
+                        }
                       }
                     },
                     "required": [
@@ -23413,6 +23512,17 @@
                 }
               }
             ]
+          },
+          "securityContext": {
+            "type": "object",
+            "properties": {
+              "fsGroup": {
+                "type": "number"
+              },
+              "hasFsGroupChangePolicy": {
+                "type": "string"
+              }
+            }
           }
         },
         "required": [
@@ -24043,6 +24153,17 @@
                     }
                   }
                 ]
+              },
+              "securityContext": {
+                "type": "object",
+                "properties": {
+                  "fsGroup": {
+                    "type": "number"
+                  },
+                  "hasFsGroupChangePolicy": {
+                    "type": "string"
+                  }
+                }
               }
             },
             "required": [
