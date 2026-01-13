@@ -222,5 +222,12 @@ properties:
           mountPath: "/tmp/foo"
       environments:
         env1: "val1"
+  securityContext:
+    type: object
+    properties:
+      fsGroup:
+        type: string
+      hasFsGroupChangePolicy:
+        type: string
 required:
   - name

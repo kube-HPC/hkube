@@ -7055,7 +7055,18 @@
                                 "description": "The name of the Secret"
                               }
                             }
-                          }
+                          },
+                    "securityContext": {
+                      "type": "object",
+                      "properties": {
+                        "fsGroup": {
+                          "type": "string"
+                        },
+                        "hasFsGroupChangePolicy": {
+                          "type": "string"
+                        }
+                      }
+                    }
                         },
                         "required": [
                           "name"
@@ -7739,7 +7750,18 @@
                                   "description": "The name of the Secret"
                                 }
                               }
-                            }
+                            },
+                      "securityContext": {
+                        "type": "object",
+                        "properties": {
+                          "fsGroup": {
+                            "type": "string"
+                          },
+                          "hasFsGroupChangePolicy": {
+                            "type": "string"
+                          }
+                        }
+                      }
                           },
                           "required": [
                             "name"
@@ -8229,7 +8251,18 @@
                                   "description": "The name of the Secret"
                                 }
                               }
-                            }
+                            },
+                      "securityContext": {
+                        "type": "object",
+                        "properties": {
+                          "fsGroup": {
+                            "type": "string"
+                          },
+                          "hasFsGroupChangePolicy": {
+                            "type": "string"
+                          }
+                        }
+                      }
                           },
                           "required": [
                             "name"
@@ -8813,6 +8846,17 @@
                         }
                       }
                     ]
+                  },
+                  "securityContext": {
+                    "type": "object",
+                    "properties": {
+                      "fsGroup": {
+                        "type": "string"
+                      },
+                      "hasFsGroupChangePolicy": {
+                        "type": "string"
+                      }
+                    }
                   }
                 },
                 "required": [
@@ -9354,6 +9398,17 @@
                         }
                       }
                     ]
+                  },
+                  "securityContext": {
+                    "type": "object",
+                    "properties": {
+                      "fsGroup": {
+                        "type": "string"
+                      },
+                      "hasFsGroupChangePolicy": {
+                        "type": "string"
+                      }
+                    }
                   }
                 },
                 "required": [
@@ -9870,6 +9925,17 @@
                             }
                           }
                         ]
+                      },
+                      "securityContext": {
+                        "type": "object",
+                        "properties": {
+                          "fsGroup": {
+                            "type": "string"
+                          },
+                          "hasFsGroupChangePolicy": {
+                            "type": "string"
+                          }
+                        }
                       }
                     },
                     "required": [
@@ -10350,6 +10416,17 @@
                               }
                             }
                           ]
+                        },
+                        "securityContext": {
+                          "type": "object",
+                          "properties": {
+                            "fsGroup": {
+                              "type": "string"
+                            },
+                            "hasFsGroupChangePolicy": {
+                              "type": "string"
+                            }
+                          }
                         }
                       },
                       "required": [
@@ -17893,7 +17970,18 @@
                                   "description": "The name of the Secret"
                                 }
                               }
-                            }
+                            },
+                      "securityContext": {
+                        "type": "object",
+                        "properties": {
+                          "fsGroup": {
+                            "type": "string"
+                          },
+                          "hasFsGroupChangePolicy": {
+                            "type": "string"
+                          }
+                        }
+                      }
                           },
                           "required": [
                             "name"
@@ -18436,7 +18524,18 @@
                                   "description": "The name of the Secret"
                                 }
                               }
-                            }
+                            },
+                      "securityContext": {
+                        "type": "object",
+                        "properties": {
+                          "fsGroup": {
+                            "type": "string"
+                          },
+                          "hasFsGroupChangePolicy": {
+                            "type": "string"
+                          }
+                        }
+                      }
                           },
                           "required": [
                             "name"
@@ -23413,6 +23512,17 @@
                 }
               }
             ]
+          },
+          "securityContext": {
+            "type": "object",
+            "properties": {
+              "fsGroup": {
+                "type": "string"
+              },
+              "hasFsGroupChangePolicy": {
+                "type": "string"
+              }
+            }
           }
         },
         "required": [
@@ -24043,6 +24153,17 @@
                     }
                   }
                 ]
+              },
+              "securityContext": {
+                "type": "object",
+                "properties": {
+                  "fsGroup": {
+                    "type": "string"
+                  },
+                  "hasFsGroupChangePolicy": {
+                    "type": "string"
+                  }
+                }
               }
             },
             "required": [
