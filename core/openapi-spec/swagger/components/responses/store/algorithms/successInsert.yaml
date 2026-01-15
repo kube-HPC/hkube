@@ -1,0 +1,44 @@
+description: Algorithm successfully inserted
+content:
+  application/json:
+    schema:
+      $ref: "#/components/schemas/algorithmApplyResponse"
+    example:
+      messages:
+        - "a new version of algorithm green-alg-tteesstt has been created"
+        - "the algorithm green-alg-tteesstt has been successfully pushed to hkube"
+      messagesCode:
+        - 1024
+        - 1023
+      algorithm:
+        name: "green-alg-tteesstt"
+        algorithmImage: "hkube/algorithm-example-python"
+        cpu: 0.1
+        mem: "256Mi"
+        options:
+          pending: false
+        minHotWorkers: 0
+        type: "Image"
+        gpu: 0
+        reservedMemory: "512Mi"
+        env: "nodejs"
+        workerEnv:
+          INACTIVE_WORKER_TIMEOUT_MS: 5000
+        buildStats:
+          total: 0
+          pending: 0
+          creating: 0
+          active: 0
+          completed: 0
+          failed: 0
+          stopped: 0
+        image:
+          algorithmImage: "hkube/algorithm-example-python"
+        algorithmEnv: {}
+        auditTrail:
+          - user: "user"
+            timestamp: 1763037183551
+            version: "74reqfv5c5"
+        version: "74reqfv5c5"
+        created: 1763037183551
+        modified: 1763037183551

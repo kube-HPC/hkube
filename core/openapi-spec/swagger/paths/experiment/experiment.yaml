@@ -5,23 +5,13 @@ get:
   description: Returns experiments list
   responses:
     "200":
-      description: list of experiments
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/experiment"
+      $ref: "#/components/responses/experiment_successMany"
     "400":
-      description: bad request
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/errorBadRequest"
+    "401":
+      $ref: "#/components/responses/unauthorized"
     default:
-      description: Unexpected error
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/default"
 
 post:
   tags:
@@ -37,26 +27,14 @@ post:
     required: true
   responses:
     "201":
-      description: experiment created
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/defaultResponseWithName"
+      $ref: "#/components/responses/experiment_successInsert"
     "400":
-      description: bad request
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/errorBadRequest"
+    "401":
+      $ref: "#/components/responses/unauthorized"
     "409":
-      description: pipeline conflict
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/errorConflict"
+    "500":
+      $ref: "#/components/responses/experiment_failedInsert"
     default:
-      description: Unexpected error
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/default"

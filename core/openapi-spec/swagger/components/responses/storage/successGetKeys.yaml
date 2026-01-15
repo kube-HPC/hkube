@@ -1,0 +1,37 @@
+description: Get storage keys
+content:
+  application/json:
+    schema:
+      type: object
+      properties:
+        path:
+          type: string
+          description: The storage path of the directory or collection being queried (e.g., `cicd-hkube-builds`).
+        total:
+          type: integer
+          description: The total number of items (builds) available in the specified path.
+        keys:
+          type: array
+          items:
+            type: object
+            properties:
+              path:
+                type: string
+                description: The full path of the build.
+              size:
+                type: integer
+                description: The size of the build (in bytes).
+              mtime:
+                type: string
+                format: date-time
+                description: The last modification timestamp of the build, formatted as ISO 8601.
+    example:
+      path: "cicd-hkube-builds"
+      total: 2
+      keys:
+        - path: "/cicd-hkube-builds/a6j46bss-6e59nv"
+          size: 267
+          mtime: "2025-11-03T09:50:07.749Z"
+        - path: "/cicd-hkube-builds/build-f6-216-cjsgn2"
+          size: 525
+          mtime: "2025-11-06T12:37:45.968Z"

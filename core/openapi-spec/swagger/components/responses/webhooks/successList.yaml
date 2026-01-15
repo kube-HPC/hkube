@@ -1,0 +1,34 @@
+description: Webhooks of given job
+content:
+  application/json:
+    schema:
+      type: object
+      properties:
+        jobId:
+          type: string
+        result:
+          $ref: "#/components/schemas/webhookResult"
+        progress:
+          $ref: "#/components/schemas/webhookResult"
+    example:
+      jobId: "m0qvfqsjunl7"
+      result:
+        jobId: "m0qvfqsjunl7"
+        httpResponse:
+          statusCode: "ECONNREFUSED"
+          statusMessage: "connect ECONNREFUSED 127.0.0.1:3003"
+        pipelineStatus: "completed"
+        responseStatus: "failed"
+        status: "completed"
+        timestamp: 1643873185306
+        url: "http://localhost:3003/webhook/result"
+      progress:
+        jobId: "m0qvfqsjunl7"
+        httpResponse:
+          statusCode: "ECONNREFUSED"
+          statusMessage: "connect ECONNREFUSED 127.0.0.1:3003"
+        pipelineStatus: "completed"
+        responseStatus: "failed"
+        status: "completed"
+        timestamp: 1643873185738
+        url: "http://localhost:3003/webhook/progress"

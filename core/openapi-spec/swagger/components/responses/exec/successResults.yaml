@@ -1,0 +1,17 @@
+description: Successfully retrieved pipeline result
+content:
+  application/json:
+    schema:
+      $ref: "#/components/schemas/pipelineResult"
+    example:
+      jobId: "qohsjh0in1a4"
+      startTime: 1763643353687
+      pipeline: "simple"
+      data:
+        - nodeName: "black"
+          algorithmName: "black-alg"
+          result: "link1"
+      status: "completed"
+      timestamp: 1763643357317
+      timeTook: 3.631
+      storageModule: "@hkube/fs-adapter"

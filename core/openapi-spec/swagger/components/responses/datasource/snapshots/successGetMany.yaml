@@ -1,0 +1,38 @@
+description: A collection of snapshots
+content:
+  application/json:
+    schema:
+      type: array
+      items:
+        $ref: "#/components/schemas/Snapshot"
+    example:
+      - id: "69161401d149024e6c3724ef"
+        name: "Monthly Report Snapshot"
+        query: "SELECT * FROM files WHERE type='text/markdown'"
+        dataSource:
+          id: "6515408e9f1b8b387483a4d1"
+          name: "myTest"
+          filteredFilesList:
+            - id: "file-001"
+              name: "report.md"
+              path: "/docs/report.md"
+              size: 12345
+              type: "text/markdown"
+              description: "Monthly report"
+              uploadedAt: 1695891600994
+          droppedFiles:
+            - id: "file-002"
+              name: "package.deb"
+              path: "/packages/package.deb"
+              size: 87759268
+              type: "application/vnd.debian.binary-package"
+              description: "Debian package file"
+              uploadedAt: 1695892600994
+      - id: "69161402d149024e6c37250f"
+        name: "Weekly Backup Snapshot"
+        query: "SELECT * FROM files WHERE size>1000"
+        dataSource:
+          id: "6515408e9f1b8b387483a4d2"
+          name: "backupTest"
+          filteredFilesList: []
+          droppedFiles: []

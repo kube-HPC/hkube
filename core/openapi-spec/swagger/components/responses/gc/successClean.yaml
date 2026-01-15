@@ -1,0 +1,25 @@
+description: success response
+content:
+  application/json:
+    schema:
+      $ref: "#/components/schemas/cleanResponse"
+    example:
+      - name: datasource
+        count: 0
+        sample: []
+      - name: etcd
+        count: 232
+        sample:
+          - "/jobs/status/fl53sixytq25"
+          - "/jobs/status/2csesy2wd5lr"
+          - "/jobs/status/mg51zljeqd2s"
+      - name: storage
+        count: 467
+        sample:
+          results:
+            - "2ski6xcgkucx"
+            - "3xdbde3cumxf"
+          builds:
+            - path: "/cicd-hkube-builds/51gs1wx8-ojmcrc"
+              size: 267
+              mtime: "2025-11-05T13:41:38.766Z"

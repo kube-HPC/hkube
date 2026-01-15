@@ -12,23 +12,13 @@ post:
     required: true
   responses:
     "200":
-      description: search jobs response
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/searchJobsResponse"
+      $ref: "#/components/responses/exec_successSearch"
     "400":
-      description: bad request
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/errorBadRequest"
+    "401":
+      $ref: "#/components/responses/unauthorized"
     default:
-      description: Unexpected error
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/default"
 get:
   tags:
     - Execution
@@ -42,7 +32,7 @@ get:
     - name: pipelineName
       in: query
       schema:
-        type: string
+        $ref: "#/components/schemas/pipelineName"
     - name: pipelineType
       in: query
       schema:
@@ -50,7 +40,7 @@ get:
     - name: algorithmName
       in: query
       schema:
-        type: string
+        $ref: "#/components/schemas/algorithmName"
     - name: pipelineStatus
       in: query
       schema:
@@ -99,20 +89,10 @@ get:
         type: string
   responses:
     "200":
-      description: search jobs response
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/searchJobsResponse"
+      $ref: "#/components/responses/exec_successSearch"
     "400":
-      description: bad request
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/errorBadRequest"
+    "401":
+      $ref: "#/components/responses/unauthorized"
     default:
-      description: Unexpected error
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/default"

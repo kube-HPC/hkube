@@ -1,0 +1,9 @@
+type: object
+properties:
+  jobId:
+    $ref: "#/components/schemas/jobId"
+  taskId:
+    type: string
+required:
+  - jobId
+  - taskId

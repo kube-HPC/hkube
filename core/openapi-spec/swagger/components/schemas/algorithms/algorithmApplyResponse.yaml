@@ -1,0 +1,15 @@
+type: object
+properties:
+  messages:
+    type: array
+    items:
+      type: string
+    description: A list of messages related to the algorithm creation or push status.
+  messagesCode:
+    type: array
+    items:
+      type: integer
+    description: A list of corresponding codes for each message.
+  algorithm:
+    $ref: "#/components/schemas/algorithm"
+    description: The algorithm object with details about the created algorithm and its current state.

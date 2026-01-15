@@ -1,7 +1,8 @@
 post:
     tags:
         - DataSource
-    summary: sync a version from git to the database
+    summary: Sync a version from git to the database
+    description: Sync a version from git to the database
     parameters:
         - $ref: '#/components/parameters/nameParam'
     requestBody:
@@ -13,8 +14,12 @@ post:
         required: true
     responses:
         '201':
-            description: new datasource version
-            content:
-                application/json:
-                    schema:
-                        $ref: '#/components/schemas/DataSourceWithMeta'
+            $ref: '#/components/responses/datasource_successSync'
+        "400":
+            $ref: "#/components/responses/errorBadRequest"
+        "401":
+            $ref: "#/components/responses/unauthorized"
+        "404":
+            $ref: "#/components/responses/errorNotFound"
+        default:
+            $ref: "#/components/responses/default"

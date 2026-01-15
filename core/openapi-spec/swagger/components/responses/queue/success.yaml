@@ -1,0 +1,15 @@
+description: Get queue count
+content:
+  application/json:
+    schema:
+      type: object
+      properties:
+        managed:
+          type: integer
+          description: managed count
+        preferred:
+          type: integer
+          description: preferred count
+    example:
+      managed: 0
+      preferred: 0
