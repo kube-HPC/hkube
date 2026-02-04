@@ -1,8 +1,8 @@
 get:
   tags:
     - Gateway
-  summary: get gateway details
-  description: get gateway details
+  summary: Get gateway details
+  description: Get a gateway details
   parameters:
     - name: name
       in: path
@@ -12,26 +12,12 @@ get:
         type: string
   responses:
     "200":
-      description: action summary
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/gateway"
+      $ref: "#/components/responses/gateway_successSingle"
     "400":
-      description: bad request
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/errorBadRequest"
+    "401":
+      $ref: "#/components/responses/unauthorized"
     "404":
-      description: pipeline Not Found
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/errorNotFound"
     default:
-      description: Unexpected error
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/default"

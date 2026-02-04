@@ -1,0 +1,14 @@
+description: Datasource version list
+content:
+  application/json:
+    schema:
+      type: array
+      items:
+        $ref: '#/components/schemas/DataSourceVersion'
+    example:
+      - versionDescription: "initial version"
+        commitHash: "59d3568"
+        id: "6515408e9f1b8b387483a4d1"
+      - versionDescription: "test"
+        commitHash: "66f1edc"
+        id: "69161137d149027b6b3724ec"

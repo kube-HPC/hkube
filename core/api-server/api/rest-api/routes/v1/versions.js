@@ -34,6 +34,10 @@ const routes = (options) => {
         const response = await algoVersionsService.deleteVersion(req.params);
         res.json(response);
     });
+    router.put('/algorithms/alias', keycloak.getProtect(keycloakRoles.API_EDIT), async (req, res) => {
+        const response = await algoVersionsService.updateVersionAlias(req.body);
+        res.json(response);
+    });
 
     // Pipelines
     router.get('/pipelines/:name', keycloak.getProtect(keycloakRoles.API_VIEW), async (req, res) => {
@@ -53,6 +57,10 @@ const routes = (options) => {
     });
     router.delete('/pipelines/:name/:version', keycloak.getProtect(keycloakRoles.API_DELETE), async (req, res) => {
         const response = await pipelineVersionsService.deleteVersion(req.params);
+        res.json(response);
+    });
+    router.put('/pipelines/alias', keycloak.getProtect(keycloakRoles.API_EDIT), async (req, res) => {
+        const response = await pipelineVersionsService.updateVersionAlias(req.body);
         res.json(response);
     });
 

@@ -1,0 +1,32 @@
+description: A datasource item
+content:
+  application/json:
+    schema:
+      allOf:
+        - $ref: '#/components/schemas/DataSource'
+        - type: object
+          properties:
+            files:
+              type: array
+              items:
+                $ref: '#/components/schemas/FileMeta'
+    example:
+      id: "6515408e9f1b8b387483a4d1"
+      name: "myTest"
+      versionDescription: "initial version"
+      commitHash: "59d3568"
+      isPartial: false
+      path: "datasource/myTest"
+      git:
+        kind: "internal"
+        repositoryUrl: "http://gitea-http:3000/hkube/myTest.git"
+      storage:
+        kind: "internal"
+      files:
+        - id: "ser-4m30"
+          name: "mongodb-compass_1.28.1_amd64.deb"
+          path: "/"
+          size: 87759268
+          type: "application/vnd.debian.binary-package"
+          description: ""
+          uploadedAt: 1695891600994

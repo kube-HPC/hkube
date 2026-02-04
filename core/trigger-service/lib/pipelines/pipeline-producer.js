@@ -1,4 +1,5 @@
 const request = require('requestretry');
+const { generalConsts } = require('../consts');
 
 class PipelineProducer {
     constructor() {
@@ -10,24 +11,37 @@ class PipelineProducer {
     }
 
     async init(config) {
-        const { protocol, host, port, path } = config.apiServer;
-        this._apiUrl = `${protocol}://${host}:${port}/${path}`;
+        const { protocol, host, port, storedPath, pipelinesPath } = config.apiServer;
+        this._storedApiUrl = `${protocol}://${host}:${port}/${storedPath}`;
+        this._pipelinesApiUrl = `${protocol}://${host}:${port}/${pipelinesPath}`;
     }
 
     async produce(trigger) {
         if (!trigger.name) {
             throw new Error('invalid name');
         }
+        const tags = await this._getTags(trigger.jobId);
         return request({
             method: 'POST',
-            uri: `${this._apiUrl}/${trigger.type}`,
+            uri: `${this._storedApiUrl}/${trigger.type}`,
             body: {
                 name: trigger.name,
-                parentJobId: trigger.jobId
+                parentJobId: trigger.jobId,
+                userName: generalConsts.TRIGGER_USER_FOR_AUDIT,
+                tags
             },
             json: true,
             ...this.retrySettings
         });
+    }
+
+    async _getTags(parentJobId) {
+        const { body: parentPipeline } = await request({
+            method: 'GET',
+            uri: `${this._pipelinesApiUrl}/${parentJobId}`,
+            json: true
+        });
+        return parentPipeline.tags;
     }
 }
 

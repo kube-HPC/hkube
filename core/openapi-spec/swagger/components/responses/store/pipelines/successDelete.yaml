@@ -1,0 +1,10 @@
+description: Pipeline Deletion Response
+content:
+  application/json:
+    schema:
+      type: object
+      properties:
+        message:
+          type: string
+    example:
+      message: "pipeline simple121212 successfully deleted from store"

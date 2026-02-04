@@ -1,0 +1,24 @@
+description: Get all prefixes by given path
+content:
+  application/json:
+    schema:
+      type: object
+      properties:
+        path:
+          type: string
+          description: The path in the storage or data system.
+        total:
+          type: integer
+          description: The total number of keys available for the given path.
+        keys:
+          type: array
+          items:
+            type: string
+          description: A list of keys (prefixes) associated with the given path.
+    example:
+      path: "cicd-hkube"
+      total: 3
+      keys:
+        - "01idf152g5k2"
+        - "03j7ddaez0ky"
+        - "08lf6soi6edz"

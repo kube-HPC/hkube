@@ -4,7 +4,10 @@ const Components = {
     K8S: 'K8S',
     EXECUTOR: 'Executor',
     METRICS: 'Metrics',
-    RECONCILER: 'Reconciler'
+    RECONCILER: 'Reconciler',
+    WORKERS_MANAGER: 'WorkersManager',
+    REQUESTS_PREPROCESSOR: 'RequestPreprocessor',
+    JOBS_HANDLER: 'JobsHandler'
 };
 
 module.exports = Components;

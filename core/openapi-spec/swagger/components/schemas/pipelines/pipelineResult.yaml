@@ -1,0 +1,19 @@
+type: object
+properties:
+  jobId:
+    $ref: "#/components/schemas/jobId"
+  startTime:
+    type: string
+  pipeline:
+    type: string
+  data:
+    type: array
+    items: {}
+  status:
+    type: string
+  timestamp:
+    type: string
+  timeTook:
+    type: number
+  storageModule:
+    type: string

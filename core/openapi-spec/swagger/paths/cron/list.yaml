@@ -2,7 +2,7 @@ get:
   tags:
     - Cron
   summary: Get cron list
-  description: return cron list of all stored pipeline
+  description: Return cron list of all stored pipeline
   parameters:
     - name: sort
       in: query
@@ -21,28 +21,10 @@ get:
         type: integer
   responses:
     "200":
-      description: action summary
-      content:
-        application/json:
-          schema:
-            type: array
-            items:
-              $ref: "#/components/schemas/pipelineResult"
+      $ref: "#/components/responses/cron_successList"
     "400":
-      description: bad request
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
-    "404":
-      description: cron Not Found
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/errorBadRequest"
+    "401":
+      $ref: "#/components/responses/unauthorized"
     default:
-      description: Unexpected error
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/default"

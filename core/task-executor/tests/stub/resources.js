@@ -1,4 +1,4 @@
-const { gpuVendors } = require('../../lib/consts');
+const { gpuVendors, kaiValues } = require('../../lib/consts');
 
 const pods = {
     body: {
@@ -439,6 +439,80 @@ const secret = {
     ]
 };
 
+const customResourceDefinition = { // for Kai (run-ai) Queues + extra dummy CRD
+    items: [
+        {
+            metadata: {
+                name: kaiValues.KUBERNETES.QUEUES_CRD_NAME
+            },
+            spec: {
+                versions: [
+                    { name: 'v2', served: true }
+                ]
+            }
+        },
+        {
+            metadata: {
+                name: 'widgets.example.com'
+            },
+            spec: {
+                versions: [
+                    { name: 'v1alpha1', served: true }
+                ]
+            }
+        }
+    ]
+};
+
+
+const queues = { // for Kai (run-ai)
+    items: [
+        { metadata: { name: 'default' } },
+        { metadata: { name: 'test' } }
+    ]
+};
+
+const limitRanges = {
+    kind: 'LimitRangeList',
+    apiVersion: 'v1',
+    items: [
+        {
+            kind: 'LimitRange',
+            apiVersion: 'v1',
+            metadata: {
+                name: 'default-limits',
+                namespace: 'default',
+            },
+            spec: {
+                limits: [
+                    {
+                        type: 'Container',
+                        default: { cpu: '500m', memory: '512Mi' },
+                        defaultRequest: { cpu: '250m', memory: '256Mi' }
+                    }
+                ]
+            }
+        },
+        {
+            kind: 'LimitRange', // dummy for testing
+            apiVersion: 'v1',
+            metadata: {
+                name: 'another-limits',
+                namespace: 'default',
+            },
+            spec: {
+                limits: [
+                    {
+                        type: 'Container',
+                        default: { cpu: '1', memory: '1Gi' },
+                        defaultRequest: { cpu: '500m', memory: '512Mi' }
+                    }
+                ]
+            }
+        }
+    ]
+};
+
 
 module.exports = {
     pods,
@@ -448,5 +522,8 @@ module.exports = {
     podsGpu,
     persistentVolumeClaim,
     configMap,
-    secret
+    secret,
+    customResourceDefinition,
+    queues,
+    limitRanges
 };

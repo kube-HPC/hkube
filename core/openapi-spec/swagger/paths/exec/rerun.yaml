@@ -11,26 +11,12 @@ post:
     required: true
   responses:
     "200":
-      description: pipeline execution data
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/jobIdObject"
+      $ref: "#/components/responses/exec_successRun"
     "400":
-      description: bad request
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/errorBadRequest"
+    "401":
+      $ref: "#/components/responses/unauthorized"
     "404":
-      description: jobId Not Found
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/errorNotFound"
     default:
-      description: Unexpected error
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/default"

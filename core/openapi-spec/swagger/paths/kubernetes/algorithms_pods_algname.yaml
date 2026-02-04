@@ -18,26 +18,14 @@ delete:
         type: string
   responses:
     "200":
-      description: action summary
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/defaultResponse"
+      $ref: "#/components/responses/kubernetes_podSuccess"
+    "400":
+      $ref: "#/components/responses/errorBadRequest"
+    "401":
+      $ref: "#/components/responses/unauthorized"
     "404":
-      description: No pods found with selector
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/kubernetes_notFound"
     "500":
-      description: internal server error
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/kubernetes_errorInternalServerError"
     default:
-      description: Unexpected error
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/default"

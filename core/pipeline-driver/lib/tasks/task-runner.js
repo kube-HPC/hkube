@@ -159,14 +159,16 @@ class TaskRunner {
      * @throws {Error} Throws an error if the warning code is unknown or unsupported.
      */
     _handleWarningMessage(event, clusterNodes) {
-        const { message, code } = event;
+        const { message, code, isError } = event;
         switch (code) {
             case warningCodes.JOB_CREATION_FAILED:
-                return { message, isError: true };
+                return { message, isError };
             case warningCodes.INVALID_VOLUME:
-                return { message, isError: true };
+                return { message, isError };
             case warningCodes.RESOURCES:
                 return this._buildNodeResourceMessage(event, clusterNodes);
+            case warningCodes.KAI:
+                return { message, isError };
             default:
                 log.error(`Unknown warning code: ${code}`);
                 return { message, isError: false };
@@ -213,18 +215,18 @@ class TaskRunner {
         // eslint-disable-next-line no-unused-vars
         let i = 0;
         unScheduledAlg.complexResourceDescriptor.nodes.forEach((node) => {
-            resourceMessage += `Node: ${node.nodeName} -  `;
+            resourceMessage += `${i === 0 ? '' : ',\n'}Node: ${node.nodeName} -  `;
             // eslint-disable-next-line no-unused-vars
             if (node.amountsMissing) {
                 const resourcesMissing = Object.entries(node.amountsMissing).filter(([, v]) => v !== 0).map(([k, v]) => `${k} = ${v}`);
-                resourceMessage += `missing resources: ${resourcesMissing.join(' ')},\n`;
+                resourceMessage += `missing resources: ${resourcesMissing.join(' ')}`;
             }
             if (node.requestsOverMaxCapacity.length > 0) {
                 nodeErrorArray[i] = 1; // If a node has a request over capacity, it will never be valid for scheduling
                 resourceMessage += 'over capacity: ';
-                node.requestsOverMaxCapacity.forEach(([k]) => {
+                node.requestsOverMaxCapacity.forEach(([k], index) => {
                     const totalResourceOfNode = clusterNodes.filter(n => n.name === node.nodeName)[0].total[k];
-                    resourceMessage += `${k} - requested-${unScheduledAlg.requestedResources[k]}, available-${totalResourceOfNode} ,\n`; // add requested and also total for node
+                    resourceMessage += `${index === 0 ? '' : ',\n'}${k} - requested-${unScheduledAlg.requestedResources[k]}, available-${totalResourceOfNode}`; // add requested and also total for node
                     const currentValue = breachCountPerResource.get(k);
                     breachCountPerResource.set(k, currentValue + 1);
                 });
@@ -236,13 +238,14 @@ class TaskRunner {
             const overCapKeys = Array.from(breachCountPerResource.keys()).filter(key => breachCountPerResource.get(key) === numOfNodes);
             if (overCapKeys.length > 0) {
                 resourceMessage = '';
-                overCapKeys.forEach(key => {
+                overCapKeys.forEach((key, index) => {
                     const maxResourceByType = this._getLargestCapacityByType(clusterNodes, key);
-                    resourceMessage += `Your request of ${key} = ${unScheduledAlg.requestedResources[key]} is over max capacity of ${maxResourceByType}.\n`;
+                    resourceMessage += `${index === 0 ? '' : '.\n'}Your total request of ${key} = ${unScheduledAlg.requestedResources[key]} is over max capacity of ${maxResourceByType}`;
                 }); // If there are over-capacity for a resource type over all available cluster nodes, give out a concise clue.
             }
         }
-        resourceMessage = resourceMessage.slice(0, -2); // remove trailing  breakrow and comma
+        // resourceMessage = resourceMessage.slice(0, -2); // remove trailing  breakrow and comma
+        resourceMessage += '.\nCheck algorithm, workerCustomResources and sideCars resource requests.';
         return { resourceMessage, isError };
     }
 

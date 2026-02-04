@@ -1,7 +1,0 @@
-type: object
-properties:
-  name:
-    type: string
-    description: Pipeline name
-  jobId:
-    $ref: "#/components/schemas/jobId"

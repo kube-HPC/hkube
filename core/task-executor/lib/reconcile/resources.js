@@ -7,6 +7,19 @@ const { settings } = require('../helpers/settings');
 const { CPU_RATIO_PRESSURE, GPU_RATIO_PRESSURE, MEMORY_RATIO_PRESSURE, MAX_JOBS_PER_TICK } = consts;
 const { createWarning } = require('../utils/warningCreator');
 
+/**
+ * Checks if a node can fit the requested resources.
+ *
+ * Applies resource pressure limits if enabled, then determines
+ * if CPU, memory, and GPU requests can be satisfied.
+ *
+ * @param {Object} node - Node resource object with `total` and `free` properties.
+ * @param {number} requestedCpu - Requested CPU cores.
+ * @param {number} requestedGpu - Requested GPUs.
+ * @param {number} requestedMemory - Requested memory in Mi.
+ * @param {boolean} [useResourcePressure=true] - Whether to apply resource pressure limits.
+ * @returns {Object} Scheduling result with availability, capacity limits, and missing amounts.
+ */
 const findNodeForSchedule = (node, requestedCpu, requestedGpu, requestedMemory, useResourcePressure = true) => {
     let freeCpu;
     let freeGpu;
@@ -69,6 +82,13 @@ const findNodeForSchedule = (node, requestedCpu, requestedGpu, requestedMemory, 
     };
 };
 
+/**
+ * Checks if a node matches the given nodeSelector.
+ *
+ * @param {Object} labels - Node labels as key-value pairs.
+ * @param {Object} nodeSelector - Required nodeSelector key-value mapping.
+ * @returns {boolean} True if labels match the selector, false otherwise.
+ */
 const nodeSelectorFilter = (labels, nodeSelector) => {
     let matched = true;
     if (!nodeSelector) {
@@ -96,33 +116,61 @@ const nodeSelectorFilter = (labels, nodeSelector) => {
  * 
  * @param {Array<Object>} requestedVolumes - An array of requested volumes.
  * Each volume can have `persistentVolumeClaim`, `configMap`, or `secret` properties.
- * @param {Object} allVolumes - An object containing all available PVCs, ConfigMaps, and Secrets with their names.
+ * @param {Object} allVolumesNames - An object containing all available PVCs, ConfigMaps, and Secrets with their names.
  * @returns {Array<string>} An array of names of missing volumes. If all volumes exist, the array will be empty.
  */
-const _getMissingVolumes = (requestedVolumes, allVolumes) => {
+const _getMissingVolumes = (requestedVolumes, allVolumesNames) => {
     if (!requestedVolumes || requestedVolumes.length === 0) return [];
     const missingVolumes = [];
     requestedVolumes.forEach(volume => {
         if (volume.persistentVolumeClaim) {
             const name = volume.persistentVolumeClaim.claimName;
-            if (!allVolumes.pvcs.find(pvcName => pvcName === name)) {
+            if (!allVolumesNames.pvcs.find(pvcName => pvcName === name)) {
                 missingVolumes.push(name);
             }
         }
         if (volume.configMap) {
             const { name } = volume.configMap;
-            if (!allVolumes.configMaps.find(configMapName => configMapName === name)) {
+            if (!allVolumesNames.configMaps.find(configMapName => configMapName === name)) {
                 missingVolumes.push(name);
             }
         }
         if (volume.secret) {
             const name = volume.secret.secretName;
-            if (!allVolumes.secrets.find(secretName => secretName === name)) {
+            if (!allVolumesNames.secrets.find(secretName => secretName === name)) {
                 missingVolumes.push(name);
             }
         }
     });
     return missingVolumes;
+};
+
+/**
+ * Validates the kaiObject configuration for a given algorithm by checking the presence
+ * and validity of the specified queue against existing Kai queue names.
+ * 
+ * @param {Object} params
+ * @param {Object} params.kaiObject - The kaiObject containing the configuration values.
+ * @param {string} params.algorithmName - The name of the algorithm being validated.
+ * @param {string[]} existingQueuesNames - List of valid Kai queue names to check against.
+ * 
+ * @returns {string|undefined} - A string error message if validation fails, otherwise undefined.
+ */
+const validateKaiQueue = ({ kaiObject, algorithmName }, existingQueuesNames) => {
+    const { queue } = kaiObject || {};
+    
+    if (!queue) {
+        const message = `Missing 'queue' in kaiObject for algorithm "${algorithmName}"`;
+        return { message };
+    }
+
+    if (!existingQueuesNames.includes(queue)) {
+        const message = `Queue "${queue}" in kaiObject for algorithm "${algorithmName}" does not exist in available Kai queues`;
+        const isError = true;
+        return { message, isError };
+    }
+
+    return undefined;
 };
 
 /**
@@ -135,14 +183,19 @@ const _getMissingVolumes = (requestedVolumes, allVolumes) => {
  * @param {Object} [params.sideCars] - The optional sidecar container.
  * @param {Object} [params.sideCars.container] - The container inside the sidecar.
  * @param {Object} [params.sideCars.container.resources] - The resource requests of the sidecar container.
+ * @param {Object} containerDefaults - Default container resources from Kubernetes.
+ * @param {Object} [containerDefaults.cpu] - Default CPU resource from Kubernetes.
+ * @param {string|number} [containerDefaults.cpu.defaultRequest] - Default CPU request
+ * @param {Object} [containerDefaults.memory] - Default memory resource from Kubernetes.
+ * @param {string|number} [containerDefaults.memory.defaultRequest] - Default memory request
  * @returns {Object} An object containing the total requested CPU and memory.
  * @returns {number} return.requestedCpu - The total requested CPU in cores.
  * @returns {number} return.requestedMemory - The total requested memory in MiB.
  */
-const getAllRequested = ({ resourceRequests, workerResourceRequests, workerCustomResources, sideCars }) => {
+const getAllRequested = ({ resourceRequests, workerResourceRequests, workerCustomResources, sideCars }, containerDefaults) => {
     const sideCarResources = sideCars?.map(sideCar => sideCar?.container?.resources) || [];
-    const workerRequestedCPU = settings.applyResources ? workerResourceRequests.requests.cpu : '0';
-    const workerRequestedMemory = settings.applyResources ? workerResourceRequests.requests.memory : '0Mi';
+    const workerRequestedCPU = settings.applyResources ? workerResourceRequests.requests.cpu : (containerDefaults?.cpu?.defaultRequest || '0');
+    const workerRequestedMemory = settings.applyResources ? workerResourceRequests.requests.memory : (containerDefaults?.memory?.defaultRequest || '0Mi');
 
     const requestedCpu = parse.getCpuInCore(resourceRequests?.requests?.cpu || '0')
         + parse.getCpuInCore(workerCustomResources?.requests?.cpu || workerRequestedCPU)
@@ -155,31 +208,47 @@ const getAllRequested = ({ resourceRequests, workerResourceRequests, workerCusto
     return { requestedCpu, requestedMemory };
 };
 
-const shouldAddJob = (jobDetails, availableResources, totalAdded, allVolumes) => {
+/**
+ * Determines whether a job can be added to the schedule.
+ *
+ * Validates resource availability, missing volumes, KAI object constraints,
+ * and applies nodeSelector filtering. Generates warnings when job cannot be scheduled.
+ *
+ * @param {Object} jobDetails - Job details including resource requests, volumes, etc.
+ * @param {Object} availableResources - Current cluster resource state.
+ * @param {number} totalAdded - Number of jobs added so far this tick.
+ * @param {Object} [extraResources] - Additional metadata such as volumes and queues.
+ * @param {Object} containerDefaults - Default container resources from Kubernetes.
+ * @returns {Object} Scheduling decision with `shouldAdd`, optional `warning`, and updated resources.
+ */
+const shouldAddJob = (jobDetails, availableResources, totalAdded, extraResources, containerDefaults) => {
+    const { allVolumesNames, existingQueuesNames } = extraResources || {};
     if (totalAdded >= MAX_JOBS_PER_TICK) {
         return { shouldAdd: false, newResources: { ...availableResources } };
     }
-    const { requestedCpu, requestedMemory } = getAllRequested(jobDetails);
+    const { requestedCpu, requestedMemory } = getAllRequested(jobDetails, containerDefaults);
     const requestedGpu = jobDetails.resourceRequests.requests[gpuVendors.NVIDIA] || 0;
-    const nodesBySelector = availableResources.nodeList.filter(n => nodeSelectorFilter(n.labels, jobDetails.nodeSelector));
+    const nodesBySelector = availableResources.nodeList.filter(node => nodeSelectorFilter(node.labels, jobDetails.nodeSelector));
     const nodesForSchedule = nodesBySelector.map(r => findNodeForSchedule(r, requestedCpu, requestedGpu, requestedMemory));
 
     const availableNode = nodesForSchedule.find(n => n.available);
     if (!availableNode) {
         // Number of total nodes that don't fit the attribute under nodeSelector
         const unMatchedNodesBySelector = availableResources.nodeList.length - nodesBySelector.length;
+        const requestedResources = { cpu: requestedCpu, memory: requestedMemory, gpu: requestedGpu };
+
         const warning = createWarning({
             unMatchedNodesBySelector,
             jobDetails,
             nodesForSchedule,
             nodesAfterSelector: nodesBySelector.length,
+            requestedResources,
             code: warningCodes.RESOURCES
         });
-        // const warning = _createWarning(unMatchedNodesBySelector, jobDetails, nodesForSchedule, nodesBySelector.length);
         return { shouldAdd: false, warning, newResources: { ...availableResources } };
     }
 
-    const missingVolumes = _getMissingVolumes(jobDetails.volumes, allVolumes);
+    const missingVolumes = _getMissingVolumes(jobDetails.volumes, allVolumesNames);
     if (missingVolumes.length > 0) {
         const warning = createWarning({ jobDetails, missingVolumes, code: warningCodes.INVALID_VOLUME });
         return {
@@ -187,6 +256,18 @@ const shouldAddJob = (jobDetails, availableResources, totalAdded, allVolumes) =>
             warning,
             newResources: { ...availableResources }
         };
+    }
+
+    if (jobDetails.kaiObject && Object.keys(jobDetails.kaiObject).length > 0) {
+        const kaiError = validateKaiQueue(jobDetails, existingQueuesNames);
+        if (kaiError) {
+            const warning = createWarning({ jobDetails, ...kaiError, code: warningCodes.KAI });
+            return {
+                shouldAdd: false,
+                warning,
+                newResources: { ...availableResources }
+            };
+        }
     }
 
     const nodeForSchedule = availableNode.node;
@@ -197,11 +278,27 @@ const shouldAddJob = (jobDetails, availableResources, totalAdded, allVolumes) =>
     return { shouldAdd: true, node: nodeForSchedule.name, newResources: { ...availableResources, allNodes: { ...availableResources.allNodes } } };
 };
 
+/**
+ * Finds a node that can run the requested algorithm without resource pressure.
+ *
+ * @param {Object[]} nodeList - List of node resource objects.
+ * @param {Object} requests - Requested CPU, GPU, and memory values.
+ * @param {number} requests.requestedCpu - Requested CPU cores.
+ * @param {number} requests.requestedGpu - Requested GPUs.
+ * @param {number} requests.memoryRequests - Requested memory in Mi.
+ * @returns {Object|undefined} Matching node or undefined if none found.
+ */
 function _scheduleAlgorithmToNode(nodeList, { requestedCpu, requestedGpu, memoryRequests }) {
     const nodeForSchedule = nodeList.find(n => findNodeForSchedule(n, requestedCpu, requestedGpu, memoryRequests, false).available);
     return nodeForSchedule;
 }
 
+/**
+ * Subtracts requested resources from a node's free/requested/ratio values.
+ *
+ * @param {Object} resources - Node resource object to modify.
+ * @param {Object} requests - Resource amounts to subtract.
+ */
 const _subtractResources = (resources, { requestedCpu, memoryRequests, requestedGpu }) => {
     if (resources.free) {
         resources.free = {
@@ -226,6 +323,12 @@ const _subtractResources = (resources, { requestedCpu, memoryRequests, requested
     }
 };
 
+/**
+ * Parses a worker's resource requests into numeric CPU, memory, and GPU values.
+ *
+ * @param {Object} worker - Worker with resourceRequests property.
+ * @returns {Object} Parsed resources { requestedCpu, memoryRequests, requestedGpu }.
+ */
 const parseResources = (worker) => {
     const requestedCpu = parse.getCpuInCore('' + worker.resourceRequests.requests.cpu);
     const memoryRequests = parse.getMemoryInMi(worker.resourceRequests.requests.memory);
@@ -234,6 +337,14 @@ const parseResources = (worker) => {
     return { requestedCpu, memoryRequests, requestedGpu };
 };
 
+/**
+ * Updates a node's resources in a node list by subtracting the given amounts.
+ *
+ * @param {Object[]} nodeList - Array of node resource objects.
+ * @param {string} nodeName - Name of the node to update.
+ * @param {Object} requests - Resource amounts to subtract.
+ * @returns {Object[]} Updated copy of nodeList.
+ */
 const _updateNodeResources = (nodeList, nodeName, { requestedCpu, requestedGpu, memoryRequests }) => {
     const nodeListLocal = nodeList.slice();
     const nodeIndex = nodeListLocal.findIndex(n => n.name === nodeName);
@@ -247,6 +358,15 @@ const _updateNodeResources = (nodeList, nodeName, { requestedCpu, requestedGpu, 
     return nodeListLocal;
 };
 
+/**
+ * Attempts to free resources by finding a worker to stop until the requested
+ * algorithm can be scheduled on a node.
+ *
+ * @param {Object[]} nodeList - List of nodes.
+ * @param {string} algorithmName - Name of the algorithm to schedule.
+ * @param {Object} resources - Requested resources for scheduling.
+ * @returns {Object} Updated nodeList and workers to stop.
+ */
 const _findWorkersToStop = (nodeList, algorithmName, resources) => {
     let nodeListLocal = clone(nodeList);
     let workersToStop;
@@ -280,6 +400,13 @@ const _findWorkersToStop = (nodeList, algorithmName, resources) => {
     };
 };
 
+/**
+ * Matches workers to the nodes they are running on.
+ *
+ * @param {Object[]} nodeList - List of node objects.
+ * @param {Object[]} workers - List of worker objects.
+ * @returns {Object[]} Nodes with `workers` array populated.
+ */
 const matchWorkersToNodes = (nodeList, workers) => {
     return nodeList.map(n => ({
         ...n,
@@ -287,10 +414,21 @@ const matchWorkersToNodes = (nodeList, workers) => {
     }));
 };
 
+/**
+ * Decides which workers to pause to free up resources for pending jobs.
+ *
+ * Iterates over skipped requests, tries to stop non-matching workers to
+ * make space, and returns workers to stop.
+ *
+ * @param {Object[]} stopDetails - Workers that can be stopped.
+ * @param {Object} availableResources - Cluster resource state.
+ * @param {Object[]} skippedRequests - Jobs that were skipped due to lack of resources.
+ * @returns {Object[]} List of workers to stop.
+ */
 const pauseAccordingToResources = (stopDetails, availableResources, skippedRequests) => {
     const toStop = [];
     if (stopDetails.length === 0) {
-        return { toStop };
+        return toStop;
     }
     let localDetails = stopDetails.map(sd => sd.details);
     const localResources = clone(availableResources);
@@ -316,11 +454,22 @@ const pauseAccordingToResources = (stopDetails, availableResources, skippedReque
         }
     });
 
-    return { toStop };
+    return toStop;
 };
 
-const matchJobsToResources = (createDetails, availableResources, scheduledRequests = [], allVolumes) => {
-    const requested = [];
+/**
+ * Matches jobs to available resources, scheduling as many as possible
+ * until no additional jobs can be placed in the current tick.
+ *
+ * @param {Object[]} createDetails - Details of jobs to create.
+ * @param {Object} availableResources - Current cluster resource state.
+ * @param {Object[]} [scheduledRequests=[]] - Already scheduled requests.
+ * @param {Object} [extraResources] - Additional metadata for scheduling checks.
+ * @param {Object} containerDefaults - Default container resources from Kubernetes.
+ * @returns {Object} { requested: jobs scheduled, skipped: jobs not scheduled }
+ */
+const matchJobsToResources = (createDetails, availableResources, scheduledRequests = [], extraResources, containerDefaults) => {
+    const jobsToRequest = [];
     const skipped = [];
     const localDetails = clone(createDetails);
     let addedThisTime = 0;
@@ -328,10 +477,10 @@ const matchJobsToResources = (createDetails, availableResources, scheduledReques
     // loop over all the job types one by one and assign until it can't fit in any node
     const cb = (j) => {
         if (j.numberOfNewJobs > 0) {
-            const { shouldAdd, warning, newResources, node } = shouldAddJob(j.jobDetails, availableResources, totalAdded, allVolumes);
+            const { shouldAdd, warning, newResources, node } = shouldAddJob(j.jobDetails, availableResources, totalAdded, extraResources, containerDefaults);
             if (shouldAdd) {
                 const toCreate = { ...j.jobDetails, createdTime: Date.now(), node };
-                requested.push(toCreate);
+                jobsToRequest.push(toCreate);
                 scheduledRequests.push({ algorithmName: toCreate.algorithmName });
             }
             else {
@@ -348,7 +497,7 @@ const matchJobsToResources = (createDetails, availableResources, scheduledReques
         localDetails.forEach(cb);
     } while (addedThisTime > 0);
 
-    return { requested, skipped };
+    return { jobsToRequest, skipped };
 };
 
 module.exports = {

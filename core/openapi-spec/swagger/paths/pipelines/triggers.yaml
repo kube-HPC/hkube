@@ -11,28 +11,12 @@ get:
         type: string
   responses:
     "200":
-      description: action summary
-      content:
-        application/json:
-          schema:
-            type: array
-            items:
-              $ref: "#/components/schemas/pipelineTriggersResult"
+      $ref: "#/components/responses/pipelines_successGetTree"
     "400":
-      description: bad request
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/errorBadRequest"
+    "401":
+      $ref: "#/components/responses/unauthorized"
     "404":
-      description: pipelines Not Found
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/errorNotFound"
     default:
-      description: Unexpected error
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/default"

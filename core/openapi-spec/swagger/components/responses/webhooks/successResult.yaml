@@ -1,0 +1,15 @@
+description: Result of job's webhook
+content:
+  application/json:
+    schema:
+      $ref: "#/components/schemas/webhookResult"
+    example:
+      jobId: "m0qvfqsjunl7"
+      httpResponse:
+        statusCode: "ECONNREFUSED"
+        statusMessage: "connect ECONNREFUSED 127.0.0.1:3003"
+      pipelineStatus: "completed"
+      responseStatus: "failed"
+      status: "completed"
+      timestamp: 1643873185306
+      url: "http://localhost:3003/webhook/result"

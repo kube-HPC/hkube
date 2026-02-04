@@ -2,7 +2,7 @@ post:
   tags:
     - Execution
   summary: Stop pipeline execution
-  description: Call to stop pipeline execution by jobId, pipelineName or startTime
+  description: Call to stop pipeline execution by jobId, pipelineName, startTime or pipelineStatus
   requestBody:
     content:
       application/json:
@@ -17,20 +17,10 @@ post:
           schema:
             $ref: "#/components/schemas/defaultResponse"
     "400":
-      description: bad request
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/errorBadRequest"
+    "401":
+      $ref: "#/components/responses/unauthorized"
     "404":
-      description: jobId Not Found
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/errorNotFound"
     default:
-      description: Unexpected error
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/default"

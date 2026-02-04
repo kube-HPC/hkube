@@ -9,7 +9,7 @@ const boards = require('../boards/boards');
 const metricsHelper = require('../metrics/metrics');
 const stateAdapter = require('../states/stateAdapter');
 const streamHandler = require('../streaming/services/stream-handler');
-const { Components, logMessages, jobStatus } = require('../consts');
+const { Components, logMessages, jobStatus, workerStates } = require('../consts');
 const DEFAULT_RETRY = { policy: retryPolicy.OnCrash };
 const pipelineDoneStatus = [pipelineStatuses.COMPLETED, pipelineStatuses.FAILED, pipelineStatuses.STOPPED];
 const { MetadataPlugin } = Logger;
@@ -33,6 +33,7 @@ class JobConsumer extends EventEmitter {
         this.jobCurrentTime = null;
         this._hotWorker = false;
         this._result = undefined;
+        this._handlingJob = false; // Used to decide the if the job is actually processing. ( stopProcessing )
     }
 
     async init(options) {
@@ -51,9 +52,11 @@ class JobConsumer extends EventEmitter {
         log.info(`registering for job ${this._options.jobConsumer.job.type}`, { component });
 
         this._consumer.on('job', async (job) => {
+            this._handlingJob = true;
             if (job.data.status === taskStatuses.PRESCHEDULE) {
                 log.info(`job ${job.data.jobId}, taskId ${job.data.taskId} is in ${job.data.status} mode, calling done...`,
                     { component, jobId: job.data.jobId, taskId: job.data.taskId });
+                this._handlingJob = false;
                 job.done();
                 return;
             }
@@ -91,14 +94,20 @@ class JobConsumer extends EventEmitter {
     }
 
     async _handleJob(job) {
-        if (this._isConnected) {
-            const { error } = await storage.start(job.data);
-            if (error) {
-                stateManager.done({ error });
-            }
-            else {
-                stateManager.prepare();
-            }
+        if (!this._isConnected) {
+            return;
+        }
+
+        const { error } = await storage.start(job.data);
+        if (error) {
+            stateManager.done({ error });
+            return;
+        }
+
+        // Call prepare only if we are not on init (prepare moves from READY to INIT),
+        // since it might got called already, and prepare is the only one who can change the state to INIT.
+        if (stateManager.state !== workerStates.init) {
+            stateManager.prepare();
         }
     }
 
@@ -114,6 +123,7 @@ class JobConsumer extends EventEmitter {
     finishBullJob(options) {
         const shouldCompleteJob = this._shouldNormalExit(options);
         if (this._job && shouldCompleteJob) {
+            this._handlingJob = false;
             this._job.done(this._job.error);
             log.info(`finish job ${this._jobId}`);
         }
@@ -147,6 +157,7 @@ class JobConsumer extends EventEmitter {
     async _stopJob(job, status) {
         await stateAdapter.unwatch({ jobId: job.data.jobId });
         log.info(`job ${job.data.jobId} already in ${status} status`);
+        this._handlingJob = false;
         job.done();
     }
 
@@ -345,6 +356,10 @@ class JobConsumer extends EventEmitter {
 
     get isConsumerPaused() {
         return this._consumerPaused;
+    }
+
+    get isHandlingJob() {
+        return this._handlingJob;
     }
 
     get jobData() {

@@ -12,23 +12,13 @@ post:
     required: true
   responses:
     "200":
-      description: search jobs response
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/searchJobsResponse"
+      $ref: "#/components/responses/exec_successSearch"
     "400":
-      description: bad request
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/errorBadRequest"
+    "401":
+      $ref: "#/components/responses/unauthorized"
     default:
-      description: Unexpected error
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/default"
 get:
   tags:
     - Execution
@@ -42,7 +32,7 @@ get:
     - name: pipelineName
       in: query
       schema:
-        type: string
+        $ref: "#/components/schemas/pipelineName"
     - name: pipelineType
       in: query
       schema:
@@ -50,18 +40,18 @@ get:
     - name: algorithmName
       in: query
       schema:
-        type: string
+        $ref: "#/components/schemas/algorithmName"
     - name: pipelineStatus
       in: query
       schema:
         type: string
     - name: from
       in: query
-      example: '2021-05-22T15:00:00'
+      example: '2025-05-22T15:00:00'
       schema:
         type: string
     - name: to
-      example: '2021-06-22T16:00:00'
+      example: '2025-06-22T16:00:00'
       in: query
       schema:
         type: string
@@ -75,7 +65,7 @@ get:
         type: string
     - name: sort
       in: query
-      example: asc,desc
+      example: desc
       schema:
         type: string
     - name: limit
@@ -92,22 +82,17 @@ get:
       example: "result:true, pipeline:false"
       schema:
         type: string
+    - name: tags
+      in: query
+      example: "tag1,tag2"
+      schema:
+        type: string
   responses:
     "200":
-      description: search jobs response
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/searchJobsResponse"
+      $ref: "#/components/responses/exec_successSearch"
     "400":
-      description: bad request
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/errorBadRequest"
+    "401":
+      $ref: "#/components/responses/unauthorized"
     default:
-      description: Unexpected error
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/error"
+      $ref: "#/components/responses/default"

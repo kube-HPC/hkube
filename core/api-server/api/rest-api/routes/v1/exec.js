@@ -14,32 +14,39 @@ const createQueryObjectFromString = (str) => {
     }, {});
 };
 
+const parseCommaSeparatedArray = (str) => {
+    if (!str || typeof str !== 'string') return [];
+    return str.split(',')
+        .map(s => s.trim())
+        .filter(Boolean);
+};
+
 const routes = (options) => {
     const router = RestServer.router();
     router.get('/', keycloak.getProtect(keycloakRoles.API_VIEW), (req, res) => {
         res.json({ message: `${options.version} ${options.file} api` });
     });
-    router.post('/raw', keycloak.getProtect(keycloakRoles.API_VIEW), async (req, res) => {
+    router.post('/raw', keycloak.getProtect(keycloakRoles.API_EXECUTE), async (req, res) => {
         const userName = keycloak.getPreferredUsername(req);
         const { jobId, gateways } = await Execution.runRaw(req.body, userName);
         res.json({ jobId, gateways });
     });
-    router.post('/stored', keycloak.getProtect(keycloakRoles.API_VIEW), async (req, res) => {
+    router.post('/stored', keycloak.getProtect(keycloakRoles.API_EXECUTE), async (req, res) => {
         const userName = keycloak.getPreferredUsername(req);
         const { jobId, gateways } = await Execution.runStored(req.body, userName);
         res.json({ jobId, gateways });
     });
-    router.post('/caching', keycloak.getProtect(keycloakRoles.API_VIEW), async (req, res) => {
+    router.post('/caching', keycloak.getProtect(keycloakRoles.API_EXECUTE), async (req, res) => {
         const userName = keycloak.getPreferredUsername(req);
         const { jobId, gateways } = await Execution.runCaching(req.body, userName);
         res.json({ jobId, gateways });
     });
-    router.post('/algorithm', keycloak.getProtect(keycloakRoles.API_VIEW), async (req, res) => {
+    router.post('/algorithm', keycloak.getProtect(keycloakRoles.API_EXECUTE), async (req, res) => {
         const userName = keycloak.getPreferredUsername(req);
         const { jobId, gateways } = await Execution.runAlgorithm(req.body, userName);
         res.json({ jobId, gateways });
     });
-    router.post('/rerun', keycloak.getProtect(keycloakRoles.API_VIEW), async (req, res) => {
+    router.post('/rerun', keycloak.getProtect(keycloakRoles.API_EXECUTE), async (req, res) => {
         const userName = keycloak.getPreferredUsername(req);
         const { jobId, gateways } = await Execution.rerun(req.body, userName);
         res.json({ jobId, gateways });
@@ -48,9 +55,9 @@ const routes = (options) => {
         const { nodes, edges } = await Execution._getGraphByStreamingFlow(req.body);
         res.json({ nodes, edges });
     });
-    router.post('/stop', keycloak.getProtect(keycloakRoles.API_VIEW), async (req, res) => {
+    router.post('/stop', keycloak.getProtect(keycloakRoles.API_EXECUTE), async (req, res) => {
         const userName = keycloak.getPreferredUsername(req);
-        const { jobId, pipelineName, startTime, reason } = req.body;
+        const { jobId, pipelineName, startTime, reason, statusToStop } = req.body;
         let datesRange;
         let search;
         let errormsg;
@@ -65,20 +72,29 @@ const routes = (options) => {
             search.query.pipelineName = jobId;
         }
         const searchResponse = await Execution.search({ ...search });
-        const jobsToStop = searchResponse.hits.filter(j => j.status.status === pipelineStatuses.ACTIVE || j.status.status === pipelineStatuses.PENDING || j.status.status === pipelineStatuses.PAUSED);
+        let statusesToFilter;
+        if (Array.isArray(statusToStop) && statusToStop.length > 0) {
+            statusesToFilter = statusToStop;
+        }
+        else if (typeof statusToStop === 'string') {
+            if (statusToStop.includes(',')) {
+                statusesToFilter = statusToStop.split(',').map(s => s.trim());
+            }
+            else {
+                statusesToFilter = [statusToStop];
+            }
+        }
+        else {
+            statusesToFilter = [pipelineStatuses.ACTIVE, pipelineStatuses.PENDING, pipelineStatuses.PAUSED];
+        }
+        const jobsToStop = searchResponse.hits.filter(j => statusesToFilter.includes(j.status.status));
         if (jobsToStop.length === 0) {
-            if (jobId) {
-                errormsg = `jobId ${jobId} Not Found`;
-            }
-            else if (pipelineName && !datesRange) {
-                errormsg = `No running jobs of ${pipelineName} to stop`;
-            }
-            else if (pipelineName) {
-                errormsg = `No running jobs of ${pipelineName} which started between ${datesRange.from} to ${datesRange.to} to stop`;
-            }
-            else if (datesRange) {
-                errormsg = `No Jobs Found between ${datesRange.from} to ${datesRange.to}`;
-            }
+            const details = [];
+            if (jobId) details.push(`jobId: ${jobId}`);
+            if (pipelineName) details.push(`pipelineName: ${pipelineName}`);
+            if (datesRange) details.push(`datesRange: ${datesRange.from} to ${datesRange.to}`);
+            if (statusesToFilter && statusesToFilter.length > 0) details.push(`statuses: ${statusesToFilter.join(',')}`);
+            errormsg = `No jobs found matching criteria${details.length ? ` (${details.join(', ')})` : ''}`;
             return res.status(404).json({
                 error: {
                     code: 404,
@@ -86,18 +102,21 @@ const routes = (options) => {
                 }
             });
         }
-        await Promise.all(jobsToStop.map(async job => {
-            await Execution.stopJob({ job, reason, userName });
-        }));
-        return res.json({ message: 'OK' });
+        const stoppedJobIds = await Promise.all(
+            jobsToStop.map(async job => {
+                await Execution.stopJob({ job, reason, userName });
+                return job.jobId;
+            })
+        );
+        return res.status(200).json({ stoppedJobIds });
     });
-    router.post('/pause', keycloak.getProtect(keycloakRoles.API_VIEW), async (req, res) => {
+    router.post('/pause', keycloak.getProtect(keycloakRoles.API_EXECUTE), async (req, res) => {
         const userName = keycloak.getPreferredUsername(req);
         const { jobId } = req.body;
         await Execution.pauseJob({ jobId, userName });
         res.json({ message: 'OK' });
     });
-    router.post('/resume', keycloak.getProtect(keycloakRoles.API_VIEW), async (req, res) => {
+    router.post('/resume', keycloak.getProtect(keycloakRoles.API_EXECUTE), async (req, res) => {
         const userName = keycloak.getPreferredUsername(req);
         const { jobId } = req.body;
         await Execution.resumeJob({ jobId, userName });
@@ -152,7 +171,8 @@ const routes = (options) => {
     });
 
     router.get('/search', keycloak.getProtect(keycloakRoles.API_VIEW), async (req, res) => {
-        const { experimentName, pipelineName, pipelineType, algorithmName, pipelineStatus, from, to, cursor, page, sort, limit, fields, exists } = req.query;
+        const { experimentName, pipelineName, pipelineType, algorithmName, pipelineStatus, from, to, cursor, page, sort, limit, fields, exists, tags } = req.query;
+
         const search = {
             query: {
                 experimentName,
@@ -160,7 +180,8 @@ const routes = (options) => {
                 pipelineType,
                 algorithmName,
                 pipelineStatus,
-                datesRange: { from, to }
+                datesRange: { from, to },
+                tags: parseCommaSeparatedArray(tags)
             },
             cursor,
             sort,

@@ -95,7 +95,7 @@ class DatabaseQuerier extends Events {
         return { experimentName, jobs };
     }
 
-    async getJobs({ experimentName, pipelineName, pipelineType, pipelineStatus, algorithmName, datesRange, user, action, cursor, pageNum, sort, limit = MAX_ITEMS }) {
+    async getJobs({ experimentName, pipelineName, pipelineType, pipelineStatus, algorithmName, datesRange, user, action, cursor, pageNum, sort, limit = MAX_ITEMS, tag }, searchByPrefix = false) {
         const query = {
             experimentName,
             pipelineName,
@@ -104,7 +104,8 @@ class DatabaseQuerier extends Events {
             algorithmName,
             datesRange,
             user,
-            action
+            action,
+            tags: tag ? [tag] : undefined
         };
         const jobs = await this._db.jobs.searchApi({
             query,
@@ -116,22 +117,22 @@ class DatabaseQuerier extends Events {
             // limit: MAX_ITEMS,
             maxItemsSize: this._options.sizes.maxFlowInputSize,
             itemsToRemove: ['pipeline.flowInput', 'userPipeline.flowInput', 'pipeline.flowInputMetadata']
-        });
+        }, searchByPrefix);
 
         return jobs;
     }
 
-    async jobSCountByQuery({ experimentName, pipelineName, pipelineType, pipelineStatus, algorithmName, datesRange }) {
+    async jobSCountByQuery({ experimentName, pipelineName, pipelineType, pipelineStatus, algorithmName, datesRange, tags }, searchByPrefix = false) {
         const query = {
             experimentName,
             pipelineName,
             pipelineType,
             pipelineStatus,
             algorithmName,
-            datesRange
+            datesRange,
+            tags
         };
-
-        const jobsCount = await this._db.jobs.count({ query });
+        const jobsCount = await this._db.jobs.count({ query }, searchByPrefix);
         return jobsCount;
     }
 

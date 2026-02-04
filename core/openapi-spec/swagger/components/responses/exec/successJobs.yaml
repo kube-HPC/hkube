@@ -1,0 +1,14 @@
+description: Successfully retrieved list of jobs
+content:
+  application/json:
+    schema:
+      type: array
+      items:
+        $ref: "#/components/schemas/jobListItem"
+    example:
+      - jobId: "qohsjh0in1a4"
+        status: "active"
+        pipelineName: "simple"
+      - jobId: "zx91udm4pkq7"
+        status: "active"
+        pipelineName: "testing"

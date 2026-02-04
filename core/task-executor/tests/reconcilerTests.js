@@ -1,9 +1,8 @@
 const { expect } = require('chai');
+const { stateType } = require('@hkube/consts');
 const configIt = require('@hkube/config');
-const Logger = require('@hkube/logger');
 const clone = require('lodash.clonedeep');
-const { main, logger } = configIt.load();
-const log = new Logger(main.serviceName, logger);
+const { main } = configIt.load();
 const etcd = require('../lib/helpers/etcd');
 const { normalizeResources } = require('../lib/reconcile/normalize');
 const awsAccessKeyId = { name: 'AWS_ACCESS_KEY_ID', valueFrom: { secretKeyRef: { name: 's3-secret', key: 'awsKey' } } };
@@ -11,9 +10,10 @@ const awsSecretAccessKey = { name: 'AWS_SECRET_ACCESS_KEY', valueFrom: { secretK
 const s3EndpointUrl = { name: 'S3_ENDPOINT_URL', valueFrom: { secretKeyRef: { name: 's3-secret', key: 'awsEndpointUrl' } } };
 const fsVolumes = { name: 'storage-volume', persistentVolumeClaim: { claimName: 'hkube-storage-pvc' } };
 const fsVolumeMounts = { name: 'storage-volume', mountPath: '/hkubedata' };
-const { workerTemplate, varlogMount, varlibdockercontainersMount, varLog, varlibdockercontainers, } = require('../lib/templates/index');
+const { varlogMount, varlibdockercontainersMount, varLog, varlibdockercontainers, } = require('../lib/templates');
 const { settings: globalSettings } = require('../lib/helpers/settings');
-const resources = require('./stub/resources');
+const { consts } = require('../lib/consts');
+const { resources } = require('./stub');
 
 const options = main;
 let callCount, clearCount, normResources, reconciler, algorithmTemplates;
@@ -30,7 +30,7 @@ describe('reconciler', () => {
     /**
      * Creates an argument object for the reconciler.
      *
-     * @param {string | string[]} algNames - A single algorithm name or an array of algorithm names.
+     * @param {string | string[]} algNamesRequest - A single algorithm name or an array of algorithm names (normRequests).
      * @param {Object} [options={}] - Optional configuration overrides.
      * @param {Object} [options.localOptions=options] - Overrides the default `options` if provided.
      * @param {Object} [options.localNormResources=normResources] - Overrides the default `normResources` if provided.
@@ -42,9 +42,9 @@ describe('reconciler', () => {
      * @param {Object} [options.workers]
      * @returns {Object} The argument object for the reconciler, containing options, normResources, algorithmTemplates, algorithmRequests, clusterOptions, versions, registry, workerResources, and workers.
      */
-    const createReconcileArgs = (algNames, { localOptions = options, localNormResources = normResources, localAlgorithmTemplates = algorithmTemplates,
+    const createReconcileArgs = (algNamesRequest, { localOptions = options, localNormResources = normResources, localAlgorithmTemplates = algorithmTemplates,
         clusterOptions, versions, registry, workerResources, workers } = {}) => {
-        const data = Array.isArray(algNames) ? algNames.map(name => ({ name })) : [{ name: algNames }];
+        const data = Array.isArray(algNamesRequest) ? algNamesRequest.map(name => ({ name })) : [{ name: algNamesRequest }];
         return {
             options: localOptions,
             normResources: localNormResources,
@@ -74,8 +74,9 @@ describe('reconciler', () => {
 
     beforeEach(() => {
         clearCount();
-        reconciler._clearCreatedJobsList(Date.now() + 100000, options);
-        reconciler._updateCapacity(1000);
+        const { requestPreprocessor, jobsHandler } = require('../lib/reconcile/managers');
+        jobsHandler.clearCreatedJobsLists(options.createdJobsTTL, Date.now() + 100000);
+        requestPreprocessor.updateCapacity(1000);
         const res = clone(resources);
         res.nodes.body.items.push(res.nodeWithLabels);
         normResources = normalizeResources(res);
@@ -330,6 +331,26 @@ describe('reconciler', () => {
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[1].env).to.deep.include({ name: 'myAlgoEnv', value: 'myAlgoValue' });
             expect(callCount('createJob')[0][0].spec.spec.template.spec.containers[1].image).to.eql('hkube/algorithm-example');
         });
+
+        it('should apply securityContext to job spec', async () => {
+        const algorithm = 'green-alg';
+        algorithmTemplates[algorithm] = {
+            algorithmImage: 'hkube/security-context-algorithm-example',
+            securityContext: {
+                fsGroup: 1234,
+                fsGroupChangePolicy: 'OnRootMismatch'
+            }
+        };
+        const argument = createReconcileArgs(algorithm);
+        const res = await reconciler.reconcile(argument);
+
+        expect(res).to.exist;
+        expect(callCount('createJob').length).to.eql(1);
+        const jobSpec = callCount('createJob')[0][0].spec;
+        expect(jobSpec.spec.template.spec.securityContext).to.exist;
+        expect(jobSpec.spec.template.spec.securityContext.fsGroup).to.eql(1234);
+        expect(jobSpec.spec.template.spec.securityContext.fsGroupChangePolicy).to.eql('OnRootMismatch');
+    });
 
         it('setting java memory barrier as env in spec', async () => {
             const algorithm = 'black-alg';
@@ -1191,7 +1212,14 @@ describe('reconciler', () => {
             const argument = createReconcileArgs(Array(amount).fill(algorithm.name), { localAlgorithmTemplates });
             const res = await reconciler.reconcile(argument);
             await etcd._etcd.discovery.list({ serviceName: 'task-executor' });
-            expect(res[algorithm.name].required).to.eql(res[algorithm.name].created);globalSettings.sidecars
+            expect(res[algorithm.name].required).to.eql(res[algorithm.name].created);
+        });
+
+        it('should schedule algorithm without cpu limit if applyCpuLimits is false', async () => {
+            const algorithm = algorithmTemplates['alg-no-cpu-limit'];
+            const argument = createReconcileArgs(algorithm.name);
+            const res = await reconciler.reconcile(argument);
+            expect(res[algorithm.name].required).to.eql(res[algorithm.name].created);
         });
     });
 
@@ -1218,6 +1246,57 @@ describe('reconciler', () => {
         });
     });
 
+    describe('reconcile algorithms with kaiObject', function() {
+        it('should schedule algorithm with kaiObject', async () => {
+            const algorithm = 'algo-kai-object';
+            const argument = createReconcileArgs(algorithm);
+            const res = await reconciler.reconcile(argument);
+            expect(res).to.exist;
+            expect(res).to.eql({ [algorithm]: { idle: 0, required: 1, paused: 0, created: 1, skipped: 0, resumed: 0 } });
+        });
+
+        it('should schedule algorithm with empty kaiObject', async () => {
+            const algorithm = 'algo-kai-object-empty';
+            const argument = createReconcileArgs(algorithm);
+            const res = await reconciler.reconcile(argument);
+            expect(res).to.exist;
+            expect(res).to.eql({ [algorithm]: { idle: 0, required: 1, paused: 0, created: 1, skipped: 0, resumed: 0 } });
+        });
+
+        const generateMessage = (algorithm, givenMessage) => {
+            const expectedMessage = `Kai object validation failed for algorithm ${algorithm.name} version ${algorithm.version}.\nError: ${givenMessage}`;
+            return expectedMessage;
+        }
+
+        it('should not schedule algorithm with missing queue in kaiObject', async () => {
+            const algorithm = algorithmTemplates['algo-kai-object-no-queue'];
+            const argument = createReconcileArgs(algorithm.name);
+            const res = await reconciler.reconcile(argument);
+            expect(res).to.exist;
+            expect(res).to.eql({ [algorithm.name]: { idle: 0, required: 1, paused: 0, created: 0, skipped: 1, resumed: 0 } });
+
+            const resources = await etcd._etcd.discovery.list({ serviceName: 'task-executor' });
+            const algorithms = resources && resources[0] && resources[0].unScheduledAlgorithms;
+            const givenMessage = `Missing 'queue' in kaiObject for algorithm "${algorithm.name}"`;
+            expect(algorithms[algorithm.name].reason).to.eql('failedScheduling');
+            expect(algorithms[algorithm.name].message).to.eql(generateMessage(algorithm, givenMessage));
+        });
+
+        it('should not schedule algorithm with not existing queue', async () => {
+            const algorithm = algorithmTemplates['algo-kai-object-queue-not-exist'];
+            const argument = createReconcileArgs(algorithm.name);
+            const res = await reconciler.reconcile(argument);
+            expect(res).to.exist;
+            expect(res).to.eql({ [algorithm.name]: { idle: 0, required: 1, paused: 0, created: 0, skipped: 1, resumed: 0 } });
+
+            const resources = await etcd._etcd.discovery.list({ serviceName: 'task-executor' });
+            const algorithms = resources && resources[0] && resources[0].unScheduledAlgorithms;
+            const givenMessage = `Queue "${algorithm.kaiObject.queue}" in kaiObject for algorithm "${algorithm.name}" does not exist in available Kai queues`;
+            expect(algorithms[algorithm.name].reason).to.eql('failedScheduling');
+            expect(algorithms[algorithm.name].message).to.eql(generateMessage(algorithm, givenMessage));
+        });
+    });
+
     describe('reconcile algorithms with sideCar', function () {
         it('should schedule algorithm with sideCar', async () => {
             const algorithm = 'algo-car-emptyDir';
@@ -1235,6 +1314,55 @@ describe('reconciler', () => {
 
             expect(volume).to.have.property('emptyDir');
             expect(volume.emptyDir).to.be.an('object').that.deep.equals({});
+        });
+    });
+
+    describe('reconcile different stateType algorithms', function () {
+        const cases = [
+            undefined,
+            stateType.Stateful,
+            stateType.Stateless
+        ]
+
+        cases.forEach((stateType) => {
+            it(`should schedule algorithm with stateType ${stateType}`, async () => {
+                const algorithm = `algo-state-type-${stateType ? stateType : 'undefined'}`;
+                const argument = createReconcileArgs(algorithm, { stateType });
+                const res = await reconciler.reconcile(argument);
+                expect(res).to.exist;
+                expect(res).to.eql({ [algorithm]: { idle: 0, required: 1, paused: 0, created: 1, skipped: 0, resumed: 0 } });
+            });
+        });
+
+        it('should schedule streaming types without cutting', async () => {
+            const algorithmStatefull = `algo-state-type-${stateType.Stateful}`;
+            const algorithmStateless = `algo-state-type-${stateType.Stateless}`;
+            const amount = consts.MAX_JOBS_PER_TICK / 2;
+            const array = [
+                ...Array(amount).fill(algorithmStatefull),
+                ...Array(amount).fill(algorithmStateless)
+            ];
+            
+            const argument = createReconcileArgs(array);
+            const res = await reconciler.reconcile(argument);
+
+            expect(res).to.exist;
+            expect(res[algorithmStatefull].required).to.eql(amount);
+            expect(res[algorithmStatefull].created).to.eql(amount);
+            expect(res[algorithmStateless].required).to.eql(amount);
+            expect(res[algorithmStateless].created).to.eql(amount);
+        });
+
+        it('should cut non-streaming types (batch)', async () => {
+            const algorithm = `algo-state-type-undefined`;
+            const amount = consts.MAX_JOBS_PER_TICK;
+            const array = Array(amount).fill(algorithm);
+            
+            const argument = createReconcileArgs(array);
+            const res = await reconciler.reconcile(argument);
+
+            expect(res).to.exist;
+            expect(res[algorithm].required).to.be.lessThan(amount);
         });
     });
 });

@@ -1684,6 +1684,161 @@ describe('Store/Algorithms', () => {
                 expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
                 expect(response.body.error.message).to.contain('Sidecar container names must be unique!');
             });
+
+            it('should throw validation error when stateType is invalid', async () => {
+                const body = {
+                    name: uuid(),
+                    algorithmImage: 'image',
+                    mem: '6666Ki',
+                    cpu: 1,
+                    stateType: 'no_such'
+                };
+                const payload = JSON.stringify(body);
+                const options = {
+                    uri: applyPath,
+                    formData: { payload }
+                };
+                const response = await request(options);
+                expect(response.body).to.have.property('error');
+                expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
+                expect(response.body.error.message).to.contain("data.stateType should be equal to one of the allowed values (stateless,stateful)");
+            });
+
+            describe('GPU sharing', () => {
+                it('should throw validation error if kaiObject doesnt have a queue', async () => {
+                    const url = 'https://github.com/hkube/my.git.foo.bar';
+                    const body = {
+                        name: uuid(),
+                        gitRepository: {
+                            url
+                        },
+                        env: 'nodejs',
+                        type: 'Git',
+                        kaiObject: {
+                            memory: '512Mi'
+                        }
+                    };
+                    const options = {
+                        uri: applyPath,
+                        body: { payload: JSON.stringify(body) }
+                    };
+                    const response = await request(options);
+                    expect(response.body).to.have.property('error');
+                    expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
+                    expect(response.body.error.message).to.contain('data.kaiObject should have required property \'queue\'');
+                });
+
+                it('should throw validation error if kaiObject has both memory and fraction defined', async () => {
+                    const url = 'https://github.com/hkube/my.git.foo.bar';
+                    const body = {
+                        name: uuid(),
+                        gitRepository: {
+                            url
+                        },
+                        env: 'nodejs',
+                        type: 'Git',
+                        kaiObject: {
+                            queue: 'default',
+                            memory: '512Mi',
+                            fraction: 0.5
+                        }
+                    };
+                    const options = {
+                        uri: applyPath,
+                        body: { payload: JSON.stringify(body) }
+                    };
+                    const response = await request(options);
+                    expect(response.body).to.have.property('error');
+                    expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
+                    expect(response.body.error.message).to.contain('In kaiObject, only one of "memory" or "fraction" can be defined!');
+                });
+
+                it('should throw validation error if memory in kaiObject is not a valid format', async () => {
+                    const url = 'https://github.com/hkube/my.git.foo.bar';
+                    const body = {
+                        name: uuid(),
+                        gitRepository: {
+                            url
+                        },
+                        env: 'nodejs',
+                        type: 'Git',
+                        kaiObject: {
+                            queue: 'default',
+                            memory: '512'
+                        }
+                    };
+                    const options = {
+                        uri: applyPath,
+                        body: { payload: JSON.stringify(body) }
+                    };
+                    const response = await request(options);
+                    expect(response.body).to.have.property('error');
+                    expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.INTERNAL_SERVER_ERROR);
+                    expect(response.body.error.message).to.contain('memory unit must be one of Ki,M,Mi,Gi,m,K,G,T,Ti');
+                });
+
+                it('should NOT throw validation error if kaiObject has only memory defined', async () => {
+                    const url = 'https://github.com/hkube/my.git.foo.bar';
+                    const body = {
+                        name: uuid(),
+                        gitRepository: {
+                            url
+                        },
+                        env: 'nodejs',
+                        type: 'Git',
+                        kaiObject: {
+                            queue: 'default',
+                            memory: '512Mi'
+                        }
+                    };
+                    const options = {
+                        uri: applyPath,
+                        body: { payload: JSON.stringify(body) }
+                    };
+                    const response = await request(options);
+                    expect(response.body).to.not.have.property('error');
+                });
+
+                it('should NOT throw validation error if kaiObject has only fraction defined', async () => {
+                    const url = 'https://github.com/hkube/my.git.foo.bar';
+                    const body = {
+                        name: uuid(),
+                        gitRepository: {
+                            url
+                        },
+                        env: 'nodejs',
+                        type: 'Git',
+                        kaiObject: {
+                            queue: 'default',
+                            fraction: 0.25
+                        }
+                    };
+                    const options = {
+                        uri: applyPath,
+                        body: { payload: JSON.stringify(body) }
+                    };
+                    const response = await request(options);
+                    expect(response.body).to.not.have.property('error');
+                });
+
+                it('should NOT throw validation error if kaiObject is missing', async () => {
+                    const url = 'https://github.com/hkube/my.git.foo.bar';
+                    const body = {
+                        name: uuid(),
+                        gitRepository: {
+                            url
+                        },
+                        env: 'nodejs',
+                        type: 'Git'
+                    };
+                    const options = {
+                        uri: applyPath,
+                        body: { payload: JSON.stringify(body) }
+                    };
+                    const response = await request(options);
+                    expect(response.body).to.not.have.property('error');
+                });
+            });
         });
 
         describe('labels and annotations', () => {
@@ -2441,7 +2596,10 @@ describe('Store/Algorithms', () => {
 
                 const { options, created: c1, modified: c2, reservedMemory: none,auditTrail, ...restProps } = res1.body.algorithm;
                 const res2 = await request({ uri: `${versionsPath}/${algorithmName}`, method: 'GET' });
+                const versionForBuild = await request({ uri: `${restPath}/${algorithmName}`, method: 'GET' });
                 const { version, created, modified, reservedMemory, auditTrail:auditTrail1 , ...algorithm } = res2.body[0].algorithm;
+                expect(versionForBuild.body.auditTrail[0]).to.have.property('version');
+                expect(versionForBuild.body.auditTrail[0].version).to.not.equal('undefined');
                 expect(algorithm).to.eql({ ...defaultProps, ...restProps, algorithmImage });
             });
 

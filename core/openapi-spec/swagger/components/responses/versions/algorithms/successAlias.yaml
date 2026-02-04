@@ -1,0 +1,41 @@
+description: Success response with detailed algorithm version information
+content:
+  application/json:
+    schema:
+      $ref: "#/components/schemas/algorithm"
+    example:
+      version: "drajpk86hx"
+      semver: "1.0.21"
+      created: 1716705585003
+      name: "green-alg"
+      algorithm:
+        name: "green-alg"
+        algorithmImage: "hkube/algorithm-example-python"
+        cpu: 0.1
+        mem: "256Mi"
+        options:
+          pending: false
+        minHotWorkers: 1
+        type: "Image"
+        gpu: 0
+        reservedMemory: "512Mi"
+        version: "drajpk86hx"
+        created: 1671352085066
+        modified: 1716705539076
+        env: "nodejs"
+        workerEnv:
+          INACTIVE_WORKER_TIMEOUT_MS: 5000
+        buildStats:
+          total: 0
+          pending: 0
+          creating: 0
+          active: 0
+          completed: 0
+          failed: 0
+          stopped: 0
+        image:
+          algorithmImage: "hkube/algorithm-example-python"
+      pinned: false
+      tags:
+        - "string"
+      versionAlias: "yestest"

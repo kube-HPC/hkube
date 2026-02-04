@@ -1,0 +1,85 @@
+description: Get graph raw data
+content:
+  application/json:
+    schema:
+      $ref: "#/components/schemas/graph"
+    example:
+      jobId: "05n4zdqwwxjl"
+      timestamp: 1763543103447
+      edges:
+        - from: "green"
+          to: "yellow"
+          value:
+            types:
+              - "waitNode"
+              - "input"
+        - from: "yellow"
+          to: "black"
+          value:
+            types:
+              - "waitNode"
+              - "input"
+      nodes:
+        - nodeName: "green"
+          algorithmName: "green-alg"
+          algorithmVersion: "0ikukmq28u"
+          devMode: true
+          taskId: "72y8rhr7"
+          input:
+            - path: "cicd-hkube/05n4zdqwwxjl/05n4zdqwwxjl"
+          output:
+            storageInfo:
+              path: "cicd-hkube/05n4zdqwwxjl/72y8rhr7"
+              size: 6
+            metadata:
+              green:
+                type: "str"
+            discovery:
+              host: "100.96.2.80"
+              port: "9020"
+            taskId: "72y8rhr7"
+          podName: "green-alg-e8lxb-56r7k"
+          status: "succeed"
+          startTime: 1763543099974
+          endTime: 1763543100998
+          level: 0
+        - nodeName: "yellow"
+          algorithmName: "yellow-alg"
+          algorithmVersion: "oc3ce62up9"
+          taskId: "4b3jax63"
+          input:
+            - path: "cicd-hkube/05n4zdqwwxjl/72y8rhr7"
+              size: 6
+          output:
+            storageInfo:
+              path: "cicd-hkube/05n4zdqwwxjl/4b3jax63"
+              size: 6
+            metadata:
+              yellow:
+                type: "str"
+            discovery:
+              host: "100.96.1.185"
+              port: "9020"
+            taskId: "4b3jax63"
+          podName: "yellow-alg-lytbu-bqk7s"
+          status: "succeed"
+          startTime: 1763543101177
+          endTime: 1763543102209
+          level: 1
+        - nodeName: "black"
+          algorithmName: "black-alg"
+          algorithmVersion: "ehncj1r0e6"
+          taskId: "uhc60067"
+          input:
+            - path: "cicd-hkube/05n4zdqwwxjl/4b3jax63"
+              size: 6
+          output:
+            storageInfo:
+              path: "cicd-hkube/05n4zdqwwxjl/uhc60067"
+              size: 6
+            metadata: {}
+          podName: "black-alg-neq38-4kgxr"
+          status: "succeed"
+          startTime: 1763543102375
+          endTime: 1763543103400
+          level: 2

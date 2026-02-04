@@ -1,0 +1,38 @@
+description: A collection of snapshots
+content:
+  application/json:
+    schema:
+      oneOf:
+        - type: object
+          properties:
+            dataSource:
+              type: object
+              properties:
+                id:
+                  type: string
+            snapshot:
+              $ref: "#/components/schemas/Snapshot"
+        - $ref: "#/components/schemas/ResolvedSnapshot"
+    examples:
+      basic:
+        summary: Minimal snapshot pair (dataSource + snapshot)
+        value:
+          dataSource:
+            id: "ds-0000000000000000000000001"
+          snapshot:
+            id: "snap-0000000000000000000000001"
+            dataSource:
+              id: "ds-0000000000000000000000001"
+              name: "example-datasource"
+              filteredFilesList: []
+              droppedFiles: []
+      resolved:
+        summary: Resolved snapshot with full datasource
+        value:
+          name: "snapshot-name-1"
+          query: "type:full"
+          dataSource:
+            id: "ds-0000000000000000000000001"
+            name: "example-datasource"
+            filteredFilesList: []
+            droppedFiles: []

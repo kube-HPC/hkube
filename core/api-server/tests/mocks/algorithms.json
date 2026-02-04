@@ -105,7 +105,7 @@
     {
         "name": "stateful-alg",
         "kind": "stream",
-        "streamKind": "stateful",
+        "stateType": "stateful",
         "algorithmImage": "hkube/algorithm-example",
         "cpu": 1,
         "mem": "6000Mi",
@@ -117,7 +117,7 @@
     {
         "name": "stateless-alg",
         "kind": "stream",
-        "streamKind": "stateless",
+        "stateType": "stateless",
         "algorithmImage": "hkube/algorithm-example",
         "cpu": 1,
         "mem": "6000Mi",

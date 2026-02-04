@@ -1,0 +1,46 @@
+description: Get Optunasboard response
+content:
+  application/json:
+    schema:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier of the board
+        boardReference:
+          type: string
+          description: Reference key for the board
+        boardLink:
+          type: string
+          description: URL link to access the board
+        status:
+          type: string
+          description: Current status of the board
+        result:
+          type: string
+          nullable: true
+          description: Result data if available
+        error:
+          type: string
+          nullable: true
+          description: Error message if any
+        endTime:
+          type: number
+          nullable: true
+          description: Timestamp when the board ended
+        startTime:
+          type: number
+          description: Timestamp when the board started
+        timestamp:
+          type: number
+          description: Timestamp of the record
+    example:
+      id: "string"
+      boardReference: "ckbw"
+      boardLink: "hkube/board/ckbw/dashboard"
+      status: "creating"
+      result: null
+      error: null
+      endTime: null
+      startTime: 1762960365075
+      timestamp: 1762960366016

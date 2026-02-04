@@ -1,0 +1,5 @@
+description: start board response
+content:
+  application/json:
+    schema:
+      $ref: "#/components/schemas/removeFromPreferredRequest"

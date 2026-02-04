@@ -1,0 +1,21 @@
+put:
+  tags:
+    - Algorithm Versions
+  summary: Algorithm version alias
+  description: Change the alias of a specific algorithm version.
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: "#/components/schemas/versionAlias"
+    description: an object representing all information needed to change the algorithmn's alias
+    required: true
+  responses:
+    "200":
+      $ref: "#/components/responses/versionsAlgorithms_successAlias"
+    "400":
+      $ref: "#/components/responses/errorBadRequest"
+    "401":
+      $ref: "#/components/responses/unauthorized"
+    default:
+      $ref: "#/components/responses/default"

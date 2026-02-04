@@ -202,6 +202,7 @@ const jobTypeDefs = gql`
     priority: Int
     startTime: Float
     types: [String]
+    tags: [String]
     lastRunResult: LastRunResult
     flowInputMetadata: FlowInputMetadata
     triggers: Triggers
@@ -253,6 +254,7 @@ const jobTypeDefs = gql`
       datesRange: Range
       cursor: String
       limit: Int
+      tag: String
     ): AggregatedJobs
 
     job(id: String!): Job

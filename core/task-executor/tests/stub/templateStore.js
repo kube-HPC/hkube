@@ -1,4 +1,6 @@
-module.exports = [
+const { stateType } = require('@hkube/consts');
+
+const templateStore = [
     {
         name: 'eval-alg',
         algorithmImage: 'hkube/algorunner',
@@ -468,5 +470,103 @@ module.exports = [
                 mountPath: "/tmp/foo"
             }
         ],
+    },
+    {
+        name: 'algo-kai-object',
+        version: "mlcr853dba123",
+        algorithmImage: 'hkube/algorithm-example',
+        cpu: 0.5,
+        mem: '128Mi',
+        kaiObject: {
+            queue: 'test',
+            memory: "3000Mi",
+            fraction: 0.5
+        }
+    },
+    {
+        name: 'algo-kai-object-no-queue',
+        version: "mlcr853dba456",
+        algorithmImage: 'hkube/algorithm-example',
+        cpu: 0.5,
+        mem: '128Mi',
+        kaiObject: {
+            memory: "3000",
+            fraction: 0.5
+        }
+    },
+    {
+        name: 'algo-kai-object-empty',
+        version: "mlcr853dba789",
+        algorithmImage: 'hkube/algorithm-example',
+        cpu: 0.5,
+        mem: '128Mi',
+        kaiObject: {}
+    },
+    {
+        name: 'algo-kai-object-queue-not-exist',
+        version: "mlcr853dba0",
+        algorithmImage: 'hkube/algorithm-example',
+        cpu: 0.5,
+        mem: '128Mi',
+        kaiObject: {
+            queue: 'non-exist-queue',
+            memory: "3000",
+            fraction: 0.5
+        }
+    },
+    {
+        name: 'algo-state-type-' + stateType.Stateful,
+        algorithmImage: 'hkube/algorithm-example',
+        cpu: 0.001,
+        mem: '128Mi',
+        stateType: stateType.Stateful
+    },
+    {
+        name: 'algo-state-type-' + stateType.Stateless,
+        algorithmImage: 'hkube/algorithm-example',
+        cpu: 0.001,
+        mem: '128Mi',
+        stateType: stateType.Stateless
+    },
+    {
+        name: 'algo-state-type-undefined',
+        algorithmImage: 'hkube/algorithm-example',
+        cpu: 0.001,
+        mem: '128Mi',
+        stateType: undefined
+    },
+    {
+        name: 'print-every-10-sec',
+        algorithmImage: 'docker.io/hkubedevtest/print-every-10-sec:vokska3od',
+        cpu: 2.8,
+        mem: '256Mi'
+    },
+    {
+        name: 'alg1',
+        algorithmImage: 'hkube/algorunner',
+        cpu: 0.5,
+        mem: '256Mi'
+    },
+    {
+        name: 'alg2',
+        algorithmImage: 'hkube/algorunner',
+        cpu: 0.5,
+        mem: '256Mi'
+    },
+    {
+        name: 'alg-no-cpu-limit',
+        algorithmImage: 'hkube/algorunner',
+        cpu: 0.3,
+        mem: '256Mi',
+        applyCpuLimits: false
+    },
+    {
+        name: 'alg-with-cpu-limit',
+        algorithmImage: 'hkube/algorunner',
+        cpu: 0.3,
+        mem: '256Mi',
+        applyCpuLimits: true
     }
 ];
+
+module.exports = templateStore;
