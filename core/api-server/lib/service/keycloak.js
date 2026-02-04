@@ -29,7 +29,7 @@ class KeycloakMiddleware {
                 }
             });
 
-            try {
+            try { // TODO - Get keycloak open protocol page and add retry service to avoid crashing the pod
                 // Validate realm configuration by fetching the realm info
                 const realmInfoUrl = `${this._options.authServerUrl}/realms/${this._options.realm}`;
                 const axiosOptions = {};
