@@ -121,7 +121,7 @@ describe('TaskRunner', function () {
         await taskRunner.start(job)
         expect(spy.calledOnce).to.equal(true);
         expect(taskRunner.pipeline.activeTime).to.equal(activeTime);
-        expect(taskRunner.pipeline.queueTime).to.be.equal(
+        expect(taskRunner.pipeline.queueTimeSeconds).to.be.equal(
         require('moment')(taskRunner.pipeline.activeTime).diff(require('moment')(taskRunner.pipeline.startTime), 'seconds', true));
     });
 

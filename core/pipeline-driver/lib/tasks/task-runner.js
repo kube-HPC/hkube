@@ -332,13 +332,13 @@ class TaskRunner {
 
         const activeTime = pipeline.activeTime || Date.now();
         pipeline.activeTime = activeTime;
-        let { queueTime } = pipeline;
-        if (!queueTime) {
-            queueTime = moment(activeTime).diff(moment(pipeline.startTime), 'seconds', true);
+        let { queueTimeSeconds } = pipeline;
+        if (!queueTimeSeconds) {
+            queueTimeSeconds = moment(activeTime).diff(moment(pipeline.startTime), 'seconds', true);
         }
-        pipeline.queueTime = queueTime;
-        await this._progressStatus({ status: DriverStates.ACTIVE, activeTime, queueTime });
-        await stateManager.updatePipeline({ jobId, activeTime, queueTime });
+        pipeline.queueTimeSeconds = queueTimeSeconds;
+        await this._progressStatus({ status: DriverStates.ACTIVE, activeTime, queueTimeSeconds });
+        await stateManager.updatePipeline({ jobId, activeTime, queueTimeSeconds });
         this._isCachedPipeline = await cachePipeline._checkCachePipeline(pipeline.nodes);
 
         pipeline.nodes = await Promise.all(pipeline.nodes.map(async node => {

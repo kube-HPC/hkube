@@ -202,7 +202,7 @@ const jobTypeDefs = gql`
     priority: Int
     startTime: Float
     activeTime: Float
-    queueTime: Float
+    queueTimeSeconds: Float
     types: [String]
     tags: [String]
     lastRunResult: LastRunResult
