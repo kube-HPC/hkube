@@ -3,6 +3,7 @@ const { parser } = require('@hkube/parsers');
 const { pipelineStatuses, taskStatuses, stateType, pipelineKind, warningCodes } = require('@hkube/consts');
 const { NodesMap, NodeTypes } = require('@hkube/dag');
 const logger = require('@hkube/logger');
+const moment = require('moment');
 const log = logger.GetLogFromContainer();
 const pipelineMetrics = require('../metrics/pipeline-metrics');
 const producer = require('../producer/jobs-producer');
@@ -331,8 +332,13 @@ class TaskRunner {
 
         const activeTime = pipeline.activeTime || Date.now();
         pipeline.activeTime = activeTime;
-        await this._progressStatus({ status: DriverStates.ACTIVE, activeTime });
-        await stateManager.updatePipeline({ jobId, activeTime });
+        let { queueTimeSeconds } = pipeline;
+        if (!queueTimeSeconds) {
+            queueTimeSeconds = moment(activeTime).diff(moment(pipeline.startTime), 'seconds', true);
+        }
+        pipeline.queueTimeSeconds = queueTimeSeconds;
+        await this._progressStatus({ status: DriverStates.ACTIVE, activeTime, queueTimeSeconds });
+        await stateManager.updatePipeline({ jobId, activeTime, queueTimeSeconds });
         this._isCachedPipeline = await cachePipeline._checkCachePipeline(pipeline.nodes);
 
         pipeline.nodes = await Promise.all(pipeline.nodes.map(async node => {
