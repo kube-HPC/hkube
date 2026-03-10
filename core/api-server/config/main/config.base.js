@@ -75,6 +75,29 @@ config.elasticSearch = {
 
 };
 
+config.loki = {
+    // baseUrl can be either the Loki service root (e.g. http(s)://host) + optional pathPrefix,
+    // or a full prefixed URL such as /api/logs/v1/<tenant>/loki/api/v1 when using OpenShift LokiStack gateway.
+    baseUrl: process.env.LOKI_BASE_URL || process.env.LOKI_URL || '',
+    pathPrefix: process.env.LOKI_PATH_PREFIX || '/loki/api/v1',
+    tenantId: process.env.LOKI_TENANT_ID || '',
+    useServiceAccountToken: formatter.parseBool(process.env.LOKI_USE_SERVICEACCOUNT_TOKEN, true),
+    timeout: formatter.parseInt(process.env.LOKI_TIMEOUT_MS, 30000),
+    lookbackMs: formatter.parseInt(process.env.LOKI_LOOKBACK_MS, 24 * 60 * 60 * 1000),
+    parseJson: formatter.parseBool(process.env.LOKI_PARSE_JSON, true),
+    stdoutStreamValue: process.env.LOKI_STDOUT_STREAM_VALUE || 'stdout',
+    labels: {
+        namespace: process.env.LOKI_LABEL_NAMESPACE || 'namespace',
+        pod: process.env.LOKI_LABEL_POD || 'pod',
+        container: process.env.LOKI_LABEL_CONTAINER || 'container',
+        stream: process.env.LOKI_LABEL_STREAM || 'stream'
+    },
+    filters: {
+        taskIdContains: process.env.LOKI_FILTER_TASKID_CONTAINS || '\"taskId\":\"{taskId}\"',
+        componentContains: process.env.LOKI_FILTER_COMPONENT_CONTAINS || '\"component\":\"{component}\"'
+    }
+};
+
 config.kubernetes = {
     isLocal: !!process.env.KUBERNETES_SERVICE_HOST,
     namespace: process.env.NAMESPACE || 'default',

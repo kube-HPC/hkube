@@ -3,6 +3,7 @@ const fs = require('fs');
 const orderBy = require('lodash.orderby');
 const { logModes, podStatus } = require('@hkube/consts');
 const elasticSearch = require('./es');
+// const loki = require('./loki');
 const kubernetes = require('./kubernetes');
 const component = require('../../lib/consts/componentNames').LOGS;
 const { sources, formats, containers, sortOrder, LOGS_LIMIT } = require('./consts');
@@ -11,6 +12,7 @@ class Logs {
         this._sources = new Map();
         this._sources.set(sources.k8s, kubernetes);
         this._sources.set(sources.es, elasticSearch);
+        // this._sources.set(sources.loki, loki);
     }
 
     async init(options) {
@@ -23,6 +25,7 @@ class Logs {
             }
         }
         elasticSearch.init(options);
+        // await loki.init(options);
         await kubernetes.init(options);
         this.updateSource(options.logsView.source);
         this.updateFormat(options.logsView.format);

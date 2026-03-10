@@ -1,6 +1,7 @@
 const sources = {
     k8s: 'k8s',
-    es: 'es'
+    es: 'es',
+    loki: 'loki'
 };
 
 const formats = {
