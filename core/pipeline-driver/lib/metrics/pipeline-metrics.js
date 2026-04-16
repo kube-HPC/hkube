@@ -71,14 +71,14 @@ class PipelineMetrics {
         metrics.addTimeMeasure({
             name: metricsNames.pipeline_net_time_took,
             description: 'Pipeline net time took in seconds',
-            labels: ['pipeline_name', 'status', 'jobId'],
+            labels: ['pipeline_name', 'status'],
             buckets: utils.arithmatcSequence(30, 0, 2)
                 .concat(utils.geometricSequence(10, 56, 2, 1).slice(2)).map(i => i * 1000)
         });
         metrics.addTimeMeasure({
             name: metricsNames.pipeline_gross_time_took,
             description: 'Pipeline gross time took in seconds',
-            labels: ['pipeline_name', 'status', 'jobId'],
+            labels: ['pipeline_name', 'status'],
             buckets: utils.arithmatcSequence(30, 0, 2)
                 .concat(utils.geometricSequence(10, 56, 2, 1).slice(2)).map(i => i * 1000)
         });
