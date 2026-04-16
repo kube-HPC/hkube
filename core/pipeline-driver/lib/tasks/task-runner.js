@@ -414,7 +414,7 @@ class TaskRunner {
         const timeTook = stateManager.calcTimeTook(this.pipeline);
         await this._progressStatus({ status, error, nodeName, ...timeTook });
 
-        pipelineMetrics.endMetrics({ jobId: this._jobId, pipeline: this.pipeline.name, progress: this._currentProgress, status });
+        pipelineMetrics.endMetrics({ jobId: this._jobId, pipeline: this.pipeline.name, progress: this._currentProgress, status, ...timeTook });
         log.info(`pipeline ${status}. ${error || ''}`, { component, jobId: this._jobId, pipelineName: this.pipeline.name });
     }
 

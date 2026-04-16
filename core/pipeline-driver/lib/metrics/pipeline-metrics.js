@@ -68,6 +68,16 @@ class PipelineMetrics {
             description: 'Required Pods',
             labels: ['pipelineName', 'jobId', 'source', 'target']
         });
+        metrics.addGaugeMeasure({
+            name: metricsNames.pipeline_net_time_took,
+            description: 'Pipeline net time took in seconds',
+            labels: ['pipeline_name', 'status'],
+        });
+        metrics.addGaugeMeasure({
+            name: metricsNames.pipeline_gross_time_took,
+            description: 'Pipeline gross time took in seconds',
+            labels: ['pipeline_name', 'status'],
+        });
     }
 
     startMetrics(options) {
@@ -119,7 +129,7 @@ class PipelineMetrics {
     }
 
     endMetrics(options) {
-        const { jobId, pipeline, status } = options;
+        const { jobId, pipeline, status, netTimeTook, grossTimeTook } = options;
         if (!jobId || !pipeline) {
             return;
         }
@@ -137,6 +147,18 @@ class PipelineMetrics {
                     status
                 }
             });
+            if (netTimeTook != null) {
+                metrics.get(metricsNames.pipeline_net_time_took).set({
+                    value: netTimeTook,
+                    labelValues: { pipeline_name: pipeline, status }
+                });
+            }
+            if (grossTimeTook != null) {
+                metrics.get(metricsNames.pipeline_gross_time_took).set({
+                    value: grossTimeTook,
+                    labelValues: { pipeline_name: pipeline, status }
+                });
+            }
 
             const topSpan = tracer.topSpan(jobId);
             if (topSpan) {
