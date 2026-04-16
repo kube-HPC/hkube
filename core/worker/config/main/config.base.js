@@ -140,7 +140,7 @@ config.tracer = {
         reporter: {
             agentHost: process.env.JAEGER_AGENT_SERVICE_HOST || 'localhost',
             agentPort: process.env.JAEGER_AGENT_SERVICE_PORT_AGENT_BINARY || 6832,
-            flushIntervalMs: formatters.parseInt(process.env.JAEGER_FLUSH_INTERVAL_MS, 50)
+            flushIntervalMs: formatters.parseInt(process.env.JAEGER_FLUSH_INTERVAL_MS, 4500)
         }
     }
 };
