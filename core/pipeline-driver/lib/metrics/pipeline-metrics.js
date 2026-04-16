@@ -153,14 +153,14 @@ class PipelineMetrics {
             });
             if (netTimeTook != null) {
                 metrics.get(metricsNames.pipeline_net_time_took).retroactive({
-                    id: jobId,
+                    // id: jobId,
                     labelValues: { pipeline_name: pipeline, status, jobId },
                     time: netTimeTook * 1000
                 });
             }
             if (grossTimeTook != null) {
                 metrics.get(metricsNames.pipeline_gross_time_took).retroactive({
-                    id: jobId,
+                    // id: jobId,
                     labelValues: { pipeline_name: pipeline, status, jobId },
                     time: grossTimeTook * 1000
                 });
