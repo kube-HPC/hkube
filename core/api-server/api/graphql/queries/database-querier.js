@@ -95,7 +95,7 @@ class DatabaseQuerier extends Events {
         return { experimentName, jobs };
     }
 
-    async getJobs({ experimentName, pipelineName, pipelineType, pipelineStatus, algorithmName, datesRange, user, action, cursor, pageNum, sort, limit = MAX_ITEMS, tag }, searchByPrefix = false) {
+    async getJobs({ experimentName, pipelineName, pipelineType, pipelineStatus, algorithmName, datesRange, user, action, cursor, pageNum, sort, limit = MAX_ITEMS, tags }, searchByPrefix = false) {
         const query = {
             experimentName,
             pipelineName,
@@ -105,7 +105,7 @@ class DatabaseQuerier extends Events {
             datesRange,
             user,
             action,
-            tags: tag ? [tag] : undefined
+            tags
         };
         const jobs = await this._db.jobs.searchApi({
             query,
