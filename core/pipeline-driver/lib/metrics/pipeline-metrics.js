@@ -77,7 +77,7 @@ class PipelineMetrics {
         });
         metrics.addTimeMeasure({
             name: metricsNames.pipeline_gross_time_took,
-            description: 'Pipeline gross time took in seconds',
+            description: 'Pipeline gross time took in seconds(include time took in queue)',
             labels: ['pipeline_name', 'status'],
             buckets: utils.arithmatcSequence(30, 0, 2)
                 .concat(utils.geometricSequence(10, 56, 2, 1).slice(2)).map(i => i * 1000)
