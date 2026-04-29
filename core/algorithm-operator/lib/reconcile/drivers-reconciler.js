@@ -23,7 +23,6 @@ const _stopDriver = (driver) => {
     return etcd.sendCommandToDriver({ driverId: driver.id, command: commands.stopProcessing });
 };
 
-// eslint-disable-next-line no-unused-vars
 const reconcileDrivers = async ({ driverTemplates, driversRequests, drivers, jobs, versions, settings, registry, options, clusterOptions } = {}) => {
     const { name, minAmount } = settings;
     const normDrivers = normalizeDrivers(drivers);
