@@ -58,7 +58,7 @@ class Operator {
                 this._algorithmDebug(configMap, algorithms, options),
                 this._algorithmQueue({ ...configMap, resources: options.resources.algorithmQueue }, algorithms, options, count),
                 this._algorithmGateways({ ...configMap, algorithms }),
-                this._pipelineDriversHandle({ ...configMap, resources: options.resources.pipelineDriver }, options)
+                this._pipelineDriversHandle(configMap, options)
             ]);
         }
         catch (e) {
@@ -77,7 +77,7 @@ class Operator {
         };
     }
 
-    async _pipelineDriversHandle({ versions, registry, clusterOptions, resources }, options) {
+    async _pipelineDriversHandle({ versions, registry, clusterOptions }, options) {
         const [driverTemplates, driversRequests, drivers, jobs] = await Promise.all([
             db.getDriversTemplate(),
             etcd.getPipelineDriverRequests(),
@@ -86,7 +86,7 @@ class Operator {
         ]);
 
         await driversReconciler.reconcileDrivers({
-            driverTemplates, driversRequests, drivers, jobs, versions, settings: this._driversSettings, registry, options, clusterOptions, resources
+            driverTemplates, driversRequests, drivers, jobs, versions, settings: this._driversSettings, registry, options, clusterOptions
         });
     }
 

@@ -24,7 +24,7 @@ const _stopDriver = (driver) => {
 };
 
 // eslint-disable-next-line no-unused-vars
-const reconcileDrivers = async ({ driverTemplates, driversRequests, drivers, jobs, versions, settings, registry, options, clusterOptions, resources } = {}) => {
+const reconcileDrivers = async ({ driverTemplates, driversRequests, drivers, jobs, versions, settings, registry, options, clusterOptions } = {}) => {
     const { name, minAmount } = settings;
     const normDrivers = normalizeDrivers(drivers);
     const normJobs = normalizeDriversJobs(jobs, j => (!j.status.succeeded && !j.status.failed)).length;
