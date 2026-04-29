@@ -65,7 +65,7 @@ config.kubernetes = {
 
 config.jaeger = {
     host: process.env.JAEGER_AGENT_SERVICE_HOST,
-}
+};
 
 config.resources = {
     algorithmQueue: {
@@ -79,6 +79,10 @@ config.resources = {
     algorithmBuilderBuilder: {
         memory: parseFloat(process.env.ALGORITHM_BUILDER_BUILDER_MEMORY) || 256,
         cpu: parseFloat(process.env.ALGORITHM_BUILDER_BUILDER_CPU) || 1
+    },
+    pipelineDriver: {
+        memory: parseFloat(process.env.PIPELINE_DRIVER_MEMORY) || 512,
+        cpu: parseFloat(process.env.PIPELINE_DRIVER_CPU) || 0.2,
     },
     enable: formatter.parseBool(process.env.RESOURCES_ENABLE, false),
     useResourceLimits: formatter.parseBool(process.env.USE_RESOURCE_LIMITS, false),
