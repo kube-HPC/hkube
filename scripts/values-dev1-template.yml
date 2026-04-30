@@ -88,3 +88,7 @@ keycloak:
   enable: false
   auth:
     adminPassword: ${KEYCLOAK_ADMIN_PASS}
+
+simulator:
+  env:
+    inactive_time_ms: 100000
