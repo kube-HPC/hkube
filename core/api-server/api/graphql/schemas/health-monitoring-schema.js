@@ -6,8 +6,13 @@ const healthMonitoringTypeDefs = gql`
     status: Boolean
   }
 
+  type HealthMonitoringResult {
+    services: [ServiceHealth]
+    overallHealthStatus: Boolean
+  }
+
   extend type Query {
-    healthMonitoring: [ServiceHealth]
+    healthMonitoring: HealthMonitoringResult
   }
 `;
 

@@ -51,7 +51,8 @@ class PrometheusQuerier {
                 return { serviceName, status };
             })
         );
-        return results;
+        const overallHealthStatus = results.every(r => r.status);
+        return { services: results, overallHealthStatus };
     }
 
     async _query(promQuery) {
