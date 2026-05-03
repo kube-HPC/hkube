@@ -12,6 +12,7 @@ const nodeStatisticTypeDefs = require('./schemas/node-statistic-schema');
 const pipelineTypeDefs = require('./schemas/pipeline-schema');
 const pipelineStatsTypeDefs = require('./schemas/pipeline-stats-schema');
 const preferedTypeDefs = require('./schemas/prefered-schema');
+const healthMonitoringTypeDefs = require('./schemas/health-monitoring-schema');
 
 const SubscriptionIncNumbersTypeDefs = gql`
 type Subscription {
@@ -46,6 +47,7 @@ const types = [
     pipelineTypeDefs,
     pipelineStatsTypeDefs,
     preferedTypeDefs,
+    healthMonitoringTypeDefs,
     SubscriptionIncNumbersTypeDefs,
     Query,
     Subscription

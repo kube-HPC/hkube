@@ -8,6 +8,7 @@ const preferedQuerier = require('./queries/prefered-querier');
 const dataSourceQuerier = require('./queries/dataSource-querier');
 const statisticsQuerier = require('./queries/statistics-querier');
 const errorLogsQuerier = require('./queries/error-logs-querier');
+const prometheusQuerier = require('./queries/prometheus-querier');
 const logsQueries = require('../task-logs/logs');
 
 class GraphqlResolvers {
@@ -250,6 +251,10 @@ class GraphqlResolvers {
 
             queueCount: this._withAuth(() => {
                 return preferedQuerier.getQueueCount();
+            }, [keycloakRoles.API_VIEW]),
+
+            healthMonitoring: this._withAuth(() => {
+                return prometheusQuerier.getHealthMonitoring();
             }, [keycloakRoles.API_VIEW]),
         };
     }

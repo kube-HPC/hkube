@@ -49,6 +49,10 @@ monitor_server:
 storage_cleaner:
   pattern: "30 7 * * *"
 
+api_server:
+  env:
+    prometheus_endpoint: "http://metric-kube-prometheus-sta-prometheus.monitoring.svc.dev1-spot:9090"
+
 etcd_cleaner:
   pattern: "30 7 * * *"
 

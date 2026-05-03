@@ -226,5 +226,9 @@ config.interceptor = {
     apiIngressPath: process.env.API_INGRESS_PATH || '/hkube/api-server',
 }
 
+config.healthMonitoring = {
+    enabled: formatter.parseBool(process.env.HEALTH_MONITORING_ENABLED, true),//default should be false
+    prometheusEndpoint: process.env.PROMETHEUS_ENDPOINT,
+};
 
 module.exports = config;

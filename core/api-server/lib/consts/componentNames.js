@@ -18,6 +18,7 @@ const Components = {
     KEYCLOAK_MIDDLEWARE: 'Keycloak-Middleware',
     ETCD_WRAPPER: 'ETCD-Wrapper',
     NODES_STATISTICS: 'NodesStatistics',
+    PROMETHEUS_QUERIER: 'PrometheusQuerier',
     PIPELINES_UPDATER: 'Pipelines-Updater'
 };
 
