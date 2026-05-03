@@ -227,7 +227,7 @@ config.interceptor = {
 }
 
 config.healthMonitoring = {
-    enabled: formatter.parseBool(process.env.HEALTH_MONITORING_ENABLED, true),//default should be false
+    enabled: formatter.parseBool(process.env.HEALTH_MONITORING_ENABLED, false),
     prometheusEndpoint: process.env.PROMETHEUS_ENDPOINT,
 };
 

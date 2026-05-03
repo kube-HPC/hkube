@@ -20,6 +20,9 @@ global:
     use_regex: true
   registry_username: ${IMAGE_PULL_USERNAME}
   registry_password: ${IMAGE_PULL_PASSWORD}
+  health_monitoring:
+    enabled: true
+    dataSourceUrl: "http://metric-kube-prometheus-sta-prometheus.monitoring.svc.dev1-spot:9090"
 
 env:
   kibana_url: "https://dev.hkube.org/system/kibana/"
@@ -48,10 +51,6 @@ monitor_server:
 
 storage_cleaner:
   pattern: "30 7 * * *"
-
-api_server:
-  env:
-    prometheus_endpoint: "http://metric-kube-prometheus-sta-prometheus.monitoring.svc.dev1-spot:9090"
 
 etcd_cleaner:
   pattern: "30 7 * * *"
