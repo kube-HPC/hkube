@@ -60,6 +60,7 @@ class PrometheusQuerier {
             const response = await axios.get(`${this._prometheusEndpoint}/api/v1/query`, {
                 params: { query: promQuery },
             });
+            log.info(`Prometheus response for query=${promQuery}: ${JSON.stringify(response.data)}`, { component });
             return response.data;
         }
         catch (error) {
