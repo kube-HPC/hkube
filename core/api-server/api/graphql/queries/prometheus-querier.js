@@ -25,6 +25,10 @@ const HKUBE_3RD_PARTY = [
 class PrometheusQuerier {
     init(options) {
         this._enabled = options.healthMonitoring.enabled;
+        if (!this._enabled) {
+            log.info('Health monitoring feature is disabled', { component });
+            return;
+        }
         this._prometheusEndpoint = options.healthMonitoring.prometheusEndpoint;
         const { namespace } = options.kubernetes;
         this._serviceChecks = [
@@ -57,11 +61,11 @@ class PrometheusQuerier {
 
     async _query(promQuery) {
         try {
-            log.info(`querying prometheus endpoint=${this._prometheusEndpoint} query=${promQuery}`, { component });
+            log.debug(`querying prometheus endpoint=${this._prometheusEndpoint} query=${promQuery}`, { component });
             const response = await axios.get(`${this._prometheusEndpoint}/api/v1/query`, {
                 params: { query: promQuery },
             });
-            log.info(`Prometheus response for query=${promQuery}: ${JSON.stringify(response.data)}`, { component });
+            log.debug(`Prometheus response for query=${promQuery}: ${JSON.stringify(response.data)}`, { component });
             return response.data;
         }
         catch (error) {
