@@ -34,7 +34,7 @@ class PrometheusQuerier {
             })),
             ...HKUBE_3RD_PARTY.map(name => ({
                 serviceName: name,
-                promQuery: `count(kube_pod_status_phase{phase="Running", namespace="${namespace}", pod=~"${name}.*"})`,
+                promQuery: `count(kube_pod_status_phase{phase="Running", namespace="${namespace}", pod=~"^hkube-${name}.*"})`,
             })),
         ];
     }
