@@ -2,6 +2,9 @@ const { default: axios } = require('axios');
 const log = require('@hkube/logger').GetLogFromContainer();
 const component = require('../../../lib/consts/componentNames').PROMETHEUS_QUERIER;
 
+const PROMETHEUS_FIRST_RESULT_INDEX = 0; // count() always returns a single result series
+const PROMETHEUS_SAMPLE_VALUE_INDEX = 1; // Prometheus value tuple: [timestamp, sampleValue]
+
 const HKUBE_SERVICES = [
     'algorithm-operator',
     'api-server',
@@ -25,6 +28,7 @@ const HKUBE_3RD_PARTY = [
 class PrometheusQuerier {
     init(options) {
         this._enabled = options.healthMonitoring.enabled;
+        this._disabledUntil = null;
         const { namespace } = options.kubernetes;
         this._serviceChecks = [
             ...HKUBE_SERVICES.map(name => ({
@@ -46,11 +50,19 @@ class PrometheusQuerier {
         }
         this._prometheusEndpoint = options.healthMonitoring.prometheusEndpoint;
         this._dataSourceToken = options.healthMonitoring.dataSourceToken;
+        this._errorCooldownMs = options.healthMonitoring.errorCooldownMinutes * 60 * 1000;
     }
 
     async getHealthMonitoring() {
         if (!this._enabled) {
             return this._disabledResponse;
+        }
+        if (this._disabledUntil !== null) {
+            if (Date.now() < this._disabledUntil) {
+                log.info(`Health monitoring temporarily disabled for ${Math.ceil((this._disabledUntil - Date.now()) / 60000)} more minute(s)`, { component });
+                return this._disabledResponse;
+            }
+            this._disabledUntil = null;
         }
         try {
             const results = (await Promise.all(
@@ -59,7 +71,7 @@ class PrometheusQuerier {
                     if (!response) {
                         return { serviceName, status: null };
                     }
-                    const value = parseInt(response?.data?.result?.[0]?.value?.[1], 10);
+                    const value = parseInt(response?.data?.result?.[PROMETHEUS_FIRST_RESULT_INDEX]?.value?.[PROMETHEUS_SAMPLE_VALUE_INDEX], 10);
                     const status = Number.isFinite(value) && value >= 1;
                     return { serviceName, status };
                 })
@@ -85,11 +97,18 @@ class PrometheusQuerier {
         }
         catch (error) {
             if (error.response?.status === 401) {
-                this._enabled = false;
-                log.error('Prometheus query rejected: unauthorized (401). Disabling health monitoring feature.', { component });
-                return null;
+                if (this._enabled) {
+                    this._enabled = false;
+                    log.error('Prometheus query rejected: unauthorized (401). Disabling health monitoring permanently.', { component });
+                }
             }
-            log.error(`Prometheus query failed for "${promQuery}": ${error.message}`, { component });
+            else if (this._disabledUntil === null) {
+                this._disabledUntil = Date.now() + this._errorCooldownMs;
+                log.error(`Prometheus query failed for "${promQuery}": ${error.message}. Disabling health monitoring for ${this._errorCooldownMs / 60000} minutes.`, { component });
+            }
+            else { // already disabled, just log the error without spamming with disable messages
+                log.error(`Prometheus query failed for "${promQuery}": ${error.message}`, { component });
+            }
             return null;
         }
     }

@@ -230,6 +230,7 @@ config.healthMonitoring = {
     enabled: formatter.parseBool(process.env.HEALTH_MONITORING_ENABLED, false),
     prometheusEndpoint: process.env.PROMETHEUS_ENDPOINT,
     dataSourceToken: process.env.HEALTH_MONITORING_DATASOURCE_TOKEN || '',
+    errorCooldownMinutes: formatter.parseInt(process.env.HEALTH_MONITORING_ERROR_COOLDOWN_MINUTES, 10) || 30,
 };
 
 module.exports = config;

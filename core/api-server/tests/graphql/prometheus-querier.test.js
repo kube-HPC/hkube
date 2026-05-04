@@ -14,6 +14,7 @@ const BASE_OPTIONS = {
         enabled: true,
         prometheusEndpoint: 'http://prometheus:9090',
         dataSourceToken: 'test-token',
+        errorCooldownMinutes: 30,
     },
     kubernetes: { namespace: 'default' },
 };
@@ -163,6 +164,16 @@ describe('PrometheusQuerier', () => {
             const result = await prometheusQuerier._query('up');
             expect(result).to.be.null;
             expect(prometheusQuerier._enabled).to.be.true;
+        });
+
+        it('should use errorCooldownMinutes from options for the cooldown duration', async () => {
+            prometheusQuerier.init({ ...BASE_OPTIONS, healthMonitoring: { ...BASE_OPTIONS.healthMonitoring, errorCooldownMinutes: 10 } });
+            expect(prometheusQuerier._errorCooldownMs).to.equal(10 * 60 * 1000);
+        });
+
+        it('should default errorCooldownMinutes to 30 when not provided', async () => {
+            prometheusQuerier.init(BASE_OPTIONS);
+            expect(prometheusQuerier._errorCooldownMs).to.equal(30 * 60 * 1000);
         });
 
         it('should return null on a network error with no response object', async () => {
