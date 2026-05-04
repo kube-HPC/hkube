@@ -30,6 +30,7 @@ class PrometheusQuerier {
             return;
         }
         this._prometheusEndpoint = options.healthMonitoring.prometheusEndpoint;
+        this._dataSourceToken = options.healthMonitoring.dataSourceToken;
         const { namespace } = options.kubernetes;
         this._serviceChecks = [
             ...HKUBE_SERVICES.map(name => ({
@@ -47,16 +48,26 @@ class PrometheusQuerier {
         if (!this._enabled) {
             return [];
         }
-        const results = await Promise.all(
-            this._serviceChecks.map(async ({ serviceName, promQuery }) => {
-                const response = await this._query(promQuery);
-                const value = parseInt(response?.data?.result?.[0]?.value?.[1], 10);
-                const status = !Number.isNaN(value) && value >= 1;
-                return { serviceName, status };
-            })
-        );
-        const overallHealthStatus = results.every(r => r.status);
-        return { services: results, overallHealthStatus };
+        try {
+            const results = (await Promise.all(
+                this._serviceChecks.map(async ({ serviceName, promQuery }) => {
+                    const response = await this._query(promQuery);
+                    if (!response) {
+                        return null;
+                    }
+                    const value = parseInt(response?.data?.result?.[0]?.value?.[1], 10);
+                    const status = Number.isFinite(value) && value >= 1;
+                    return { serviceName, status };
+                })
+            )).filter(Boolean);
+            // null if there was an error with the query, true if all statuses are true, false otherwise
+            const overallHealthStatus = results.length < this._serviceChecks.length ? null : results.every(r => r.status);
+            return { services: results, overallHealthStatus };
+        }
+        catch (error) {
+            log.error(`Health monitoring failed: ${error.message}`, { component });
+            return [];
+        }
     }
 
     async _query(promQuery) {
@@ -64,11 +75,17 @@ class PrometheusQuerier {
             log.debug(`querying prometheus endpoint=${this._prometheusEndpoint} query=${promQuery}`, { component });
             const response = await axios.get(`${this._prometheusEndpoint}/api/v1/query`, {
                 params: { query: promQuery },
+                headers: { Authorization: `Bearer ${this._dataSourceToken}` },
             });
             log.debug(`Prometheus response for query=${promQuery}: ${JSON.stringify(response.data)}`, { component });
             return response.data;
         }
         catch (error) {
+            if (error.response?.status === 401) {
+                this._enabled = false;
+                log.error('Prometheus query rejected: unauthorized (401). Disabling health monitoring feature.', { component });
+                throw error;
+            }
             log.error(`Prometheus query failed for "${promQuery}": ${error.message}`, { component });
             return null;
         }

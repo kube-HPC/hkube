@@ -229,6 +229,7 @@ config.interceptor = {
 config.healthMonitoring = {
     enabled: formatter.parseBool(process.env.HEALTH_MONITORING_ENABLED, false),
     prometheusEndpoint: process.env.PROMETHEUS_ENDPOINT,
+    dataSourceToken: process.env.HEALTH_MONITORING_DATASOURCE_TOKEN || '',
 };
 
 module.exports = config;
