@@ -368,6 +368,7 @@ Apollo Server is mounted at `/graphql` on the same Express app via `apollo-serve
 - `statistics-querier.js` — node statistics + disk usage
 - `dataSource-querier.js` — proxy to datasources-service
 - `error-logs-querier.js` — aggregated error logs
+- `prometheus-querier.js` — Prometheus health checks for all HKube services and third-party dependencies (see §7.5)
 - Direct `stateManager` calls for jobs, algorithms, pipelines, experiments
 
 **Key difference from REST:** GraphQL does not handle mutations for pipeline execution or algorithm management — those go through REST. GraphQL is optimized for the dashboard's aggregated read patterns (jobs with cursor pagination, algorithm builds, pipeline stats, discovery state).
@@ -400,6 +401,136 @@ Keycloak is initialized from `keycloak-connect` as a bearer-only client (`client
 Request payloads are validated against schemas extracted from `swagger.json` at startup. `api-validator.js` initializes per-entity validators (algorithms, pipelines, executions, builds, cron, experiments, gateways, etc.) that enforce custom formats: algorithm names (`lower-case alphanumeric, dash, dot`), pipeline names (`alphanumeric, dash, dot, underscore`).
 
 Validation is called in the **service layer** (not middleware) — each service method calls the appropriate validator before any state mutation.
+
+### 7.5 Health Monitoring Querier (`PrometheusQuerier`)
+
+#### Purpose and Role
+
+`PrometheusQuerier` (`api/graphql/queries/prometheus-querier.js`) is a **singleton** (module-level `new PrometheusQuerier()`) that provides cluster-wide health status by querying a Prometheus-compatible HTTP data source. It backs the `healthMonitoring` GraphQL query, which the dashboard polls to display a live health overview of all HKube services and third-party dependencies. It is initialised in `bootstrap.js` alongside the other queriers.
+
+**Component name constant:** `PROMETHEUS_QUERIER: 'PrometheusQuerier'` (`lib/consts/componentNames.js`).
+
+#### GraphQL Integration
+
+Wired in `resolvers.js` under the `Query` type:
+
+```js
+healthMonitoring: this._withAuth(() => {
+    return prometheusQuerier.getHealthMonitoring();
+}, [keycloakRoles.API_VIEW]),
+```
+
+Requires the `API_VIEW` Keycloak role. Return type (`api/graphql/schemas/health-monitoring-schema.js`):
+
+```graphql
+type ServiceHealth {
+    serviceName: String
+    status: Boolean
+}
+
+type HealthMonitoringResult {
+    services: [ServiceHealth]
+    overallHealthStatus: Boolean
+}
+
+extend type Query {
+    healthMonitoring: HealthMonitoringResult
+}
+```
+
+#### Config Block (`healthMonitoring.*`)
+
+| Key | Env Var | Default | Description |
+|-----|---------|---------|-------------|
+| `enabled` | `HEALTH_MONITORING_ENABLED` | `false` | Feature flag; `false` → all statuses `null` |
+| `prometheusEndpoint` | `PROMETHEUS_ENDPOINT` | *(none)* | Base URL of Prometheus/Grafana data-source API |
+| `dataSourceToken` | `HEALTH_MONITORING_DATASOURCE_TOKEN` | `''` | Bearer token for data-source authentication |
+| `errorCooldownMinutes` | `HEALTH_MONITORING_ERROR_COOLDOWN_MINUTES` | `30` | Cooldown duration after a transient error. If the parsed env var is `0`, the `|| 30` fallback applies. |
+
+Note: `kubernetes.namespace` (existing config key) is consumed at `init()` time to bake the namespace into every PromQL string.
+
+#### Monitored Services
+
+`PrometheusQuerier` builds a fixed list of **14 service checks** at `init()` time.
+
+**HKUBE_SERVICES** — PromQL pattern: `count(kube_pod_status_phase{phase="Running", namespace="{ns}", pod=~"{name}.*"})`
+
+| Service Name |
+|--------------|
+| `algorithm-operator` |
+| `api-server` |
+| `artifacts-registry` |
+| `datasources-service` |
+| `gc-service` |
+| `pipeline-driver-queue` |
+| `resource-manager` |
+| `simulator` |
+| `sync-server` |
+| `task-executor` |
+| `trigger-service` |
+
+**HKUBE_3RD_PARTY** — PromQL pattern: `count(kube_pod_status_phase{phase="Running", namespace="{ns}", pod=~"^hkube-{name}.*"})`
+
+| Service Name |
+|--------------|
+| `etcd` |
+| `mongodb` |
+| `redis` |
+
+**PromQL result extraction:** `count()` always returns a single result series (`PROMETHEUS_FIRST_RESULT_INDEX = 0`). The sample value is at index `1` of the value tuple (`PROMETHEUS_SAMPLE_VALUE_INDEX = 1` — Prometheus format: `[timestamp, sampleValue]`). A service is `status: true` iff `parseInt(sampleValue)` is finite **and** ≥ 1.
+
+#### Error-Handling State Machine
+
+```mermaid
+stateDiagram-v2
+    [*] --> ACTIVE : init() — enabled=true
+    [*] --> PERM_DISABLED : init() — enabled=false
+
+    ACTIVE --> QUERYING : getHealthMonitoring() called
+    QUERYING --> RESULTS : all _query() calls succeed
+    QUERYING --> COOLDOWN : non-401 error AND disabledUntil==null
+    QUERYING --> COOLDOWN_LOG : non-401 error AND disabledUntil!=null (log only)
+    QUERYING --> PERM_DISABLED : HTTP 401 received (_enabled=false)
+
+    COOLDOWN --> ACTIVE : Date.now() >= disabledUntil on next call
+    COOLDOWN --> COOLDOWN_RESPONSE : Date.now() < disabledUntil
+
+    PERM_DISABLED --> PERM_DISABLED : all future calls return _disabledResponse
+```
+
+**State variables:**
+
+| Variable | Type | Initial Value | Meaning |
+|----------|------|---------------|---------|
+| `_enabled` | `boolean` | `options.healthMonitoring.enabled` | `false` → permanent disable (config or 401) |
+| `_disabledUntil` | `number \| null` | `null` | Epoch ms of cooldown expiry; `null` = not in cooldown |
+
+**Transitions:**
+
+1. **401 received** → `_enabled = false` permanently. No recovery; all future calls return `_disabledResponse` immediately.
+2. **Non-401 error, first occurrence** → `_disabledUntil = Date.now() + errorCooldownMs`. Logged with remaining minutes.
+3. **Non-401 error, during cooldown** → logged only; `_disabledUntil` is NOT reset.
+4. **Cooldown expired** → on next `getHealthMonitoring()` call, `_disabledUntil` is reset to `null` and querying resumes.
+5. **`enabled=false` at init** → logged once; all calls return `_disabledResponse`.
+
+#### `overallHealthStatus` Computation
+
+All checks run concurrently (`Promise.all()`). `null` dominates `false`: any `null` status → `overallHealthStatus: null`; otherwise `&&` of all statuses. Disabled/cooldown always return `overallHealthStatus: null`.
+
+#### Logic Contract
+
+| # | Invariant |
+|---|-----------|
+| LC-PM-1 | HTTP 401 from Prometheus → `_enabled` set to `false` permanently; no subsequent query attempt will ever be made |
+| LC-PM-2 | First transient (non-401) error → `_disabledUntil` set; subsequent errors during the cooldown window do **not** reset the timer |
+| LC-PM-3 | `_disabledUntil` is cleared to `null` only when `Date.now() >= _disabledUntil` on the next `getHealthMonitoring()` call |
+| LC-PM-4 | Any service with `status: null` → `overallHealthStatus: null` (`null` dominates `false`) |
+| LC-PM-5 | When `enabled=false` (from config or 401), `_disabledResponse` is returned: all `status: null`, `overallHealthStatus: null` |
+| LC-PM-6 | If `HEALTH_MONITORING_ERROR_COOLDOWN_MINUTES` parses to `0`, the `\|\| 30` fallback makes the effective cooldown **30 minutes** |
+| LC-PM-7 | PromQL `count()` returns a single result series; pod count ≥ 1 → `status: true`; empty result / non-numeric → `status: null` |
+| LC-PM-8 | All 14 checks run via `Promise.all()`; a `_query()` failure for one service returns `null` for that service only; others are unaffected |
+| LC-PM-9 | HKUBE_SERVICES pods matched by `pod=~"{name}.*"` (any suffix); HKUBE_3RD_PARTY pods require `pod=~"^hkube-{name}.*"` (`hkube-` prefix enforced) |
+| LC-PM-10 | `kubernetes.namespace` is baked into PromQL strings at `init()` time; runtime namespace changes have no effect |
 
 ---
 
