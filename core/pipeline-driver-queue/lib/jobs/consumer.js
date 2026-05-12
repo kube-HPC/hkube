@@ -130,6 +130,7 @@ class JobConsumer {
             maxExceeded: pipeline.maxExceeded,
             entranceTime: pipeline.startTime || Date.now(),
             tags: pipeline.tags || [],
+            spanId: job.data.spanId,
             calculated: {
                 latestScores: {}
             }
