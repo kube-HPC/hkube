@@ -42890,6 +42890,11 @@
             "type": "boolean",
             "description": "should replace or not current algorithm version for running algorithm instances",
             "default": false
+          },
+          "graceful": {
+            "type": "boolean",
+            "description": "when combined with force, allows currently running jobs to finish before applying the new version instead of stopping them immediately",
+            "default": false
           }
         },
         "required": [
@@ -42945,6 +42950,11 @@
           "forceBuild": {
             "type": "boolean",
             "description": "should force new build",
+            "default": false
+          },
+          "graceful": {
+            "type": "boolean",
+            "description": "when combined with forceUpdate, allows currently running jobs to finish before applying the new version instead of stopping them immediately",
             "default": false
           }
         }

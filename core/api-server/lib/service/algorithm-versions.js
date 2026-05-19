@@ -52,7 +52,7 @@ class AlgorithmVersions {
     }
 
     async applyVersion(options, userName) {
-        const { name, version, force } = options;
+        const { name, version, force, graceful } = options;
         validator.algorithms.validateAlgorithmVersion(options);
         const algorithmVersion = await this.getVersion({ name, version });
         const oldAlgorithm = await stateManager.getAlgorithm({ name: algorithmVersion.algorithm.name });
@@ -84,7 +84,10 @@ class AlgorithmVersions {
             auditEntry,
             ...oldAlgorithm.auditTrail || []
         ];
-        //
+        if (force && graceful) {
+            const runningPipelines = await stateManager.searchJobs({ algorithmName: name, hasResult: false, fields: { jobId: true } });
+            algorithmVersion.algorithm.gracefulJobIds = runningPipelines.map(j => j.jobId);
+        }
         await stateManager.updateAlgorithm(algorithmVersion.algorithm);
         return algorithmVersion;
     }
