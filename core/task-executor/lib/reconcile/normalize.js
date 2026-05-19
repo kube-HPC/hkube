@@ -20,6 +20,7 @@ const normalizeWorkers = (workers) => {
     const workersArray = workers.map((w) => {
         return {
             id: w.workerId,
+            jobId: w.jobId,
             algorithmName: w.algorithmName,
             workerStatus: w.workerStatus,
             workerPaused: !!w.workerPaused,
@@ -60,7 +61,10 @@ const normalizeWorkerImages = (normalizedWorkers, algorithmTemplates, versions, 
             message = 'worker image changed';
         }
         if (algorithm.version && w.algorithmVersion && algorithm.version !== w.algorithmVersion) {
-            message = 'algorithm version changed';
+            const isGracefulJob = algorithm.gracefulJobIds?.includes(w.jobId);
+            if (!isGracefulJob) {
+                message = 'algorithm version changed';
+            }
         }
         if (message) {
             workers.push({ ...w, message });

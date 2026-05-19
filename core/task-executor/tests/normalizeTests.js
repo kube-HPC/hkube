@@ -86,6 +86,7 @@ describe('normalize', () => {
             expect(res).to.have.length(3);
             expect(res).to.deep.include({
                 id: 'id1',
+                jobId: undefined,
                 algorithmName: 'green-alg',
                 hotWorker: false,
                 workerStatus: 'ready',
@@ -97,6 +98,7 @@ describe('normalize', () => {
             });
             expect(res).to.deep.include({
                 id: 'id2',
+                jobId: undefined,
                 algorithmName: 'green-alg',
                 hotWorker: false,
                 workerStatus: 'not-ready',
@@ -108,6 +110,7 @@ describe('normalize', () => {
             });
             expect(res).to.deep.include({
                 id: 'id3',
+                jobId: undefined,
                 algorithmName: 'red-alg',
                 hotWorker: false,
                 workerStatus: 'notready',

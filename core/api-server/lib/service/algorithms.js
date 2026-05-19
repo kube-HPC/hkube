@@ -242,7 +242,7 @@ class AlgorithmStore {
     async applyAlgorithm(data) {
         const messages = [];
         const messagesCode = [];
-        const { forceUpdate, forceBuild } = data.options || {};
+        const { forceUpdate, forceBuild, graceful } = data.options || {};
         const { version, created, modified, ...payload } = data.payload;
         const file = { path: data.file?.path, name: data.file?.originalname };
         const { userName } = data;
@@ -316,6 +316,10 @@ class AlgorithmStore {
                     auditEntry,
                     ...newAlgorithm.auditTrail || []
                 ];
+                if (graceful) {
+                    const runningJobs = await stateManager.searchJobs({ algorithmName: newAlgorithm.name, hasResult: false, fields: { jobId: true } });
+                    newAlgorithm.gracefulJobIds = runningJobs.map(j => j.jobId);
+                }
             }
             else {
                 newAlgorithm.auditTrail = [auditEntry];
