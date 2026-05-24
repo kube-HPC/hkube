@@ -8,3 +8,7 @@ properties:
     type: boolean
     description: should force new build
     default: false
+  graceful:
+    type: boolean
+    description: when combined with forceUpdate, allows currently running jobs to finish before applying the new version instead of stopping them immediately
+    default: false

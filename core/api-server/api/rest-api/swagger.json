@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "2.10.0",
+    "version": "2.11.0",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -16192,6 +16192,11 @@
                         "type": "boolean",
                         "description": "should force new build",
                         "default": false
+                      },
+                      "graceful": {
+                        "type": "boolean",
+                        "description": "when combined with forceUpdate, allows currently running jobs to finish before applying the new version instead of stopping them immediately",
+                        "default": false
                       }
                     }
                   },
@@ -30292,6 +30297,11 @@
                   "force": {
                     "type": "boolean",
                     "description": "should replace or not current algorithm version for running algorithm instances",
+                    "default": false
+                  },
+                  "graceful": {
+                    "type": "boolean",
+                    "description": "when combined with force, allows currently running jobs to finish before applying the new version instead of stopping them immediately",
                     "default": false
                   }
                 },
