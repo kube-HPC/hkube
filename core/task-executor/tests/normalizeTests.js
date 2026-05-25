@@ -1,5 +1,5 @@
 const { expect } = require('chai');
-const { normalizeWorkers, normalizeRequests, normalizeJobs, attacheJobToWorker, normalizeResources, normalizeHotRequests, normalizeColdWorkers } = require('../lib/reconcile/normalize');
+const { normalizeWorkers, normalizeRequests, normalizeJobs, attacheJobToWorker, normalizeResources, normalizeHotRequests, normalizeColdWorkers, normalizeWorkerImages } = require('../lib/reconcile/normalize');
 const { twoCompleted, workersStub, jobsStub, resources } = require('./stub');
 const { nodes, pods } = resources;
 let { templateStore } = require('./stub');
@@ -727,6 +727,110 @@ describe('normalize', () => {
             expect(merged.extraJobs[0]).to.eql(jobsStub[1]);
             expect(merged.extraJobs[1]).to.eql(jobsStub[2]);
             expect(merged.extraJobs[2]).to.eql(jobsStub[3]);
+        });
+    });
+
+    describe('normalizeWorkerImages - graceful jobs', () => {
+        const ALGO = 'green-alg';
+        const WORKER_IMAGE = 'hkube/worker:latest';
+        const versions = null;
+        const registry = {};
+
+        const makeWorker = (id, jobId, version) => ({
+            id,
+            jobId,
+            algorithmName: ALGO,
+            workerStatus: 'ready',
+            workerImage: WORKER_IMAGE,
+            algorithmVersion: version
+        });
+
+        const makeTemplates = (version, gracefulJobIds = []) => ({
+            [ALGO]: {
+                name: ALGO,
+                workerImage: WORKER_IMAGE,
+                version,
+                gracefulJobIds
+            }
+        });
+
+        it('should return empty array when no workers given', () => {
+            const res = normalizeWorkerImages([], makeTemplates('v2'), versions, registry);
+            expect(res).to.have.lengthOf(0);
+        });
+
+        it('should mark all workers when no gracefulJobIds and version changed', () => {
+            const workers = [
+                makeWorker('w1', 'job1', 'v1'),
+                makeWorker('w2', 'job2', 'v1'),
+                makeWorker('w3', 'job3', 'v1'),
+            ];
+            const templates = makeTemplates('v2', []);
+            const res = normalizeWorkerImages(workers, templates, versions, registry);
+            expect(res).to.have.lengthOf(3);
+            res.forEach(w => expect(w.message).to.equal('Forced shutdown due to algorithm version change'));
+        });
+
+        it('should not mark graceful jobs when version changed', () => {
+            const workers = [
+                makeWorker('w1', 'job1', 'v1'),
+                makeWorker('w2', 'job2', 'v1'),
+                makeWorker('w3', 'job3', 'v1'),
+            ];
+            // job1 and job2 are graceful — only job3 should be marked
+            const templates = makeTemplates('v2', ['job1', 'job2']);
+            const res = normalizeWorkerImages(workers, templates, versions, registry);
+            expect(res).to.have.lengthOf(1);
+            expect(res[0].id).to.equal('w3');
+            expect(res[0].message).to.equal('Forced shutdown due to algorithm version change');
+        });
+
+        it('should not mark any worker when all jobs are graceful', () => {
+            const workers = [
+                makeWorker('w1', 'job1', 'v1'),
+                makeWorker('w2', 'job2', 'v1'),
+            ];
+            const templates = makeTemplates('v2', ['job1', 'job2']);
+            const res = normalizeWorkerImages(workers, templates, versions, registry);
+            expect(res).to.have.lengthOf(0);
+        });
+
+        it('should mark all workers when version changed and gracefulJobIds is undefined', () => {
+            const workers = [
+                makeWorker('w1', 'job1', 'v1'),
+                makeWorker('w2', 'job2', 'v1'),
+            ];
+            const templates = makeTemplates('v2', undefined);
+            const res = normalizeWorkerImages(workers, templates, versions, registry);
+            expect(res).to.have.lengthOf(2);
+            res.forEach(w => expect(w.message).to.equal('Forced shutdown due to algorithm version change'));
+        });
+
+        it('should not mark workers when version has not changed', () => {
+            const workers = [
+                makeWorker('w1', 'job1', 'v1'),
+                makeWorker('w2', 'job2', 'v1'),
+            ];
+            const templates = makeTemplates('v1', []);
+            const res = normalizeWorkerImages(workers, templates, versions, registry);
+            expect(res).to.have.lengthOf(0);
+        });
+
+        it('should correctly count mixed graceful and non-graceful workers', () => {
+            const workers = [
+                makeWorker('w1', 'job1', 'v1'),
+                makeWorker('w2', 'job2', 'v1'),
+                makeWorker('w3', 'job3', 'v1'),
+                makeWorker('w4', 'job4', 'v1'),
+                makeWorker('w5', 'job5', 'v1'),
+            ];
+            // job2 and job4 are graceful → 3 workers should be marked
+            const templates = makeTemplates('v2', ['job2', 'job4']);
+            const res = normalizeWorkerImages(workers, templates, versions, registry);
+            expect(res).to.have.lengthOf(3);
+            const markedIds = res.map(w => w.id);
+            expect(markedIds).to.include.members(['w1', 'w3', 'w5']);
+            expect(markedIds).to.not.include.members(['w2', 'w4']);
         });
     });
 });
