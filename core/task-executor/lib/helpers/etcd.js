@@ -59,18 +59,9 @@ class Etcd {
     }
 
     async getAlgorithmTemplate() {
-        const [algorithms, gracefulRaw] = await Promise.all([
-            this._db.algorithms.search({
-                hasImage: true,
-                sort: { created: 'desc' }
-            }),
-            this._etcd._client.get('/algorithms/graceful/', { isPrefix: true })
-        ]);
-        const gracefulMap = {};
-        Object.values(gracefulRaw || {}).forEach(v => {
-            const { jobId, algorithmName } = JSON.parse(v);
-            if (!gracefulMap[algorithmName]) gracefulMap[algorithmName] = [];
-            gracefulMap[algorithmName].push(jobId);
+        const algorithms = await this._db.algorithms.search({
+            hasImage: true,
+            sort: { created: 'desc' }
         });
         const templates = algorithms.map((a) => {
             if (a.mem) {
@@ -78,10 +69,6 @@ class Etcd {
             }
             if (a.reservedMemory) {
                 a.mem += parse.getMemoryInMi(a.reservedMemory);
-            }
-            const ids = gracefulMap[a.name];
-            if (ids?.length) {
-                a.gracefulJobIds = ids;
             }
             return a;
         });

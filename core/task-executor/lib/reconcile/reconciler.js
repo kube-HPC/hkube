@@ -221,6 +221,22 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     jobsHandler.clearCreatedJobsLists(options.createdJobsTTL);
     _checkResourcePressure(normResources);
 
+    // Fetch graceful docs fresh right before WorkersManager construction to minimize the stale window
+    const gracefulDocs = await etcd.listGracefulJobs();
+    const gracefulByAlgorithm = {};
+    gracefulDocs.forEach(({ jobId, algorithmName }) => {
+        if (!gracefulByAlgorithm[algorithmName]) gracefulByAlgorithm[algorithmName] = [];
+        gracefulByAlgorithm[algorithmName].push(jobId);
+    });
+    Object.keys(algorithmTemplates || {}).forEach(name => {
+        if (gracefulByAlgorithm[name]) {
+            algorithmTemplates[name].gracefulJobIds = gracefulByAlgorithm[name];
+        }
+        else {
+            delete algorithmTemplates[name].gracefulJobIds;
+        }
+    });
+
     // Create a new instance of workers manager
     const workersManager = new WorkersManager(workers, jobs, pods, algorithmTemplates, versions, registry);
 
@@ -230,7 +246,6 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
             .filter(w => w.workerStatus !== 'exit' && w.jobId)
             .map(w => w.jobId)
     );
-    const gracefulDocs = await etcd.listGracefulJobs();
     await Promise.all(
         gracefulDocs
             .filter(doc => !activeWorkerJobIds.has(doc.jobId))
