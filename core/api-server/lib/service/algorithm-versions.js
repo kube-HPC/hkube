@@ -87,7 +87,9 @@ class AlgorithmVersions {
         delete algorithmVersion.algorithm.gracefulJobIds;
         if (force && graceful) {
             const runningPipelines = await stateManager.searchJobs({ algorithmName: name, hasResult: false, fields: { jobId: true } });
-            algorithmVersion.algorithm.gracefulJobIds = runningPipelines.map(j => j.jobId);
+            const gracefulJobIds = runningPipelines.map(j => j.jobId);
+            await Promise.all(gracefulJobIds.map(jobId => stateManager.setGracefulJob(name, jobId)));
+            algorithmVersion.algorithm.gracefulJobIds = gracefulJobIds;
         }
         await stateManager.updateAlgorithm(algorithmVersion.algorithm);
         return algorithmVersion;
