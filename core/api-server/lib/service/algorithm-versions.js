@@ -84,7 +84,6 @@ class AlgorithmVersions {
             auditEntry,
             ...oldAlgorithm.auditTrail || []
         ];
-        delete algorithmVersion.algorithm.gracefulJobIds;
         if (force && graceful) {
             const runningPipelines = await stateManager.searchJobs({ algorithmName: name, hasResult: false, fields: { jobId: true } });
             const gracefulJobIds = runningPipelines.map(j => j.jobId);
