@@ -62,7 +62,10 @@ const normalizeWorkerImages = (normalizedWorkers, algorithmTemplates, versions, 
         }
         if (algorithm.version && w.algorithmVersion && algorithm.version !== w.algorithmVersion) {
             const isGracefulJob = algorithm.gracefulJobIds?.includes(w.jobId);
-            if (!isGracefulJob) {
+            if (isGracefulJob) {
+                message = undefined;
+            }
+            else {
                 message = 'Forced shutdown due to algorithm version change';
             }
         }

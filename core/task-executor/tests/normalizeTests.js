@@ -832,5 +832,20 @@ describe('normalize', () => {
             expect(markedIds).to.include.members(['w1', 'w3', 'w5']);
             expect(markedIds).to.not.include.members(['w2', 'w4']);
         });
+
+        it('should protect graceful workers even when worker image also changed', () => {
+            const workers = [
+                { ...makeWorker('w1', 'job1', 'v1'), workerImage: 'hkube/worker:old' },
+                { ...makeWorker('w2', 'job2', 'v1'), workerImage: 'hkube/worker:old' },
+                { ...makeWorker('w3', 'job3', 'v1'), workerImage: 'hkube/worker:old' },
+            ];
+            // job1 is graceful — should NOT be marked even though worker image also changed
+            const templates = makeTemplates('v2', ['job1']);
+            const res = normalizeWorkerImages(workers, templates, versions, registry);
+            expect(res).to.have.lengthOf(2);
+            const markedIds = res.map(w => w.id);
+            expect(markedIds).to.include.members(['w2', 'w3']);
+            expect(markedIds).to.not.include('w1');
+        });
     });
 });
