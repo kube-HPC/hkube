@@ -104,6 +104,28 @@ class KeycloakMiddleware {
             return this._options.defaultUserAuditingName;
         }
     }
+
+    /**
+     * Extract userId from the request for preferences.
+     * 1. If Keycloak is enabled and the request has a valid grant → use preferred_username
+     * 2. Otherwise → read X-HKube-User-Id header
+     * Returns null if no userId can be determined.
+     */
+    getUserId(req) {
+        if (req?.kauth?.grant) {
+            try {
+                const username = req.kauth.grant.access_token.content.preferred_username;
+                if (username) {
+                    return username;
+                }
+            }
+            catch (e) {
+                // fall through to header check
+            }
+        }
+        const headerValue = req.headers['x-hkube-user-id'];
+        return headerValue || null;
+    }
 }
 
 module.exports = new KeycloakMiddleware();
