@@ -113,10 +113,6 @@ class StateManager extends EventEmitter {
         await this._etcd._client.put(`/algorithms/graceful/${algorithmName}/${jobId}`, { jobId, algorithmName });
     }
 
-    async clearGracefulJobs(algorithmName) {
-        await this._etcd._client.delete(`/algorithms/graceful/${algorithmName}/`, { isPrefix: true });
-    }
-
     async listGracefulJobIds(algorithmName) {
         const res = await this._etcd._client.get(`/algorithms/graceful/${algorithmName}/`, { isPrefix: true });
         return Object.values(res || {}).map(v => JSON.parse(v).jobId);

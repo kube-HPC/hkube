@@ -91,9 +91,6 @@ class AlgorithmVersions {
             await Promise.all(gracefulJobIds.map(jobId => stateManager.setGracefulJob(name, jobId)));
             algorithmVersion.algorithm.gracefulJobIds = gracefulJobIds;
         }
-        else if (force) {
-            await stateManager.clearGracefulJobs(name);
-        }
         await stateManager.updateAlgorithm(algorithmVersion.algorithm);
         return algorithmVersion;
     }
