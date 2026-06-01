@@ -66,10 +66,6 @@ class AlgorithmStore {
         if (!algorithm) {
             throw new ResourceNotFoundError('algorithm', options.name);
         }
-        const gracefulJobIds = await stateManager.listGracefulJobIds(options.name);
-        if (gracefulJobIds.length > 0) {
-            algorithm.gracefulJobIds = gracefulJobIds;
-        }
         return algorithm;
     }
 

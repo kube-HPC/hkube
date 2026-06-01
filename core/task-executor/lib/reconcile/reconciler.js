@@ -224,19 +224,6 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     // Create a new instance of workers manager
     const workersManager = new WorkersManager(workers, jobs, pods, algorithmTemplates, versions, registry);
 
-    // Cleanup etcd graceful-job docs for jobs that are no longer active
-    const activeWorkerJobIds = new Set(
-        workersManager.normalizedWorkers
-            .filter(w => w.workerStatus !== 'exit' && w.jobId)
-            .map(w => w.jobId)
-    );
-    const gracefulDocs = await etcd.listGracefulJobs();
-    await Promise.all(
-        gracefulDocs
-            .filter(doc => !activeWorkerJobIds.has(doc.jobId))
-            .map(doc => etcd.deleteGracefulJob(doc.algorithmName, doc.jobId))
-    );
-
     // Update batch capacity
     const batchCount = workersManager.countBatchWorkers() + jobsHandler.createdJobsLists.batch.length;
     requestPreprocessor.updateCapacity(batchCount);
