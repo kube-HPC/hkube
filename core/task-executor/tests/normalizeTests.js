@@ -816,28 +816,6 @@ describe('normalize', () => {
             expect(res).to.have.lengthOf(0);
         });
 
-        it('should force kill workers with no algorithmVersion when algorithm has a version', () => {
-            const workers = [
-                makeWorker('w1', 'job1', undefined),
-                makeWorker('w2', 'job2', undefined),
-            ];
-            const templates = makeTemplates('v2', []);
-            const res = normalizeWorkerImages(workers, templates, versions, registry);
-            expect(res).to.have.lengthOf(2);
-            res.forEach(w => expect(w.message).to.equal('Forced shutdown due to algorithm version change'));
-        });
-
-        it('should protect graceful workers even when algorithmVersion is not set', () => {
-            const workers = [
-                makeWorker('w1', 'job1', undefined),
-                makeWorker('w2', 'job2', undefined),
-            ];
-            const templates = makeTemplates('v2', ['job1']);
-            const res = normalizeWorkerImages(workers, templates, versions, registry);
-            expect(res).to.have.lengthOf(1);
-            expect(res[0].id).to.equal('w2');
-        });
-
         it('should correctly count mixed graceful and non-graceful workers', () => {
             const workers = [
                 makeWorker('w1', 'job1', 'v1'),

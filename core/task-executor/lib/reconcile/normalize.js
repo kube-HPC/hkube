@@ -60,7 +60,7 @@ const normalizeWorkerImages = (normalizedWorkers, algorithmTemplates, versions, 
         if (workerImage !== w.workerImage) {
             message = 'worker image changed';
         }
-        if (algorithm.version && algorithm.version !== w.algorithmVersion) {
+        if (algorithm.version && w.algorithmVersion && algorithm.version !== w.algorithmVersion) {
             const isGracefulJob = algorithm.gracefulJobIds?.includes(w.jobId);
             if (isGracefulJob) {
                 message = undefined;
