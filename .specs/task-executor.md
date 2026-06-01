@@ -96,16 +96,20 @@ flowchart TD
     START["reconcile()"] --> CLEAR["jobsHandler.clearCreatedJobsLists(TTL)"]
     CLEAR --> PRESSURE["_checkResourcePressure()"]
     PRESSURE --> WM["new WorkersManager(workers, jobs, pods, templates, versions, registry)"]
+    WM --> INIT["await workersManager.init()"]
 
     subgraph WorkersManager Construction
         NW["normalizeWorkers() → simplified worker list"]
         NJ["normalizeJobs() → simplified job list"]
         AJ["attacheJobToWorker() → merge workers+jobs"]
-        NI["normalizeWorkerImages() → workers to exit"]
+    end
+
+    subgraph "WorkersManager.init() (async)"
+        NI["await normalizeWorkerImages() → workers to exit (fetches gracefulJobs internally)"]
         FE["Filter exiting workers from attached list"]
     end
 
-    WM --> CAP["updateCapacity(batchCount)"]
+    INIT --> CAP["updateCapacity(batchCount)"]
     CAP --> CATS["Categorize workers: idle, active, paused, bootstrapping"]
     CATS --> PREP["requestPreprocessor.prepare(requests, templates, workers, allocated)"]
     
@@ -163,11 +167,17 @@ flowchart TD
 
 ---
 
-## 6. Decision Matrix — `normalizeWorkerImages`
+## 6. Decision Matrix — `normalizeWorkerImages` (async)
 
-This function determines which running workers must be **force-exited** due to configuration drift.
+This function determines which running workers must be **force-exited** due to configuration drift. It is **async** and internally fetches graceful jobs from etcd.
 
 ```
+INPUT: normalizedWorkers, algorithmTemplates, versions, registry
+       (gracefulJobs fetched internally from etcd)
+
+  0. Derive unique algorithmNames from normalizedWorkers
+     Fetch gracefulJobs = await etcd.getAllGracefulJobs(algorithmNames)
+
 For each worker WHERE workerStatus ≠ 'exit':
   1. Look up algorithm template by worker.algorithmName
   2. If template not found → skip (worker may belong to deleted algorithm)
@@ -182,9 +192,8 @@ For each worker WHERE workerStatus ≠ 'exit':
   5. CHECK: template.version && worker.algorithmVersion && template.version !== worker.algorithmVersion
      → message = "algorithm version changed"
   
-  5b. GRACEFUL CHECK: If message is "algorithm version changed" AND
-      algorithm.gracefulJobIds is a non-empty array AND
-      worker.jobId is included in algorithm.gracefulJobIds
+  5b. GRACEFUL CHECK: If message set AND
+      gracefulJobs[worker.algorithmName] includes worker.jobId
       → skip this worker (do NOT mark for exit). This allows the worker to finish
         its current job gracefully before picking up the new version.
   

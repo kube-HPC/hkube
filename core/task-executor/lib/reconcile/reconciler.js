@@ -213,7 +213,7 @@ const _updateReconcileResult = async ({ reconcileResult, unScheduledAlgorithms, 
     });
 };
 
-const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs, versions, normResources, options, registry, clusterOptions, pods, workerResources, containerDefaults, gracefulJobs } = {}) => {
+const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs, versions, normResources, options, registry, clusterOptions, pods, workerResources, containerDefaults } = {}) => {
     // Update the cache of jobs lately created by removing old jobs
     const reconcileResult = {};
 
@@ -222,7 +222,8 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     _checkResourcePressure(normResources);
 
     // Create a new instance of workers manager
-    const workersManager = new WorkersManager(workers, jobs, pods, algorithmTemplates, versions, registry, gracefulJobs);
+    const workersManager = new WorkersManager(workers, jobs, pods, algorithmTemplates, versions, registry);
+    await workersManager.init();
 
     // Update batch capacity
     const batchCount = workersManager.countBatchWorkers() + jobsHandler.createdJobsLists.batch.length;

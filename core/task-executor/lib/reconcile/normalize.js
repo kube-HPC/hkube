@@ -5,6 +5,7 @@ const objectPath = require('object-path');
 const { gpuVendors } = require('../consts');
 const { setWorkerImage } = require('./createOptions');
 const { settings: globalSettings } = require('../helpers/settings');
+const etcd = require('../helpers/etcd');
 
 /**
  * Normalizes raw worker objects from etcd into a simplified structure.
@@ -44,11 +45,13 @@ const normalizeWorkers = (workers) => {
  * @param {Object} registry - Registry configuration.
  * @returns {Object[]} Workers that must exit.
  */
-const normalizeWorkerImages = (normalizedWorkers, algorithmTemplates, versions, registry, gracefulJobs) => {
+const normalizeWorkerImages = async (normalizedWorkers, algorithmTemplates, versions, registry) => {
     const workers = [];
     if (!Array.isArray(normalizedWorkers) || normalizedWorkers.length === 0) {
         return workers;
     }
+    const algorithmNames = [...new Set(normalizedWorkers.map(w => w.algorithmName).filter(Boolean))];
+    const gracefulJobs = await etcd.getAllGracefulJobs(algorithmNames);
     normalizedWorkers.filter(w => w.workerStatus !== 'exit').forEach((w) => {
         const algorithm = algorithmTemplates[w.algorithmName];
         if (!algorithm) {
