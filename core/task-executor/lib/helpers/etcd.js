@@ -8,9 +8,6 @@ const component = components.ETCD;
 const CONTAINERS = containers;
 let log;
 
-const GRACEFUL_JOBS_PREFIX = '/algorithms/graceful/';
-const gracefulJobPath = (algorithmName, jobId) => `${GRACEFUL_JOBS_PREFIX}${algorithmName}/${jobId}`;
-
 class Etcd {
     constructor() {
         this._etcd = null;
@@ -79,12 +76,12 @@ class Etcd {
     }
 
     async listGracefulJobs() {
-        const raw = await this._etcd._client.get(GRACEFUL_JOBS_PREFIX, { isPrefix: true });
+        const raw = await this._etcd._client.get('/algorithms/graceful/', { isPrefix: true });
         return Object.values(raw || {}).map(v => JSON.parse(v));
     }
 
     deleteGracefulJob(algorithmName, jobId) {
-        return this._etcd._client.delete(gracefulJobPath(algorithmName, jobId));
+        return this._etcd._client.delete(`/algorithms/graceful/${algorithmName}/${jobId}`);
     }
 }
 

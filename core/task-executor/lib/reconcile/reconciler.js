@@ -222,26 +222,20 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     _checkResourcePressure(normResources);
 
     // Fetch graceful docs fresh right before WorkersManager construction to minimize the stale window
-    let gracefulDocs = [];
-    try {
-        gracefulDocs = await etcd.listGracefulJobs();
-        const gracefulByAlgorithm = {};
-        gracefulDocs.forEach(({ jobId, algorithmName }) => {
-            if (!gracefulByAlgorithm[algorithmName]) gracefulByAlgorithm[algorithmName] = [];
-            gracefulByAlgorithm[algorithmName].push(jobId);
-        });
-        Object.keys(algorithmTemplates || {}).forEach(name => {
-            if (gracefulByAlgorithm[name]) {
-                algorithmTemplates[name].gracefulJobIds = gracefulByAlgorithm[name];
-            }
-            else {
-                delete algorithmTemplates[name].gracefulJobIds;
-            }
-        });
-    }
-    catch (e) {
-        log.warning(`failed to fetch graceful jobs from etcd, skipping graceful update: ${e.message}`, { component });
-    }
+    const gracefulDocs = await etcd.listGracefulJobs();
+    const gracefulByAlgorithm = {};
+    gracefulDocs.forEach(({ jobId, algorithmName }) => {
+        if (!gracefulByAlgorithm[algorithmName]) gracefulByAlgorithm[algorithmName] = [];
+        gracefulByAlgorithm[algorithmName].push(jobId);
+    });
+    Object.keys(algorithmTemplates || {}).forEach(name => {
+        if (gracefulByAlgorithm[name]) {
+            algorithmTemplates[name].gracefulJobIds = gracefulByAlgorithm[name];
+        }
+        else {
+            delete algorithmTemplates[name].gracefulJobIds;
+        }
+    });
 
     // Create a new instance of workers manager
     const workersManager = new WorkersManager(workers, jobs, pods, algorithmTemplates, versions, registry);
@@ -255,7 +249,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
     await Promise.all(
         gracefulDocs
             .filter(doc => !activeWorkerJobIds.has(doc.jobId))
-            .map(doc => etcd.deleteGracefulJob(doc.algorithmName, doc.jobId).catch(e => log.warning(`failed to delete graceful job doc ${doc.jobId}: ${e.message}`, { component })))
+            .map(doc => etcd.deleteGracefulJob(doc.algorithmName, doc.jobId))
     );
 
     // Update batch capacity

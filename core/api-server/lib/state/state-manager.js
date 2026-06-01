@@ -10,10 +10,6 @@ let log;
 const { buildStatuses, pipelineStatuses } = require('@hkube/consts');
 const component = require('../consts/componentNames').DB;
 
-const GRACEFUL_JOBS_PREFIX = '/algorithms/graceful/';
-const gracefulAlgorithmPrefix = algorithmName => `${GRACEFUL_JOBS_PREFIX}${algorithmName}/`;
-const gracefulJobPath = (algorithmName, jobId) => `${GRACEFUL_JOBS_PREFIX}${algorithmName}/${jobId}`;
-
 class StateManager extends EventEmitter {
     constructor() {
         super();
@@ -114,15 +110,15 @@ class StateManager extends EventEmitter {
     }
 
     async setGracefulJob(algorithmName, jobId) {
-        await this._etcd._client.put(gracefulJobPath(algorithmName, jobId), { jobId, algorithmName });
+        await this._etcd._client.put(`/algorithms/graceful/${algorithmName}/${jobId}`, { jobId, algorithmName });
     }
 
     async clearGracefulJobs(algorithmName) {
-        await this._etcd._client.delete(gracefulAlgorithmPrefix(algorithmName), { isPrefix: true });
+        await this._etcd._client.delete(`/algorithms/graceful/${algorithmName}/`, { isPrefix: true });
     }
 
     async listGracefulJobIds(algorithmName) {
-        const res = await this._etcd._client.get(gracefulAlgorithmPrefix(algorithmName), { isPrefix: true });
+        const res = await this._etcd._client.get(`/algorithms/graceful/${algorithmName}/`, { isPrefix: true });
         return Object.values(res || {}).map(v => JSON.parse(v).jobId);
     }
 
