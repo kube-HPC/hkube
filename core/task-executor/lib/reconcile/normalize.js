@@ -24,6 +24,7 @@ const normalizeWorkers = (workers) => {
             workerStatus: w.workerStatus,
             workerPaused: !!w.workerPaused,
             hotWorker: w.hotWorker,
+            jobId: w.jobId,
             podName: w.podName,
             workerImage: w.workerImage,
             algorithmImage: w.algorithmImage,
@@ -43,7 +44,7 @@ const normalizeWorkers = (workers) => {
  * @param {Object} registry - Registry configuration.
  * @returns {Object[]} Workers that must exit.
  */
-const normalizeWorkerImages = (normalizedWorkers, algorithmTemplates, versions, registry) => {
+const normalizeWorkerImages = (normalizedWorkers, algorithmTemplates, versions, registry, gracefulJobs) => {
     const workers = [];
     if (!Array.isArray(normalizedWorkers) || normalizedWorkers.length === 0) {
         return workers;
@@ -60,6 +61,10 @@ const normalizeWorkerImages = (normalizedWorkers, algorithmTemplates, versions, 
             message = 'worker image changed';
         }
         if (algorithm.version && w.algorithmVersion && algorithm.version !== w.algorithmVersion) {
+            const algorithmGracefulJobs = (gracefulJobs && gracefulJobs[w.algorithmName]) || [];
+            if (algorithmGracefulJobs.includes(w.jobId)) {
+                return;
+            }
             message = 'algorithm version changed';
         }
         if (message) {

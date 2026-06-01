@@ -24,7 +24,7 @@ class WorkersManager {
      * @param {Object} versions - System versions object.
      * @param {Object} registry - Registry configuration.
      */
-    constructor(workers, jobs, pods, algorithmTemplates, versions, registry) {
+    constructor(workers, jobs, pods, algorithmTemplates, versions, registry, gracefulJobs) {
         this._algorithmTemplates = algorithmTemplates;
 
         // 1. Normalize raw worker list from etcd into simplified structure
@@ -39,7 +39,7 @@ class WorkersManager {
         this.jobsPendingForWorkers = clonedeep(extraJobs);
 
         // 4. Identify workers that must exit due to image/version changes
-        this._workersToExit = normalizeWorkerImages(this.normalizedWorkers, algorithmTemplates, versions, registry);
+        this._workersToExit = normalizeWorkerImages(this.normalizedWorkers, algorithmTemplates, versions, registry, gracefulJobs);
 
         // 5. Filter out exiting workers from the merged list
         this.jobAttachedWorkers = jobAttachedWorkers.filter(

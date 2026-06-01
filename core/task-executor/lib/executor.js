@@ -96,8 +96,12 @@ class Executor {
             kubernetes.getWorkerJobs()
         ]);
 
+        // Fetch graceful jobs for all algorithms that have active workers
+        const algorithmNames = [...new Set((workers || []).map(w => w.algorithmName).filter(Boolean))];
+        const gracefulJobs = await etcd.getAllGracefulJobs(algorithmNames);
+
         const reconcilerResults = await reconciler.reconcile({
-            algorithmTemplates, algorithmRequests, workers, jobs, ...data
+            algorithmTemplates, algorithmRequests, workers, jobs, gracefulJobs, ...data
         });
         Object.entries(reconcilerResults).forEach(([algorithmName, res]) => {
             this[metricsNames.TASK_EXECUTOR_JOB_REQUESTS].set({ value: res.required || 0, labelValues: { algorithmName } });

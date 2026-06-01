@@ -52,7 +52,7 @@ class AlgorithmVersions {
     }
 
     async applyVersion(options, userName) {
-        const { name, version, force } = options;
+        const { name, version, force, graceful } = options;
         validator.algorithms.validateAlgorithmVersion(options);
         const algorithmVersion = await this.getVersion({ name, version });
         const oldAlgorithm = await stateManager.getAlgorithm({ name: algorithmVersion.algorithm.name });
@@ -66,6 +66,15 @@ class AlgorithmVersions {
                     runningPipelines.map(p => p.jobId)
                 );
             }
+        }
+        // Handle graceful version switch — store in etcd
+        if (force && graceful) {
+            const runningPipelines = await stateManager.searchJobs({ algorithmName: name, hasResult: false, fields: { jobId: true } });
+            const jobIds = runningPipelines.map(p => p.jobId);
+            await stateManager.setGracefulJobs({ algorithmName: name, jobIds });
+        }
+        else if (force) {
+            await stateManager.setGracefulJobs({ algorithmName: name, jobIds: [] });
         }
         // Deleting the error check "not last version algorithm"
         if (algorithmVersion.algorithm.errors != null) {

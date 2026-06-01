@@ -75,6 +75,20 @@ class Etcd {
         });
         return arrayToMap(templates);
     }
+
+    async getGracefulJobs({ algorithmName }) {
+        const result = await this._etcd._client.get(`/algorithms/graceful/${algorithmName}`);
+        return result ? result.jobIds || [] : [];
+    }
+
+    async getAllGracefulJobs(algorithmNames) {
+        const results = {};
+        await Promise.all(algorithmNames.map(async (name) => {
+            const result = await this._etcd._client.get(`/algorithms/graceful/${name}`);
+            results[name] = result ? result.jobIds || [] : [];
+        }));
+        return results;
+    }
 }
 
 module.exports = new Etcd();
