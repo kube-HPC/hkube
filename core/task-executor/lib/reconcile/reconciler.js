@@ -252,13 +252,9 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
             .filter(w => w.workerStatus !== 'exit' && w.jobId)
             .map(w => w.jobId)
     );
-    // Don't clean up graceful docs for algorithms with pending k8s jobs (workers not yet registered)
-    const algorithmsWithPendingJobs = new Set(
-        workersManager.jobsPendingForWorkers.map(j => j.algorithmName)
-    );
     await Promise.all(
         gracefulDocs
-            .filter(doc => !activeWorkerJobIds.has(doc.jobId) && !algorithmsWithPendingJobs.has(doc.algorithmName))
+            .filter(doc => !activeWorkerJobIds.has(doc.jobId))
             .map(doc => etcd.deleteGracefulJob(doc.algorithmName, doc.jobId).catch(e => log.warning(`failed to delete graceful job doc ${doc.jobId}: ${e.message}`, { component })))
     );
 
