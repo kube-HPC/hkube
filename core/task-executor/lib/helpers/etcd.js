@@ -78,14 +78,16 @@ class Etcd {
 
     async getGracefulJobs({ algorithmName }) {
         const result = await this._etcd._client.get(`/algorithms/graceful/${algorithmName}`);
-        return result ? result.jobIds || [] : [];
+        const parsed = typeof result === 'string' ? JSON.parse(result) : result;
+        return parsed ? parsed.jobIds || [] : [];
     }
 
     async getAllGracefulJobs(algorithmNames) {
         const results = {};
         await Promise.all(algorithmNames.map(async (name) => {
             const result = await this._etcd._client.get(`/algorithms/graceful/${name}`);
-            results[name] = result ? result.jobIds || [] : [];
+            const parsed = typeof result === 'string' ? JSON.parse(result) : result;
+            results[name] = parsed ? parsed.jobIds || [] : [];
         }));
         return results;
     }
