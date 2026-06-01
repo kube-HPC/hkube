@@ -61,13 +61,13 @@ const normalizeWorkerImages = (normalizedWorkers, algorithmTemplates, versions, 
             message = 'worker image changed';
         }
         if (algorithm.version && w.algorithmVersion && algorithm.version !== w.algorithmVersion) {
-            const algorithmGracefulJobs = (gracefulJobs && gracefulJobs[w.algorithmName]) || [];
-            if (algorithmGracefulJobs.includes(w.jobId)) {
-                return;
-            }
             message = 'algorithm version changed';
         }
         if (message) {
+            const algorithmGracefulJobs = (gracefulJobs && gracefulJobs[w.algorithmName]) || [];
+            if (w.jobId && algorithmGracefulJobs.includes(w.jobId)) {
+                return;
+            }
             workers.push({ ...w, message });
         }
     });
