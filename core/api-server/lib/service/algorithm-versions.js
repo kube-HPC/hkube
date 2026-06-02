@@ -74,7 +74,7 @@ class AlgorithmVersions {
             await stateManager.setGracefulJobs({ algorithmName: name, jobIds });
         }
         else if (force) {
-            await stateManager.setGracefulJobs({ algorithmName: name, jobIds: [] });
+            await stateManager.deleteGracefulJobs({ algorithmName: name });
         }
         // Deleting the error check "not last version algorithm"
         if (algorithmVersion.algorithm.errors != null) {

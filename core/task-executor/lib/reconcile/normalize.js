@@ -64,7 +64,7 @@ const normalizeWorkerImages = async (normalizedWorkers, algorithmTemplates, vers
             message = 'worker image changed';
         }
         if (algorithm.version && w.algorithmVersion && algorithm.version !== w.algorithmVersion) {
-            message = 'algorithm version changed';
+            message = 'Forced shutdown due to algorithm version change';
         }
         if (message) {
             const algorithmGracefulJobs = (gracefulJobs && gracefulJobs[w.algorithmName]) || [];

@@ -70,7 +70,7 @@ For each worker `w` where `w.workerStatus !== 'exit'`:
 2. Compute expected `workerImage` from algorithm template + system versions.
 3. Determine exit reasons:
    - **R1**: `workerImage !== w.workerImage` → `"worker image changed"`
-   - **R2**: `algorithm.version && w.algorithmVersion && algorithm.version !== w.algorithmVersion` → `"algorithm version changed"`
+   - **R2**: `algorithm.version && w.algorithmVersion && algorithm.version !== w.algorithmVersion` → `"Forced shutdown due to algorithm version change"`
 4. **If any exit reason applies**, check graceful protection:
    - Let `protectedJobIds = gracefulJobs[w.algorithmName] || []`
    - **If `w.jobId` is defined AND `protectedJobIds.includes(w.jobId)`** → **DO NOT EXIT** (skip this worker)
@@ -90,7 +90,7 @@ flowchart TD
     E -->|No| F2[message = undefined]
     F --> G{version mismatch?}
     F2 --> G
-    G -->|Yes| H[message = 'algorithm version changed']
+    G -->|Yes| H[message = 'Forced shutdown due to algorithm version change']
     G -->|No| I{message set?}
     H --> I
     I -->|No| SKIP
@@ -112,7 +112,7 @@ if (workerImage !== w.workerImage) {
 if (algorithm.version && w.algorithmVersion && algorithm.version !== w.algorithmVersion) {
     // ← Graceful check is ONLY here
     if (algorithmGracefulJobs.includes(w.jobId)) return;
-    message = 'algorithm version changed';
+    message = 'Forced shutdown due to algorithm version change';
 }
 if (message) {
     workers.push({ ...w, message });
@@ -150,7 +150,7 @@ const normalizeWorkerImages = (normalizedWorkers, algorithmTemplates, versions, 
             message = 'worker image changed';
         }
         if (algorithm.version && w.algorithmVersion && algorithm.version !== w.algorithmVersion) {
-            message = 'algorithm version changed';
+            message = 'Forced shutdown due to algorithm version change';
         }
 
         if (message) {

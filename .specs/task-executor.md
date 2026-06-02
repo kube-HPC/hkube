@@ -190,7 +190,7 @@ For each worker WHERE workerStatus ≠ 'exit':
      → message = "worker image changed"
   
   5. CHECK: template.version && worker.algorithmVersion && template.version !== worker.algorithmVersion
-     → message = "algorithm version changed"
+     → message = "Forced shutdown due to algorithm version change"
   
   5b. GRACEFUL CHECK: If message set AND
       gracefulJobs[worker.algorithmName] includes worker.jobId
@@ -323,7 +323,7 @@ After all requests processed:
 
 | Command | Trigger | Effect |
 |---|---|---|
-| `exit` | Worker image changed OR algorithm version changed | Worker terminates gracefully |
+| `exit` | Worker image changed OR Forced shutdown due to algorithm version change | Worker terminates gracefully |
 | `stopProcessing` | Resources needed for higher-priority algorithm | Worker pauses, stops accepting tasks |
 | `startProcessing` | Paused worker matched to new request | Worker resumes task processing |
 | `warmUp` | `currentHotWorkers < template.minHotWorkers` for algorithm | Cold worker becomes hot (pre-warmed) |

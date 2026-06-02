@@ -542,12 +542,20 @@ class StateManager extends EventEmitter {
         return this._db.jobs.patch({ query: { jobId }, data: { completion } });
     }
 
+    _gracefulPath(algorithmName) {
+        return `/algorithms/graceful/${algorithmName}`;
+    }
+
     async setGracefulJobs({ algorithmName, jobIds }) {
-        return this._etcd._client.put(`/algorithms/graceful/${algorithmName}`, { jobIds });
+        return this._etcd._client.put(this._gracefulPath(algorithmName), { jobIds });
+    }
+
+    async deleteGracefulJobs({ algorithmName }) {
+        return this._etcd._client.delete(this._gracefulPath(algorithmName));
     }
 
     async getGracefulJobs({ algorithmName }) {
-        const result = await this._etcd._client.get(`/algorithms/graceful/${algorithmName}`);
+        const result = await this._etcd._client.get(this._gracefulPath(algorithmName));
         return result ? result.jobIds || [] : [];
     }
 }
