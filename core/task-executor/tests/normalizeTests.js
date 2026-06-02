@@ -1,5 +1,7 @@
 const { expect } = require('chai');
-const { normalizeWorkers, normalizeRequests, normalizeJobs, attacheJobToWorker, normalizeResources, normalizeHotRequests, normalizeColdWorkers } = require('../lib/reconcile/normalize');
+const { normalizeWorkers, normalizeWorkerImages, normalizeRequests, normalizeJobs, attacheJobToWorker, normalizeResources, normalizeHotRequests, normalizeColdWorkers } = require('../lib/reconcile/normalize');
+const etcd = require('../lib/helpers/etcd');
+const { versions } = require('./stub');
 const { twoCompleted, workersStub, jobsStub, resources } = require('./stub');
 const { nodes, pods } = resources;
 let { templateStore } = require('./stub');
@@ -724,6 +726,194 @@ describe('normalize', () => {
             expect(merged.extraJobs[0]).to.eql(jobsStub[1]);
             expect(merged.extraJobs[1]).to.eql(jobsStub[2]);
             expect(merged.extraJobs[2]).to.eql(jobsStub[3]);
+        });
+    });
+
+    describe('normalizeWorkerImages - graceful jobs', () => {
+        const registry = { registry: '' };
+        const gracefulAlgName = 'test-graceful-alg';
+        const gracefulAlgTemplates = {
+            [gracefulAlgName]: {
+                name: gracefulAlgName,
+                algorithmImage: 'hkube/test-alg:v2',
+                version: 'version-new',
+                cpu: 0.5,
+                mem: '256Mi'
+            }
+        };
+
+        afterEach(async () => {
+            await etcd._etcd._client.delete(etcd._gracefulPath(gracefulAlgName));
+        });
+
+        it('should mark worker for exit when version changed and no graceful jobs', async () => {
+            const normalizedWorkers = [{
+                id: 'worker-1',
+                algorithmName: gracefulAlgName,
+                workerStatus: 'working',
+                workerPaused: false,
+                hotWorker: false,
+                jobId: 'job-123',
+                podName: `${gracefulAlgName}-abc-xyz`,
+                workerImage: 'hkube/worker:v2.9.2-stopProcessing-changes-16903637601',
+                algorithmImage: 'hkube/test-alg:v1',
+                algorithmVersion: 'version-old'
+            }];
+
+            const result = await normalizeWorkerImages(normalizedWorkers, gracefulAlgTemplates, versions, registry);
+            expect(result).to.have.lengthOf(1);
+            expect(result[0].id).to.equal('worker-1');
+            expect(result[0].message).to.equal('Forced shutdown due to algorithm version change');
+        });
+
+        it('should NOT mark worker for exit when jobId is in graceful list', async () => {
+            await etcd._etcd._client.put(etcd._gracefulPath(gracefulAlgName), { jobIds: ['job-123'] });
+
+            const normalizedWorkers = [{
+                id: 'worker-1',
+                algorithmName: gracefulAlgName,
+                workerStatus: 'working',
+                workerPaused: false,
+                hotWorker: false,
+                jobId: 'job-123',
+                podName: `${gracefulAlgName}-abc-xyz`,
+                workerImage: 'hkube/worker:v2.9.2-stopProcessing-changes-16903637601',
+                algorithmImage: 'hkube/test-alg:v1',
+                algorithmVersion: 'version-old'
+            }];
+
+            const result = await normalizeWorkerImages(normalizedWorkers, gracefulAlgTemplates, versions, registry);
+            expect(result).to.have.lengthOf(0);
+        });
+
+        it('should mark worker for exit when graceful key is deleted', async () => {
+            await etcd._etcd._client.put(etcd._gracefulPath(gracefulAlgName), { jobIds: ['job-123'] });
+            await etcd._etcd._client.delete(etcd._gracefulPath(gracefulAlgName));
+
+            const normalizedWorkers = [{
+                id: 'worker-1',
+                algorithmName: gracefulAlgName,
+                workerStatus: 'working',
+                workerPaused: false,
+                hotWorker: false,
+                jobId: 'job-123',
+                podName: `${gracefulAlgName}-abc-xyz`,
+                workerImage: 'hkube/worker:v2.9.2-stopProcessing-changes-16903637601',
+                algorithmImage: 'hkube/test-alg:v1',
+                algorithmVersion: 'version-old'
+            }];
+
+            const result = await normalizeWorkerImages(normalizedWorkers, gracefulAlgTemplates, versions, registry);
+            expect(result).to.have.lengthOf(1);
+            expect(result[0].message).to.equal('Forced shutdown due to algorithm version change');
+        });
+
+        it('should protect only the worker whose jobId is in graceful list', async () => {
+            await etcd._etcd._client.put(etcd._gracefulPath(gracefulAlgName), { jobIds: ['job-123'] });
+
+            const normalizedWorkers = [
+                {
+                    id: 'worker-1',
+                    algorithmName: gracefulAlgName,
+                    workerStatus: 'working',
+                    workerPaused: false,
+                    hotWorker: false,
+                    jobId: 'job-123',
+                    podName: `${gracefulAlgName}-abc-xyz`,
+                    workerImage: 'hkube/worker:v2.9.2-stopProcessing-changes-16903637601',
+                    algorithmImage: 'hkube/test-alg:v1',
+                    algorithmVersion: 'version-old'
+                },
+                {
+                    id: 'worker-2',
+                    algorithmName: gracefulAlgName,
+                    workerStatus: 'working',
+                    workerPaused: false,
+                    hotWorker: false,
+                    jobId: 'job-456',
+                    podName: `${gracefulAlgName}-def-uvw`,
+                    workerImage: 'hkube/worker:v2.9.2-stopProcessing-changes-16903637601',
+                    algorithmImage: 'hkube/test-alg:v1',
+                    algorithmVersion: 'version-old'
+                }
+            ];
+
+            const result = await normalizeWorkerImages(normalizedWorkers, gracefulAlgTemplates, versions, registry);
+            expect(result).to.have.lengthOf(1);
+            expect(result[0].id).to.equal('worker-2');
+        });
+
+        it('should not mark worker for exit when versions match', async () => {
+            const normalizedWorkers = [{
+                id: 'worker-1',
+                algorithmName: gracefulAlgName,
+                workerStatus: 'working',
+                workerPaused: false,
+                hotWorker: false,
+                jobId: 'job-123',
+                podName: `${gracefulAlgName}-abc-xyz`,
+                workerImage: 'hkube/worker:v2.9.2-stopProcessing-changes-16903637601',
+                algorithmImage: 'hkube/test-alg:v2',
+                algorithmVersion: 'version-new'
+            }];
+
+            const result = await normalizeWorkerImages(normalizedWorkers, gracefulAlgTemplates, versions, registry);
+            expect(result).to.have.lengthOf(0);
+        });
+
+        it('should return empty array for empty workers list', async () => {
+            const result = await normalizeWorkerImages([], gracefulAlgTemplates, versions, registry);
+            expect(result).to.be.an('array').that.is.empty;
+        });
+
+        it('should skip workers with exit status', async () => {
+            const normalizedWorkers = [{
+                id: 'worker-1',
+                algorithmName: gracefulAlgName,
+                workerStatus: 'exit',
+                workerPaused: false,
+                hotWorker: false,
+                jobId: 'job-123',
+                podName: `${gracefulAlgName}-abc-xyz`,
+                workerImage: 'hkube/worker:v2.9.2-stopProcessing-changes-16903637601',
+                algorithmImage: 'hkube/test-alg:v1',
+                algorithmVersion: 'version-old'
+            }];
+
+            const result = await normalizeWorkerImages(normalizedWorkers, gracefulAlgTemplates, versions, registry);
+            expect(result).to.have.lengthOf(0);
+        });
+    });
+
+    describe('etcd graceful helpers', () => {
+        it('should parse graceful result from etcd key-value pair', () => {
+            const result = { '/algorithms/graceful/test-alg': '{"jobIds":["job-1","job-2"]}' };
+            const parsed = etcd._parseGracefulResult(result);
+            expect(parsed).to.deep.equal(['job-1', 'job-2']);
+        });
+
+        it('should return empty array for null result', () => {
+            const parsed = etcd._parseGracefulResult(null);
+            expect(parsed).to.deep.equal([]);
+        });
+
+        it('should return empty array for undefined result', () => {
+            const parsed = etcd._parseGracefulResult(undefined);
+            expect(parsed).to.deep.equal([]);
+        });
+
+        it('getAllGracefulJobs should return map of algorithm to jobIds', async () => {
+            await etcd._etcd._client.put(etcd._gracefulPath('alg-a'), { jobIds: ['j1', 'j2'] });
+            await etcd._etcd._client.put(etcd._gracefulPath('alg-b'), { jobIds: ['j3'] });
+
+            const result = await etcd.getAllGracefulJobs(['alg-a', 'alg-b', 'alg-c']);
+            expect(result['alg-a']).to.include('j1');
+            expect(result['alg-a']).to.include('j2');
+            expect(result['alg-b']).to.deep.equal(['j3']);
+            expect(result['alg-c']).to.deep.equal([]);
+
+            await etcd._etcd._client.delete(etcd._gracefulPath('alg-a'));
+            await etcd._etcd._client.delete(etcd._gracefulPath('alg-b'));
         });
     });
 });
