@@ -202,6 +202,19 @@ For each worker WHERE workerStatus ≠ 'exit':
 
 **Priority:** Algorithm version check **overrides** worker image check (last-write-wins on `message`).
 
+**Critical Rule:** The graceful check (step 5b) must apply to **all** exit reasons — not just version mismatch. It is gated on `if (message)` and checked before pushing to the exit list.
+
+**Edge Cases:**
+| Case | Expected |
+|---|---|
+| Idle worker (`jobId=undefined`), image changed | EXIT — no job to protect |
+| Active worker, image changed, jobId in graceful list | SKIP — protected |
+| Active worker, version changed, jobId in graceful list | SKIP — protected |
+| Old worker (`algorithmVersion=undefined`), image changed, in graceful list | SKIP — image change alone triggers exit, graceful protects |
+| No graceful entry for algorithm | EXIT — no protection |
+
+**Lifecycle:** Graceful list (`/algorithms/graceful/{algorithmName}`) is written by api-server on `applyVersion({ force:true, graceful:true })` and cleared on non-graceful `applyVersion`. Stale entries are harmless since idle workers (`jobId=undefined`) are never protected.
+
 **Downstream Effect:** Marked workers receive an `exit` command via etcd, causing the worker process to gracefully terminate. The reconciler then filters these workers out of the scheduling pool, and new jobs will be created with the updated image/version.
 
 ---
