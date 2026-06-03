@@ -227,6 +227,7 @@ On boot, migrates data from legacy storage to MongoDB:
 | **Produce pipeline job** | Redis `pipeline-driver-queue:pipeline-job` | Any pipeline run |
 | **Stop pipeline job in queue** | Redis `pipeline-driver-queue` | Stop/clean job |
 | **Create/update algorithm in DB** | MongoDB + Etcd | Algorithm apply, build complete, debug/gateway/output creation |
+| **Set algorithm.gracefulJobIds** | MongoDB + Etcd (algorithm record) | Version apply with `force: true, graceful: true` — stores running jobIds so task-executor skips those workers |
 | **Delete algorithm + cascading** | MongoDB (algo, versions, builds, readme) + S3 (build files) + stop executions | Algorithm delete |
 | **Create build in DB + Etcd** | MongoDB + Etcd (triggers algorithm-builder) | Algorithm apply with code/git |
 | **Upload build artifact** | S3/FS (hkubeBuilds) | Algorithm apply with file upload |

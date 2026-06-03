@@ -8,6 +8,10 @@ properties:
     type: boolean
     description: should replace or not current algorithm version for running algorithm instances
     default: false
+  graceful:
+    type: boolean
+    description: when used with force, allows running jobs to finish with the old version before switching
+    default: false
 required:
   - name
   - version

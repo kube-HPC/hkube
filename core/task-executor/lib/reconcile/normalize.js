@@ -5,6 +5,7 @@ const objectPath = require('object-path');
 const { gpuVendors } = require('../consts');
 const { setWorkerImage } = require('./createOptions');
 const { settings: globalSettings } = require('../helpers/settings');
+const etcd = require('../helpers/etcd');
 
 /**
  * Normalizes raw worker objects from etcd into a simplified structure.
@@ -24,6 +25,7 @@ const normalizeWorkers = (workers) => {
             workerStatus: w.workerStatus,
             workerPaused: !!w.workerPaused,
             hotWorker: w.hotWorker,
+            jobId: w.jobId,
             podName: w.podName,
             workerImage: w.workerImage,
             algorithmImage: w.algorithmImage,
@@ -43,11 +45,13 @@ const normalizeWorkers = (workers) => {
  * @param {Object} registry - Registry configuration.
  * @returns {Object[]} Workers that must exit.
  */
-const normalizeWorkerImages = (normalizedWorkers, algorithmTemplates, versions, registry) => {
+const normalizeWorkerImages = async (normalizedWorkers, algorithmTemplates, versions, registry) => {
     const workers = [];
     if (!Array.isArray(normalizedWorkers) || normalizedWorkers.length === 0) {
         return workers;
     }
+    const algorithmNames = [...new Set(normalizedWorkers.map(w => w.algorithmName).filter(Boolean))];
+    const gracefulJobs = await etcd._etcd.algorithms.graceful.getAll(algorithmNames);
     normalizedWorkers.filter(w => w.workerStatus !== 'exit').forEach((w) => {
         const algorithm = algorithmTemplates[w.algorithmName];
         if (!algorithm) {
@@ -60,9 +64,13 @@ const normalizeWorkerImages = (normalizedWorkers, algorithmTemplates, versions, 
             message = 'worker image changed';
         }
         if (algorithm.version && w.algorithmVersion && algorithm.version !== w.algorithmVersion) {
-            message = 'algorithm version changed';
+            message = 'Forced shutdown due to algorithm version change';
         }
         if (message) {
+            const algorithmGracefulJobs = (gracefulJobs && gracefulJobs[w.algorithmName]) || [];
+            if (w.jobId && algorithmGracefulJobs.includes(w.jobId)) {
+                return;
+            }
             workers.push({ ...w, message });
         }
     });

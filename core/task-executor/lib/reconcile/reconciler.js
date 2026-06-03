@@ -223,6 +223,7 @@ const reconcile = async ({ algorithmTemplates, algorithmRequests, workers, jobs,
 
     // Create a new instance of workers manager
     const workersManager = new WorkersManager(workers, jobs, pods, algorithmTemplates, versions, registry);
+    await workersManager.init();
 
     // Update batch capacity
     const batchCount = workersManager.countBatchWorkers() + jobsHandler.createdJobsLists.batch.length;

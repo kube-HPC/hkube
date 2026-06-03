@@ -541,6 +541,19 @@ class StateManager extends EventEmitter {
     async updateJobCompletion({ jobId, completion }) {
         return this._db.jobs.patch({ query: { jobId }, data: { completion } });
     }
+
+    async setGracefulJobs({ algorithmName, jobIds }) {
+        return this._etcd.algorithms.graceful.set({ name: algorithmName, jobIds });
+    }
+
+    async deleteGracefulJobs({ algorithmName }) {
+        return this._etcd.algorithms.graceful.delete({ name: algorithmName });
+    }
+
+    async getGracefulJobs({ algorithmName }) {
+        const result = await this._etcd.algorithms.graceful.get({ name: algorithmName });
+        return result ? result.jobIds || [] : [];
+    }
 }
 
 module.exports = new StateManager();
