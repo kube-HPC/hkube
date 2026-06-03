@@ -75,32 +75,6 @@ class Etcd {
         });
         return arrayToMap(templates);
     }
-
-    _gracefulPath(algorithmName) {
-        return `/algorithms/graceful/${algorithmName}`;
-    }
-
-    _parseGracefulResult(result) {
-        if (!result) return [];
-        const value = typeof result === 'object' ? Object.values(result)[0] : result;
-        if (!value) return [];
-        const parsed = typeof value === 'string' ? JSON.parse(value) : value;
-        return parsed ? parsed.jobIds || [] : [];
-    }
-
-    async getGracefulJobs({ algorithmName }) {
-        const result = await this._etcd._client.get(this._gracefulPath(algorithmName));
-        return this._parseGracefulResult(result);
-    }
-
-    async getAllGracefulJobs(algorithmNames) {
-        const results = {};
-        await Promise.all(algorithmNames.map(async (name) => {
-            const result = await this._etcd._client.get(this._gracefulPath(name));
-            results[name] = this._parseGracefulResult(result);
-        }));
-        return results;
-    }
 }
 
 module.exports = new Etcd();

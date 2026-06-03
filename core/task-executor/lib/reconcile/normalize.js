@@ -51,7 +51,7 @@ const normalizeWorkerImages = async (normalizedWorkers, algorithmTemplates, vers
         return workers;
     }
     const algorithmNames = [...new Set(normalizedWorkers.map(w => w.algorithmName).filter(Boolean))];
-    const gracefulJobs = await etcd.getAllGracefulJobs(algorithmNames);
+    const gracefulJobs = await etcd._etcd.algorithms.graceful.getAll(algorithmNames);
     normalizedWorkers.filter(w => w.workerStatus !== 'exit').forEach((w) => {
         const algorithm = algorithmTemplates[w.algorithmName];
         if (!algorithm) {

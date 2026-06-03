@@ -169,14 +169,14 @@ flowchart TD
 
 ## 6. Decision Matrix — `normalizeWorkerImages` (async)
 
-This function determines which running workers must be **force-exited** due to configuration drift. It is **async** and internally fetches graceful jobs from etcd.
+This function determines which running workers must be **force-exited** due to configuration drift. It is **async** and internally fetches graceful jobs via the `@hkube/etcd` library.
 
 ```
 INPUT: normalizedWorkers, algorithmTemplates, versions, registry
-       (gracefulJobs fetched internally from etcd)
+       (gracefulJobs fetched internally via @hkube/etcd)
 
   0. Derive unique algorithmNames from normalizedWorkers
-     Fetch gracefulJobs = await etcd.getAllGracefulJobs(algorithmNames)
+     Fetch gracefulJobs = await etcd._etcd.algorithms.graceful.getAll(algorithmNames)
 
 For each worker WHERE workerStatus ≠ 'exit':
   1. Look up algorithm template by worker.algorithmName

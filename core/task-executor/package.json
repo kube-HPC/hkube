@@ -26,7 +26,7 @@
     "@hkube/config": "^2.0.11",
     "@hkube/consts": "^1.0.61",
     "@hkube/db": "^2.0.16",
-    "@hkube/etcd": "^5.1.2",
+    "@hkube/etcd": "git+https://github.com/kube-HPC/etcd.hkube.git#graceful_1895",
     "@hkube/healthchecks": "^1.0.1",
     "@hkube/kubernetes-client": "^2.0.9",
     "@hkube/logger": "^2.0.2",
