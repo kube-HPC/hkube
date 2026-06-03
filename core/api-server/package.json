@@ -10,7 +10,7 @@
         "@hkube/dag": "^2.1.25",
         "@hkube/db": "^2.0.25",
         "@hkube/elastic-client": "^1.0.4",
-        "@hkube/etcd": "git+https://github.com/kube-HPC/etcd.hkube.git#graceful_1895",
+        "@hkube/etcd": "^5.1.14",
         "@hkube/healthchecks": "^1.0.2",
         "@hkube/kubernetes-client": "^2.0.6",
         "@hkube/logger": "^2.0.2",
