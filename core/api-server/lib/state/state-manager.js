@@ -9,6 +9,7 @@ const Logger = require('@hkube/logger');
 let log;
 const { buildStatuses, pipelineStatuses } = require('@hkube/consts');
 const component = require('../consts/componentNames').DB;
+const redisLock = require('../utils/redis-lock');
 
 class StateManager extends EventEmitter {
     constructor() {
@@ -19,6 +20,8 @@ class StateManager extends EventEmitter {
     async init(options) {
         log = Logger.GetLogFromContainer();
         this._options = options;
+        this._leaderLockTtl = options.leaderLockTtl;
+        redisLock.init(options);
         this._etcd = new Etcd(options.etcd);
         await this._watch();
         await this._etcd.discovery.register({ serviceName: options.serviceName, data: options });
@@ -60,13 +63,30 @@ class StateManager extends EventEmitter {
                 this._failedHealthcheckCount += 1;
             }
             for (const result of completedToDelete) {
-                this.emit('job-result-change', result);
+                await this._emitJobResultChange(result);
             }
         }
         catch (error) {
             log.throttle.warning(`Failed to run healthchecks: ${error.message}`, { component });
         }
         this._healthcheck();
+    }
+
+    // Distributed leader lock: the first instance to acquire the key becomes the sole
+    // handler of job-result-change events. Every processed event ("touch") renews the
+    // lease, so the same instance keeps handling events as long as it stays active. If it
+    // stops emitting for longer than the ttl (e.g. crash), another instance takes over.
+    async _emitJobResultChange(result) {
+        try {
+            const isOwner = await redisLock.acquireOrRenew(redisLock.LEADER_KEY, this._leaderLockTtl);
+            if (!isOwner) {
+                return;
+            }
+        }
+        catch (error) {
+            log.warning(`failed to acquire leader lock, emitting anyway: ${error.message}`, { component });
+        }
+        this.emit('job-result-change', result);
     }
 
     async _watch() {
@@ -78,9 +98,9 @@ class StateManager extends EventEmitter {
         await this._etcd.jobs.results.watch();
         await this._etcd.jobs.status.watch();
 
-        this._etcd.jobs.results.on('change', result => {
-            this.emit('job-result-change', result);
+        this._etcd.jobs.results.on('change', (result) => {
             this._failedHealthcheckCount = 0;
+            this._emitJobResultChange(result);
         });
     }
 

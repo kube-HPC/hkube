@@ -9,6 +9,7 @@ const stateManager = require('../state/state-manager');
 const algorithmsVersionsService = require('../../lib/service/algorithm-versions');
 const pipelinesVersionsService = require('../../lib/service/pipeline-versions');
 const keycloak = require('../../lib/service/keycloak');
+const redisLock = require('../utils/redis-lock');
 const component = require('../consts/componentNames').PIPELINES_UPDATER;
 
 class PipelinesUpdater {
@@ -16,6 +17,13 @@ class PipelinesUpdater {
         this._defaultStorage = options.defaultStorage;
         const addDefaultAlgorithms = options.addDefaultAlgorithms !== 'false';
         const defaultAlgorithms = addDefaultAlgorithms ? algorithms : null;
+        // Only the elected leader runs the one-time bootstrap migration, so that across
+        // multiple instances the storage/etcd-to-db sync is not executed concurrently.
+        const isLeader = await redisLock.acquireOrRenew(redisLock.LEADER_KEY, options.leaderLockTtl);
+        if (!isLeader) {
+            log.info('another instance is the leader, skipping bootstrap migration', { component });
+            return;
+        }
         log.info('--------starting sync process---------', { component });
         await this._pipelineDriversTemplate(options);
         await this._transferJobsToDB();

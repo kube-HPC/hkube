@@ -55,6 +55,8 @@ config.healthchecks = {
     enabled: formatter.parseBool(process.env.HEALTHCHECK_ENABLE, true)
 }
 
+config.leaderLockTtl = formatter.parseInt(process.env.LEADER_LOCK_TTL, 60000);
+
 config.ingressPrefix = process.env.INGRESS_PREFIX || '';
 
 config.debugUrl = {
