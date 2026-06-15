@@ -78,7 +78,7 @@ class StateManager extends EventEmitter {
     // stops emitting for longer than the ttl (e.g. crash), another instance takes over.
     async _emitJobResultChange(result) {
         try {
-            log.info(`emitting job-result-change for ${result.jobId}`, { component })
+            log.info(`emitting job-result-change for ${result.jobId}`, { component });
             const isOwner = await redisLock.acquireOrRenew(redisLock.LEADER_KEY, this._leaderLockTtl);
             if (!isOwner) {
                 return;
