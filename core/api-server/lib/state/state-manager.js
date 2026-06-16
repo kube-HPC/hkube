@@ -51,6 +51,13 @@ class StateManager extends EventEmitter {
     }
 
     async _healthcheckInterval() {
+        // Detecting stuck completed jobs and re-emitting their result change is a singleton
+        // side effect, so only the leader runs it. Followers re-arm the interval and return,
+        // so this pod resumes the work on its next tick if it later becomes leader.
+        if (!this._isLeader) {
+            this._healthcheck();
+            return;
+        }
         try {
             const running = await this.getNotCompletedJobs();
             const completedToDelete = [];
@@ -130,6 +137,10 @@ class StateManager extends EventEmitter {
             }
             else if (!this._isLeader && wasLeader) {
                 log.warning(`lost leadership (reason: ${reason})`, { component: leaderComponent });
+                // Stuck-job detection is leader-only, so drop any strikes from this leadership
+                // term. Otherwise, if this pod is re-elected, stale strikes could trip the
+                // healthcheck and restart it prematurely. Only the current leader carries a count.
+                this._failedHealthcheckCount = 0;
             }
         }
         catch (error) {
