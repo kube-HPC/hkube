@@ -32,7 +32,7 @@ class StateManager extends EventEmitter {
         await this._initLeaderElection();
         this._etcd = new Etcd({ ...options.etcd, instanceId: this._instanceId });
         await this._watch();
-        await this._etcd.discovery.register({ serviceName: options.serviceName, data: options });
+        await this._etcd.discovery.register({ serviceName: options.serviceName, data: { ...options, isLeader: this._isLeader } });
         log.info(`initializing etcd with options: ${JSON.stringify(options.etcd)}`, { component });
 
         const { provider, ...config } = options.db;
@@ -138,6 +138,7 @@ class StateManager extends EventEmitter {
             this._isLeader = await redisLock.acquireOrRenew(redisLock.LEADER_KEY, this._leaderElection.lockTtl);
             if (this._isLeader && !wasLeader) {
                 log.info(`became leader (reason: ${reason}, instanceId: ${redisLock.instanceId})`, { component: leaderComponent });
+                this._updateLeaderDiscovery();
             }
             else if (!this._isLeader && wasLeader) {
                 log.warning(`lost leadership (reason: ${reason})`, { component: leaderComponent });
@@ -145,6 +146,7 @@ class StateManager extends EventEmitter {
                 // term. Otherwise, if this pod is re-elected, stale strikes could trip the
                 // healthcheck and restart it prematurely. Only the current leader carries a count.
                 this._failedHealthcheckCount = 0;
+                this._updateLeaderDiscovery();
             }
         }
         catch (error) {
@@ -185,6 +187,20 @@ class StateManager extends EventEmitter {
     // Whether this instance currently holds the distributed leader lock.
     isLeader() {
         return this._isLeader === true;
+    }
+
+    // Publish the current leadership flag to this instance's etcd discovery record, so leader
+    // status is easy to inspect (e.g. discovery list shows which pod is the leader). Fire-and-
+    // forget: this is debug-only visibility and must not block or fail the election path. No-op
+    // until etcd is registered; the initial registration in init() already carries the flag.
+    _updateLeaderDiscovery() {
+        if (!this._etcd) {
+            return;
+        }
+        this._etcd.discovery.updateRegisteredData({ ...this._options, isLeader: this._isLeader })
+            .catch((error) => {
+                log.throttle.warning(`failed to update leader status in discovery: ${error.message}`, { component: leaderComponent });
+            });
     }
 
     // Only the leader dispatches job-result-change events, so across multiple instances each
