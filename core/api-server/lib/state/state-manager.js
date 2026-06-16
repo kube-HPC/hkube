@@ -8,6 +8,7 @@ const dbConnect = require('@hkube/db');
 const Logger = require('@hkube/logger');
 let log;
 const { buildStatuses, pipelineStatuses } = require('@hkube/consts');
+const { uuid } = require('@hkube/uid');
 const component = require('../consts/componentNames').DB;
 const leaderComponent = require('../consts/componentNames').LEADER_ELECTION;
 const redisLock = require('../utils/redis-lock');
@@ -24,9 +25,12 @@ class StateManager extends EventEmitter {
         log = Logger.GetLogFromContainer();
         this._options = options;
         this._leaderElection = options.leaderElection;
-        redisLock.init(options);
+        // Single instance id shared by the redis leader lock and the etcd discovery
+        // registration, so the leader lock value matches this api-server's etcd register name.
+        this._instanceId = uuid();
+        redisLock.init(options, this._instanceId);
         await this._initLeaderElection();
-        this._etcd = new Etcd(options.etcd);
+        this._etcd = new Etcd({ ...options.etcd, instanceId: this._instanceId });
         await this._watch();
         await this._etcd.discovery.register({ serviceName: options.serviceName, data: options });
         log.info(`initializing etcd with options: ${JSON.stringify(options.etcd)}`, { component });

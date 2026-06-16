@@ -37,7 +37,7 @@ return 0
 `;
 
 class RedisLock {
-    init(options) {
+    init(options, instanceId) {
         if (this._client) {
             return;
         }
@@ -47,7 +47,7 @@ class RedisLock {
         // unique per-process owner id, so only the owning instance can renew the lease.
         // Shared with the etcd discovery registration (passed in by state-manager) so the lock
         // value matches this api-server's etcd register name; falls back to a generated id.
-        this._instanceId = options.instanceId || `${os.hostname()}:${crypto.randomUUID()}`;
+        this._instanceId = instanceId || `${os.hostname()}:${crypto.randomUUID()}`;
         this._log.info(`leader-election redis lock initialized (instanceId: ${this._instanceId})`, { component });
     }
 
