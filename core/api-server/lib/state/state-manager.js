@@ -270,6 +270,11 @@ class StateManager extends EventEmitter {
 
     onBuildComplete(func) {
         this._etcd.algorithms.builds.on('change', (build) => {
+            // Singleton side effect (version creation + algorithm update): leader only, so
+            // multiple replicas watching the same build do not race or duplicate versions.
+            if (!this._isLeader) {
+                return;
+            }
             if (build.status === buildStatuses.COMPLETED) {
                 func(build);
             }
@@ -395,6 +400,11 @@ class StateManager extends EventEmitter {
 
     onJobStatus(func) {
         this._etcd.jobs.status.on('change', (response) => {
+            // Singleton side effect (progress/status webhook): leader only, so the webhook is
+            // delivered once across replicas instead of once per pod.
+            if (!this._isLeader) {
+                return;
+            }
             func(response);
         });
     }

@@ -196,8 +196,16 @@ reports not-owner.
   current leader keeps renewing, so leadership is **stable** and does not depend on event
   traffic. (Previously renewal was piggybacked on event handling, so with no traffic the
   lease expired and leadership flapped between instances.)
-- `_emitJobResultChange` emits `job-result-change` only when `_isLeader` is true; followers
-  drop the event because the leader already handled it.
+- All **etcd-watch-driven singleton side effects run on the leader only**, because every
+  replica receives the same etcd watch events and must not duplicate cluster-wide work:
+  - `jobs.results` → `_emitJobResultChange` emits `job-result-change` (result webhook + job
+    completion) only when `_isLeader` is true.
+  - `jobs.status` → progress/status webhook dispatch runs only when `_isLeader` is true.
+  - `algorithms.builds` → build-complete handling (version creation + algorithm update) runs
+    only when `_isLeader` is true.
+  Followers drop these events because the leader already handled them. (Pre-DaemonSet, a
+  single api-server replica meant no gating was needed; with one pod per node these paths
+  would otherwise fire on every replica — e.g. duplicate webhooks and racing version writes.)
 - On leader crash the key expires after `leaderLockTtl`, and a follower's next heartbeat
   takes over (failover window ≤ `leaderLockTtl`).
 - `pipelines-updater` runs the bootstrap migration only when `state-manager.isLeader()` is
