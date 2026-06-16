@@ -44,8 +44,10 @@ class RedisLock {
         this._log = Logger.GetLogFromContainer();
         this._redisOptions = options.redis;
         this._client = Factory.getClient(options.redis);
-        // unique per-process owner id, so only the owning instance can renew the lease
-        this._instanceId = `${os.hostname()}:${crypto.randomUUID()}`;
+        // unique per-process owner id, so only the owning instance can renew the lease.
+        // Shared with the etcd discovery registration (passed in by state-manager) so the lock
+        // value matches this api-server's etcd register name; falls back to a generated id.
+        this._instanceId = options.instanceId || `${os.hostname()}:${crypto.randomUUID()}`;
         this._log.info(`leader-election redis lock initialized (instanceId: ${this._instanceId})`, { component });
     }
 
