@@ -203,6 +203,24 @@ class StateManager extends EventEmitter {
             });
     }
 
+    // List all api-server instances from etcd discovery and report which one currently holds
+    // leadership. The instanceId comes from the discovery key (path /discovery/<service>/<id>)
+    // and the isLeader flag from that instance's registered discovery value. Also reports the
+    // leader straight from the redis lock (the election source of truth) as redisLeader, so a
+    // mismatch with the etcd-derived leader reveals a lagging discovery update.
+    async getLeaderElectionStatus() {
+        const { serviceName } = this._options;
+        const keys = await this._etcd.discovery.keys({ serviceName });
+        const instances = await Promise.all((keys || []).map(async (key) => {
+            const instanceId = key.split('/').pop();
+            const data = await this._etcd.discovery.get({ serviceName, instanceId });
+            return { instanceId, isLeader: data?.isLeader === true };
+        }));
+        const etcdLeader = instances.find(i => i.isLeader)?.instanceId || null;
+        const redisLeader = await redisLock.getOwner(redisLock.LEADER_KEY);
+        return { current: this._instanceId, etcdLeader, redisLeader, instances };
+    }
+
     // Only the leader dispatches job-result-change events, so across multiple instances each
     // job completion is handled (webhooks, job completion) exactly once.
     _emitJobResultChange(result) {

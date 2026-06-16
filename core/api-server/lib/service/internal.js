@@ -33,6 +33,10 @@ class InternalService {
         return execution._runPipeline({ pipeline, rootJobId, parentSpan, types: [pipelineTypes.INTERNAL, pipelineTypes.RAW, pipelineTypes.SUB_PIPELINE] });
     }
 
+    async getLeaderElection() {
+        return stateManager.getLeaderElectionStatus();
+    }
+
     async _createPipeline(options) {
         const { jobId, taskId, parentJobId, rootJobId, spanId, ...pipeline } = options;
         const experimentName = await this._getExperimentName({ jobId: jobId || parentJobId });

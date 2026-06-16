@@ -71,6 +71,13 @@ class RedisLock {
         return result === 1;
     }
 
+    // The instanceId currently holding the lock (the lock value), or null when the key is
+    // absent. The value equals the owning instance's id, so this reports the elected leader
+    // straight from redis - the source of truth for the election.
+    async getOwner(key) {
+        return this._client.get(`${LOCK_PREFIX}:${key}`);
+    }
+
     // Subscribe to keyspace notifications for the lock key and invoke onGone(event) as soon as
     // the key is deleted or expires. A dedicated subscriber connection is used because a Redis
     // connection in subscribe mode cannot run other commands. Best-effort: when keyspace
