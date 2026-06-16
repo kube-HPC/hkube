@@ -168,16 +168,45 @@ The `database-querier.js` runs a `setInterval(2000ms)` loop that:
 The `state-manager._healthcheckInterval()` runs on a `setTimeout` loop (`HEALTHCHECK_CHECK_INTERVAL`, default 5s):
 1. Fetches jobs where `completion === false` but `result` exists
 2. If any are found older than `minAge` (10s), increments `_failedHealthcheckCount`
-3. Re-emits `job-result-change` to trigger webhook delivery retry
+3. Re-emits `job-result-change` (leader only, see §2.6) to trigger webhook delivery retry
 4. Health endpoint returns unhealthy when `_failedHealthcheckCount >= maxFailed` (default 3)
 
 ### 2.5 Startup Sync — PipelinesUpdater
 
-On boot, migrates data from legacy storage to MongoDB:
+On boot, the elected leader (§2.6) migrates data from legacy storage to MongoDB:
 - Syncs default algorithms, pipelines, experiments from JSON + storage
 - Migrates DAG graphs from Redis to MongoDB
 - Migrates jobs from Etcd to MongoDB
 - Creates algorithm/pipeline versions for migrated data
+
+### 2.6 Single-Instance Dispatch — Leader Election
+
+Across multiple api-server replicas, exactly one instance must dispatch `job-result-change`
+events (so webhook delivery and job-completion writes happen once) and run the one-time
+bootstrap migration. This is enforced by a distributed leader lock in Redis.
+
+**Lock:** `hkube:api-server:lock:leader` holds the owning instance's unique id with a TTL of
+`leaderLockTtl` (`LEADER_LOCK_TTL`, default 60s). The Lua `acquireOrRenew` script atomically
+claims the key when free, or renews its TTL when already owned by the caller — otherwise it
+reports not-owner.
+
+**Logic Contract:**
+- `state-manager` runs a **background renewal heartbeat** (`setInterval`, every
+  `leaderLockTtl / 3`) that calls `acquireOrRenew` and stores the result in `_isLeader`. The
+  current leader keeps renewing, so leadership is **stable** and does not depend on event
+  traffic. (Previously renewal was piggybacked on event handling, so with no traffic the
+  lease expired and leadership flapped between instances.)
+- `_emitJobResultChange` emits `job-result-change` only when `_isLeader` is true; followers
+  drop the event because the leader already handled it.
+- On leader crash the key expires after `leaderLockTtl`, and a follower's next heartbeat
+  takes over (failover window ≤ `leaderLockTtl`).
+- `pipelines-updater` runs the bootstrap migration only when `state-manager.isLeader()` is
+  true, so it executes on a single instance.
+- Redis is a hard dependency (`bootstrap` aborts when Redis is unreachable); a renewal error
+  preserves the last known leadership state rather than failing open.
+
+**Invariant:** at most one instance has `_isLeader === true` at any time (modulo the bounded
+failover window).
 
 ---
 
@@ -270,6 +299,7 @@ On boot, migrates data from legacy storage to MongoDB:
 | `healthchecks.path` | `HEALTHCHECK_PATH` | `/healthz` | Health endpoint path |
 | `webhooks.retryStrategy.maxAttempts` | — | `3` | Webhook delivery retry count |
 | `webhooks.retryStrategy.retryDelay` | — | `5000` ms | Webhook retry delay |
+| `leaderLockTtl` | `LEADER_LOCK_TTL` | `60000` ms | TTL of the Redis leader lock; renewed by a heartbeat every `ttl/3` (see §2.6) |
 | `jobs.producer.prefix` | — | `pipeline-driver-queue` | Redis queue prefix for job production |
 | `jobs.producer.jobType` | — | `pipeline-job` | Redis job type name |
 | `discoveryInterval` (DatabaseQuerier) | — | `2000` ms (hardcoded) | Etcd discovery polling interval |

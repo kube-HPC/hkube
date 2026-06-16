@@ -15,6 +15,7 @@ class StateManager extends EventEmitter {
     constructor() {
         super();
         this._failedHealthcheckCount = 0;
+        this._isLeader = false;
     }
 
     async init(options) {
@@ -22,6 +23,7 @@ class StateManager extends EventEmitter {
         this._options = options;
         this._leaderLockTtl = options.leaderLockTtl;
         redisLock.init(options);
+        await this._initLeaderElection();
         this._etcd = new Etcd(options.etcd);
         await this._watch();
         await this._etcd.discovery.register({ serviceName: options.serviceName, data: options });
@@ -72,21 +74,39 @@ class StateManager extends EventEmitter {
         this._healthcheck();
     }
 
-    // Distributed leader lock: the first instance to acquire the key becomes the sole
-    // handler of job-result-change events. Every processed event ("touch") renews the
-    // lease, so the same instance keeps handling events as long as it stays active. If it
-    // stops emitting for longer than the ttl (e.g. crash), another instance takes over.
-    async _emitJobResultChange(result) {
+    // Distributed leader election. A single instance owns the leader key and renews it on a
+    // fixed heartbeat (independent of event traffic), so leadership stays stable instead of
+    // flapping between instances. Followers see the key owned by the leader and stay
+    // followers. If the leader stops renewing (e.g. crash), the key expires after the ttl
+    // and a follower takes over on its next heartbeat.
+    async _initLeaderElection() {
+        await this._renewLeadership();
+        const renewInterval = Math.max(1000, Math.floor(this._leaderLockTtl / 3));
+        this._leaderRenewalInterval = setInterval(() => this._renewLeadership(), renewInterval);
+        this._leaderRenewalInterval.unref();
+    }
+
+    async _renewLeadership() {
         try {
-            log.info(`emitting job-result-change for ${result.jobId}`, { component });
-            const isOwner = await redisLock.acquireOrRenew(redisLock.LEADER_KEY, this._leaderLockTtl);
-            if (!isOwner) {
-                return;
-            }
+            this._isLeader = await redisLock.acquireOrRenew(redisLock.LEADER_KEY, this._leaderLockTtl);
         }
         catch (error) {
-            log.warning(`failed to acquire leader lock, emitting anyway: ${error.message}`, { component });
+            log.throttle.warning(`failed to renew leader lock: ${error.message}`, { component });
         }
+    }
+
+    // Whether this instance currently holds the distributed leader lock.
+    isLeader() {
+        return this._isLeader === true;
+    }
+
+    // Only the leader dispatches job-result-change events, so across multiple instances each
+    // job completion is handled (webhooks, job completion) exactly once.
+    _emitJobResultChange(result) {
+        if (!this._isLeader) {
+            return;
+        }
+        log.info(`emitting job-result-change for ${result.jobId}`, { component, result });
         this.emit('job-result-change', result);
     }
 
