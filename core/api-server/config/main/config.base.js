@@ -55,7 +55,12 @@ config.healthchecks = {
     enabled: formatter.parseBool(process.env.HEALTHCHECK_ENABLE, true)
 }
 
-config.leaderLockTtl = formatter.parseInt(process.env.LEADER_LOCK_TTL, 60000);
+config.leaderElection = {
+    lockTtl: formatter.parseInt(process.env.LEADER_LOCK_TTL, 2500),
+    renewInterval: formatter.parseInt(process.env.LEADER_RENEW_INTERVAL, 1000),
+    backupInterval: formatter.parseInt(process.env.LEADER_BACKUP_INTERVAL, 5000),
+    jitter: formatter.parseInt(process.env.LEADER_ELECTION_JITTER, 250),
+};
 
 config.ingressPrefix = process.env.INGRESS_PREFIX || '';
 

@@ -1,6 +1,8 @@
 const os = require('os');
 const crypto = require('crypto');
+const Logger = require('@hkube/logger');
 const { Factory } = require('@hkube/redis-utils');
+const component = require('../consts/componentNames').LEADER_ELECTION;
 
 const LOCK_PREFIX = 'hkube:api-server:lock';
 
@@ -8,6 +10,15 @@ const LOCK_PREFIX = 'hkube:api-server:lock';
 // The leader is the sole instance that performs singleton work (dispatching
 // job-result-change events and running the bootstrap migration).
 const LEADER_KEY = 'leader';
+
+// Redis keyspace-notification flags required to learn when the leader key disappears:
+//   K = keyspace events (per-key channel __keyspace@<db>__:<key>)
+//   g = generic commands (covers DEL)
+//   x = expired events (covers TTL expiry)
+const KEYSPACE_EVENT_FLAGS = ['K', 'g', 'x'];
+
+// Keyspace events that mean the leader key is gone and an election should run.
+const KEY_GONE_EVENTS = ['del', 'expired'];
 
 // Atomically acquire the lock if it is free, or renew it if it is already held by
 // THIS instance. Returns 1 when this instance owns the lock, 0 otherwise.
@@ -30,9 +41,17 @@ class RedisLock {
         if (this._client) {
             return;
         }
+        this._log = Logger.GetLogFromContainer();
+        this._redisOptions = options.redis;
         this._client = Factory.getClient(options.redis);
         // unique per-process owner id, so only the owning instance can renew the lease
         this._instanceId = `${os.hostname()}:${crypto.randomUUID()}`;
+        this._log.info(`leader-election redis lock initialized (instanceId: ${this._instanceId})`, { component });
+    }
+
+    // Stable per-process owner id used as the lock value.
+    get instanceId() {
+        return this._instanceId;
     }
 
     // Acquire the lock for the given key, or renew its ttl if this instance already
@@ -40,6 +59,54 @@ class RedisLock {
     async acquireOrRenew(key, ttlMs) {
         const result = await this._client.eval(ACQUIRE_OR_RENEW_SCRIPT, 1, `${LOCK_PREFIX}:${key}`, this._instanceId, ttlMs);
         return result === 1;
+    }
+
+    // Whether the lock key currently exists in Redis, regardless of which instance owns it.
+    // Used by the backup check to detect a missing leader when keyspace notifications are
+    // unavailable or a notification was missed.
+    async exists(key) {
+        const result = await this._client.exists(`${LOCK_PREFIX}:${key}`);
+        return result === 1;
+    }
+
+    // Subscribe to keyspace notifications for the lock key and invoke onGone(event) as soon as
+    // the key is deleted or expires. A dedicated subscriber connection is used because a Redis
+    // connection in subscribe mode cannot run other commands. Best-effort: when keyspace
+    // notifications cannot be enabled the periodic backup check still drives failover.
+    async watchKeyRemoval(key, onGone) {
+        const fullKey = `${LOCK_PREFIX}:${key}`;
+        const db = (this._client.options && this._client.options.db) || 0;
+        const channel = `__keyspace@${db}__:${fullKey}`;
+        await this._enableKeyspaceNotifications();
+        this._subscriber = Factory.getClient(this._redisOptions);
+        this._subscriber.on('error', (error) => {
+            this._log.throttle.warning(`leader key subscriber error: ${error.message}`, { component });
+        });
+        this._subscriber.on('message', (incomingChannel, event) => {
+            if (incomingChannel === channel && KEY_GONE_EVENTS.includes(event)) {
+                this._log.info(`leader key '${fullKey}' is gone (${event} event)`, { component });
+                onGone(event);
+            }
+        });
+        await this._subscriber.subscribe(channel);
+        this._log.info(`subscribed to leader key notifications on '${channel}'`, { component });
+    }
+
+    // Ensure Redis emits the keyspace events we need, merging with any existing flags so we do
+    // not disable notifications other components rely on.
+    async _enableKeyspaceNotifications() {
+        try {
+            const current = await this._client.config('GET', 'notify-keyspace-events');
+            const flags = (current && current[1]) || '';
+            const merged = KEYSPACE_EVENT_FLAGS.reduce((acc, flag) => (acc.includes(flag) ? acc : acc + flag), flags);
+            if (merged !== flags) {
+                await this._client.config('SET', 'notify-keyspace-events', merged);
+                this._log.info(`enabled redis keyspace notifications '${merged}' (was '${flags}')`, { component });
+            }
+        }
+        catch (error) {
+            this._log.warning(`could not enable redis keyspace notifications, relying on backup leader check: ${error.message}`, { component });
+        }
     }
 }
 

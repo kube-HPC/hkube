@@ -186,16 +186,28 @@ events (so webhook delivery and job-completion writes happen once) and run the o
 bootstrap migration. This is enforced by a distributed leader lock in Redis.
 
 **Lock:** `hkube:api-server:lock:leader` holds the owning instance's unique id with a TTL of
-`leaderLockTtl` (`LEADER_LOCK_TTL`, default 60s). The Lua `acquireOrRenew` script atomically
-claims the key when free, or renews its TTL when already owned by the caller — otherwise it
-reports not-owner.
+`leaderElection.lockTtl` (`LEADER_LOCK_TTL`, default 3s). The Lua `acquireOrRenew` script
+atomically claims the key when free, or renews its TTL when already owned by the caller —
+otherwise it reports not-owner.
 
 **Logic Contract:**
-- `state-manager` runs a **background renewal heartbeat** (`setInterval`, every
-  `leaderLockTtl / 3`) that calls `acquireOrRenew` and stores the result in `_isLeader`. The
-  current leader keeps renewing, so leadership is **stable** and does not depend on event
-  traffic. (Previously renewal was piggybacked on event handling, so with no traffic the
-  lease expired and leadership flapped between instances.)
+- On init every instance runs one election (`_renewLeadership`); the winner stores
+  `_isLeader = true`, the others stay followers.
+- The **leader** renews the key TTL on a fixed heartbeat (`setInterval`, every
+  `leaderElection.renewInterval`, default 1s); followers stay idle on the heartbeat tick.
+  Leadership is therefore **stable** and does not depend on event traffic. (Previously renewal
+  was piggybacked on event handling, so with no traffic the lease expired and leadership
+  flapped between instances.)
+- **Failover** — when the leader stops renewing and its key disappears — is driven two ways:
+  - *fast path:* a Redis keyspace notification (`del`/`expired`) on the key, enabled
+    best-effort via `notify-keyspace-events` and consumed on a dedicated subscriber
+    connection, triggers an election.
+  - *backup:* a periodic existence check (`setInterval`, every `leaderElection.backupInterval`,
+    default 5s) triggers an election when the key is missing — covering environments where
+    keyspace notifications are unavailable or a notification was missed.
+  Each election waits a random jitter of `0..leaderElection.jitter` ms (default 250ms) before
+  acquiring, to spread concurrent attempts; repeated triggers are coalesced so only one
+  election runs at a time.
 - All **etcd-watch-driven singleton side effects run on the leader only**, because every
   replica receives the same etcd watch events and must not duplicate cluster-wide work:
   - `jobs.results` → `_emitJobResultChange` emits `job-result-change` (result webhook + job
@@ -206,12 +218,13 @@ reports not-owner.
   Followers drop these events because the leader already handled them. (Pre-DaemonSet, a
   single api-server replica meant no gating was needed; with one pod per node these paths
   would otherwise fire on every replica — e.g. duplicate webhooks and racing version writes.)
-- On leader crash the key expires after `leaderLockTtl`, and a follower's next heartbeat
-  takes over (failover window ≤ `leaderLockTtl`).
+- On leader crash the key expires after `leaderElection.lockTtl`; the `expired` keyspace
+  notification (or the backup check) then elects a new leader, so the failover window is
+  ≈ `lockTtl` (fast path) or ≤ `lockTtl + backupInterval` (backup only).
 - `pipelines-updater` runs the bootstrap migration only when `state-manager.isLeader()` is
   true, so it executes on a single instance.
-- Redis is a hard dependency (`bootstrap` aborts when Redis is unreachable); a renewal error
-  preserves the last known leadership state rather than failing open.
+- Redis is a hard dependency (`bootstrap` aborts when Redis is unreachable); a renewal or
+  backup-check error preserves the last known leadership state rather than failing open.
 
 **Invariant:** at most one instance has `_isLeader === true` at any time (modulo the bounded
 failover window).
@@ -307,7 +320,10 @@ failover window).
 | `healthchecks.path` | `HEALTHCHECK_PATH` | `/healthz` | Health endpoint path |
 | `webhooks.retryStrategy.maxAttempts` | — | `3` | Webhook delivery retry count |
 | `webhooks.retryStrategy.retryDelay` | — | `5000` ms | Webhook retry delay |
-| `leaderLockTtl` | `LEADER_LOCK_TTL` | `60000` ms | TTL of the Redis leader lock; renewed by a heartbeat every `ttl/3` (see §2.6) |
+| `leaderElection.lockTtl` | `LEADER_LOCK_TTL` | `3000` ms | TTL of the Redis leader lock; bounds the crash-failover window (see §2.6) |
+| `leaderElection.renewInterval` | `LEADER_RENEW_INTERVAL` | `1000` ms | How often the leader renews the lock TTL |
+| `leaderElection.backupInterval` | `LEADER_BACKUP_INTERVAL` | `5000` ms | Backup existence-check interval that re-elects when the key is missing |
+| `leaderElection.jitter` | `LEADER_ELECTION_JITTER` | `250` ms | Max random delay before an election, to spread concurrent attempts |
 | `jobs.producer.prefix` | — | `pipeline-driver-queue` | Redis queue prefix for job production |
 | `jobs.producer.jobType` | — | `pipeline-job` | Redis job type name |
 | `discoveryInterval` (DatabaseQuerier) | — | `2000` ms (hardcoded) | Etcd discovery polling interval |
