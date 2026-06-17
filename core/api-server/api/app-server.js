@@ -4,6 +4,7 @@ const RestServer = require('@hkube/rest-server');
 const log = require('@hkube/logger').GetLogFromContanier();
 const { metrics } = require('@hkube/metrics');
 const HttpStatus = require('http-status-codes');
+const { Factory } = require('@hkube/redis-utils');
 const internal = require('./rest-api/internal/index');
 const validator = require('../lib/validation/api-validator');
 const component = require('../lib/consts/componentNames').REST_API;
@@ -55,6 +56,9 @@ class AppServer {
         }
         beforeRoutesMiddlewares.push(requestInterceptor.blockInternalFromIngress.bind(requestInterceptor));
 
+        if (rateLimit.redis && rateLimit.redis.enabled) {
+            rateLimit.redis.client = Factory.getClient(options.redis);
+        }
         const opt = {
             swagger,
             routes,

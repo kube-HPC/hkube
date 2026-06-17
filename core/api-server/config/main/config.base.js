@@ -28,7 +28,10 @@ config.rest = {
         route: '/api',
         ms: process.env.API_SERVER_RATE_LIMIT_MS || 1000,
         max: process.env.API_SERVER_RATE_LIMIT_MAX || 5,
-        delay: process.env.API_SERVER_RATE_LIMIT_DELAY || 0
+        delay: process.env.API_SERVER_RATE_LIMIT_DELAY || 0,
+        redis:{
+            enabled: true // TODO: will come from env
+        }
     }
 };
 
