@@ -56,7 +56,7 @@ class AppServer {
         }
         beforeRoutesMiddlewares.push(requestInterceptor.blockInternalFromIngress.bind(requestInterceptor));
 
-        if (rateLimit.redis && rateLimit.redis.enabled) {
+        if (rateLimit?.redis?.enabled) {
             rateLimit.redis.client = Factory.getClient(options.redis);
         }
         const opt = {
