@@ -30,7 +30,7 @@ config.rest = {
         max: process.env.API_SERVER_RATE_LIMIT_MAX || 5,
         delay: process.env.API_SERVER_RATE_LIMIT_DELAY || 0,
         redis:{
-            enabled: true // TODO: will come from env
+            enabled: formatter.parseBool(process.env.API_SERVER_RATE_LIMIT_REDIS_ENABLED, true)
         }
     }
 };
