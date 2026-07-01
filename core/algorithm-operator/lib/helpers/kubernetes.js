@@ -8,49 +8,33 @@ const component = components.K8S;
 
 class KubernetesApi extends EventEmitter {
     /**
-     * Run a function with timeout and automatic retries to protect against
-     * hung or transient Kubernetes API calls.
+     * Wrap a Kubernetes API call with timeout + retry resilience.
      *
-     * Behavior:
-     * - Runs the provided async function `fn()` and races it against a timeout
-     *   configured by `this._defaultTimeoutMs`.
-     * - If the call fails or times out, it will be retried up to
-     *   `this._requestRetryLimit` attempts.
-     * - Logs a warning for each retry and an error when all attempts fail.
+     * The resilience implementation (timeout race, retries, logging hooks) lives
+     * in @hkube/kubernetes-client and is configured via the `resilience` options
+     * passed to `this._client.init`. This method forwards to it so call sites can
+     * keep using `this.withResilience(...)`.
      *
-     * @param {Function} fn - Async function that performs the Kubernetes client call and returns a Promise.
+     * @param {Function} fn - Async function that performs the Kubernetes client call.
      * @param {string} label - A short label used in logs to identify the operation.
      * @returns {Promise<*>} Resolves with the value returned by `fn()` on success.
-     * @throws Will re-throw the last error if all retry attempts fail.
      */
-    async withResilience(fn, label) {
-        let lastError;
-        const attemptFn = async (attempt) => {
-            try {
-                return await Promise.race([
-                    fn(),
-                    new Promise((_, reject) => setTimeout(() => reject(new Error(`${label} timeout after ${this._defaultTimeoutMs}ms`)), this._defaultTimeoutMs))
-                ]);
-            }
-            catch (err) {
-                lastError = err;
-                if (attempt < this._requestRetryLimit) {
-                    log.warning(`[Resilience] ${label} attempt ${attempt} failed: ${err.message}. Retrying...`, { component });
-                    return attemptFn(attempt + 1);
-                }
-            }
-            log.error(`[Resilience] ${label} failed after ${this._requestRetryLimit} attempts: ${lastError && lastError.message}`, { component });
-            throw lastError;
-        };
-        return attemptFn(1);
+    withResilience(fn, label) {
+        return this._client.withResilience(fn, label);
     }
 
     async init(options = {}) {
         this._namespace = options.kubernetes.namespace;
-        this._defaultTimeoutMs = options.intervalMs;
-        this._requestRetryLimit = options.kubernetes.requestAttemptRetryLimit;
         this._client = new KubernetesClient();
-        await this._client.init(options.kubernetes);
+        await this._client.init({
+            ...options.kubernetes,
+            resilience: {
+                timeoutMs: options.intervalMs,
+                retryLimit: options.kubernetes.requestAttemptRetryLimit,
+                onRetry: ({ label, attempt, error }) => log.warning(`[Resilience] ${label} attempt ${attempt} failed: ${error.message}. Retrying...`, { component }),
+                onError: ({ label, attempts, error }) => log.error(`[Resilience] ${label} failed after ${attempts} attempts: ${error && error.message}`, { component })
+            }
+        });
         this.kubeVersion = await this._client.versions.getParsedVersion();
         log.info(`Initialized kubernetes client with version: ${this.kubeVersion.version} (${this.kubeVersion.gitVersion}), url: ${this._client._config.url}`, { component });
 
