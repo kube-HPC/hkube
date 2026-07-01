@@ -146,6 +146,25 @@ const _getMissingVolumes = (requestedVolumes, allVolumesNames) => {
 };
 
 /**
+ * Checks that every requested volumeMount references a declared volume.
+ *
+ * Kubernetes rejects the whole Job (spec.template.spec.containers[].volumeMounts[].name:
+ * Not found) when a container mounts a volume name that is not declared in the pod's
+ * volumes. This validates the algorithm's custom volumeMounts against its declared
+ * volumes so the mismatch is caught as a warning before job creation, instead of
+ * failing repeatedly against the Kubernetes API.
+ *
+ * @param {Array<Object>} volumeMounts - Requested volume mounts, each with a `name`.
+ * @param {Array<Object>} volumes - Declared volumes, each with a `name`.
+ * @returns {Array<string>} Names of volumeMounts that reference an undeclared volume.
+ */
+const _getUnmatchedVolumeMounts = (volumeMounts, volumes) => {
+    if (!volumeMounts || volumeMounts.length === 0) return [];
+    const declaredNames = new Set((volumes || []).map(v => v.name));
+    return volumeMounts.filter(vm => !declaredNames.has(vm.name)).map(vm => vm.name);
+};
+
+/**
  * Validates the kaiObject configuration for a given algorithm by checking the presence
  * and validity of the specified queue against existing Kai queue names.
  * 
@@ -249,8 +268,10 @@ const shouldAddJob = (jobDetails, availableResources, totalAdded, extraResources
     }
 
     const missingVolumes = _getMissingVolumes(jobDetails.volumes, allVolumesNames);
-    if (missingVolumes.length > 0) {
-        const warning = createWarning({ jobDetails, missingVolumes, code: warningCodes.INVALID_VOLUME });
+    const unmatchedVolumeMounts = _getUnmatchedVolumeMounts(jobDetails.volumeMounts, jobDetails.volumes);
+    const invalidVolumes = [...missingVolumes, ...unmatchedVolumeMounts];
+    if (invalidVolumes.length > 0) {
+        const warning = createWarning({ jobDetails, missingVolumes: invalidVolumes, code: warningCodes.INVALID_VOLUME });
         return {
             shouldAdd: false,
             warning,

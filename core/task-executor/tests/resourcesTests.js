@@ -1,4 +1,5 @@
 const { expect } = require('chai');
+const { warningCodes } = require('@hkube/consts');
 const { nodeSelectorFilter, shouldAddJob } = require('../lib/reconcile/resources');
 const { settings: globalSettings } = require('../lib/helpers/settings');
 
@@ -229,6 +230,33 @@ describe('resources manager', () => {
         expect(res.newResources.node.free.cpu).to.eq(11);
         expect(res.newResources.node.free.gpu).to.eq(3);
         expect(res.newResources.node.free.memory).to.eq(15000);
+    });
+    it('should not add job when a volumeMount references an undeclared volume', () => {
+        const availableResources = {
+            node: {
+                free: { cpu: 8, gpu: 4, memory: 32512 },
+                total: { cpu: 8, gpu: 4, memory: 32512 }
+            }
+        };
+        const nodeList = [];
+        nodeList.push({ name: 'node', ...availableResources.node });
+        availableResources.nodeList = nodeList;
+
+        const jobDetails = {
+            algorithmName: 'green-alg',
+            algorithmImage: 'hkube/algorithm-example',
+            workerImage: 'hkube/worker',
+            resourceRequests: {
+                requests: { cpu: 0.1, memory: '1Mi' },
+                limits: { cpu: 0.2, memory: '2Mi' }
+            },
+            volumes: [{ name: 'v1', emptyDir: {} }],
+            volumeMounts: [{ name: 'non-exist', mountPath: '/tmp/foo' }]
+        };
+        const res = shouldAddJob(jobDetails, availableResources);
+        expect(res.shouldAdd).to.be.false;
+        expect(res.warning.code).to.eql(warningCodes.INVALID_VOLUME);
+        expect(res.warning.missingVolumes).to.include('non-exist');
     });
 });
 describe('nodeSelectorFilter', () => {

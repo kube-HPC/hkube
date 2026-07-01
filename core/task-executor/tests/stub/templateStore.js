@@ -472,6 +472,24 @@ const templateStore = [
         ],
     },
     {
+        name: 'algo-volume-mount-non-exist',
+        algorithmImage: 'hkube/algorithm-example',
+        cpu: 0.5,
+        mem: '128Mi',
+        volumes: [
+            {
+                name: "v1",
+                emptyDir: {}
+            }
+        ],
+        volumeMounts: [
+            {
+                name: "non-exist",
+                mountPath: "/tmp/foo"
+            }
+        ],
+    },
+    {
         name: 'algo-kai-object',
         version: "mlcr853dba123",
         algorithmImage: 'hkube/algorithm-example',

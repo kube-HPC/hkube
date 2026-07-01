@@ -1244,6 +1244,14 @@ describe('reconciler', () => {
             expect(res).to.eql({ [algorithm]: { idle: 0, required: 1, paused: 0, created: 1, skipped: 0, resumed: 0 } });
             });
         });
+
+        it('should not schedule algorithm with a volumeMount referencing an undeclared volume', async () => {
+            const algorithm = 'algo-volume-mount-non-exist';
+            const argument = createReconcileArgs(algorithm);
+            const res = await reconciler.reconcile(argument);
+            expect(res).to.exist;
+            expect(res).to.eql({ [algorithm]: { idle: 0, required: 1, paused: 0, created: 0, skipped: 1, resumed: 0 } });
+        });
     });
 
     describe('reconcile algorithms with kaiObject', function() {
