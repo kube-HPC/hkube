@@ -4,8 +4,8 @@ const EventEmitter = require('events');
 const { buildStatuses } = require('@hkube/consts');
 const { request, delay } = require('./utils');
 const stateManagerSingleton = require('../lib/state/state-manager');
-const leaderElectionSingleton = require('../lib/state/leader-election');
-const redisLock = require('../lib/utils/redis-lock');
+const leaderElectionSingleton = require('../lib/leader-election/leader-election');
+const redisLock = require('../lib/leader-election/redis-lock');
 
 const StateManager = stateManagerSingleton.constructor;
 const LeaderElection = leaderElectionSingleton.constructor;

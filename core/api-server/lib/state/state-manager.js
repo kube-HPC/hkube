@@ -9,7 +9,7 @@ const Logger = require('@hkube/logger');
 let log;
 const { buildStatuses, pipelineStatuses } = require('@hkube/consts');
 const component = require('../consts/componentNames').DB;
-const leaderElection = require('./leader-election');
+const leaderElection = require('../leader-election/leader-election');
 
 class StateManager extends EventEmitter {
     constructor() {

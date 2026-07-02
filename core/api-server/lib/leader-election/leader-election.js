@@ -2,7 +2,7 @@ const EventEmitter = require('events');
 const Logger = require('@hkube/logger');
 const { uuid } = require('@hkube/uid');
 const leaderComponent = require('../consts/componentNames').LEADER_ELECTION;
-const redisLock = require('../utils/redis-lock');
+const redisLock = require('./redis-lock');
 
 let log;
 

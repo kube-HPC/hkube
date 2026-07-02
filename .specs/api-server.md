@@ -184,7 +184,8 @@ On boot, the elected leader (§2.6) migrates data from legacy storage to MongoDB
 Across multiple api-server replicas, exactly one instance must dispatch `job-result-change`
 events (so webhook delivery and job-completion writes happen once) and run the one-time
 bootstrap migration. This is enforced by a distributed leader lock in Redis, owned by the
-dedicated `leader-election` service (`lib/state/leader-election.js`). The `state-manager`
+dedicated `leader-election` service (`lib/leader-election/leader-election.js`, backed by the
+Redis lock in `lib/leader-election/redis-lock.js`). The `state-manager`
 drives that service's init and consults `leaderElection.isLeader()` for its own leader-only
 gates; it no longer owns the election mechanics itself.
 

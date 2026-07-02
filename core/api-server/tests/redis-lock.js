@@ -1,8 +1,8 @@
 const { expect } = require('chai');
 const { Factory } = require('@hkube/redis-utils');
-const redisLockSingleton = require('../lib/utils/redis-lock');
+const redisLockSingleton = require('../lib/leader-election/redis-lock');
 
-// Must match LOCK_PREFIX in lib/utils/redis-lock.js
+// Must match LOCK_PREFIX in lib/leader-election/redis-lock.js
 const LOCK_PREFIX = 'hkube:api-server:lock';
 const fullKey = (key) => `${LOCK_PREFIX}:${key}`;
 const delay = (d) => new Promise((r) => setTimeout(r, d));
