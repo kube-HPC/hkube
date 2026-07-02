@@ -4,9 +4,11 @@ const EventEmitter = require('events');
 const { buildStatuses } = require('@hkube/consts');
 const { request, delay } = require('./utils');
 const stateManagerSingleton = require('../lib/state/state-manager');
+const leaderElectionSingleton = require('../lib/state/leader-election');
 const redisLock = require('../lib/utils/redis-lock');
 
 const StateManager = stateManagerSingleton.constructor;
+const LeaderElection = leaderElectionSingleton.constructor;
 
 const waitFor = async (predicate, { timeout = 8000, interval = 50 } = {}) => {
     const start = Date.now();
@@ -46,8 +48,21 @@ describe('Leader Election', () => {
         });
     });
 
-    describe('state-manager leader logic', () => {
-        let sm;
+    describe('healthcheck reset wiring', () => {
+        // The state-manager subscribes to the leader-election service's 'leadership-lost'
+        // event (in init) and clears its per-term stuck-job strike count. Assert that live
+        // wiring, then restore the count so later assertions are unaffected.
+        it('should reset the state-manager failed-healthcheck count on leadership-lost', () => {
+            const original = stateManagerSingleton._failedHealthcheckCount;
+            stateManagerSingleton._failedHealthcheckCount = 3;
+            leaderElectionSingleton.emit('leadership-lost');
+            expect(stateManagerSingleton._failedHealthcheckCount).to.equal(0);
+            stateManagerSingleton._failedHealthcheckCount = original;
+        });
+    });
+
+    describe('leader-election service', () => {
+        let le;
         let sandbox;
         const leaderConfig = { lockTtl: 2500, renewInterval: 1000, backupInterval: 5000, jitter: 250 };
 
@@ -55,31 +70,31 @@ describe('Leader Election', () => {
         // tests, since they stub the shared redisLock singleton. The live redis leader key
         // keeps its ttl (these tests run well under lockTtl), so leadership is never lost.
         before(() => {
-            clearInterval(stateManagerSingleton._leaderRenewalInterval);
-            clearInterval(stateManagerSingleton._leaderBackupInterval);
+            clearInterval(leaderElectionSingleton._leaderRenewalInterval);
+            clearInterval(leaderElectionSingleton._leaderBackupInterval);
         });
 
         after(async () => {
-            stateManagerSingleton._leaderRenewalInterval = setInterval(
-                () => stateManagerSingleton._leaderHeartbeat(),
-                stateManagerSingleton._leaderElection.renewInterval
+            leaderElectionSingleton._leaderRenewalInterval = setInterval(
+                () => leaderElectionSingleton._leaderHeartbeat(),
+                leaderElectionSingleton._leaderElection.renewInterval
             );
-            stateManagerSingleton._leaderRenewalInterval.unref();
-            stateManagerSingleton._leaderBackupInterval = setInterval(
-                () => stateManagerSingleton._backupLeaderCheck(),
-                stateManagerSingleton._leaderElection.backupInterval
+            leaderElectionSingleton._leaderRenewalInterval.unref();
+            leaderElectionSingleton._leaderBackupInterval = setInterval(
+                () => leaderElectionSingleton._backupLeaderCheck(),
+                leaderElectionSingleton._leaderElection.backupInterval
             );
-            stateManagerSingleton._leaderBackupInterval.unref();
+            leaderElectionSingleton._leaderBackupInterval.unref();
             // Make sure leadership is healthy again before later test files rely on it.
-            const ok = await waitFor(() => stateManagerSingleton.isLeader());
+            const ok = await waitFor(() => leaderElectionSingleton.isLeader());
             expect(ok).to.be.true;
         });
 
         beforeEach(() => {
             sandbox = sinon.createSandbox();
-            sm = new StateManager();
-            sm._leaderElection = { ...leaderConfig };
-            sm._options = { serviceName: 'api-server', healthchecks: { checkInterval: 5000, minAge: 10000 } };
+            le = new LeaderElection();
+            le._leaderElection = { ...leaderConfig };
+            le._options = { serviceName: 'api-server' };
         });
 
         afterEach(() => {
@@ -88,56 +103,57 @@ describe('Leader Election', () => {
 
         describe('isLeader', () => {
             it('should be false by default', () => {
-                expect(sm.isLeader()).to.be.false;
+                expect(le.isLeader()).to.be.false;
             });
             it('should be true when _isLeader is exactly true', () => {
-                sm._isLeader = true;
-                expect(sm.isLeader()).to.be.true;
+                le._isLeader = true;
+                expect(le.isLeader()).to.be.true;
             });
             it('should be false for truthy non-boolean values', () => {
-                sm._isLeader = 1;
-                expect(sm.isLeader()).to.be.false;
+                le._isLeader = 1;
+                expect(le.isLeader()).to.be.false;
             });
         });
 
         describe('_renewLeadership', () => {
             it('should become leader when the lock is acquired', async () => {
                 sandbox.stub(redisLock, 'acquireOrRenew').resolves(true);
-                await sm._renewLeadership('test');
-                expect(sm.isLeader()).to.be.true;
+                await le._renewLeadership('test');
+                expect(le.isLeader()).to.be.true;
             });
             it('should stay follower when the lock is held by another instance', async () => {
                 sandbox.stub(redisLock, 'acquireOrRenew').resolves(false);
-                await sm._renewLeadership('test');
-                expect(sm.isLeader()).to.be.false;
+                await le._renewLeadership('test');
+                expect(le.isLeader()).to.be.false;
             });
-            it('should reset the failed-healthcheck count when losing leadership', async () => {
-                sm._isLeader = true;
-                sm._failedHealthcheckCount = 3;
+            it('should emit leadership-lost when losing leadership', async () => {
+                le._isLeader = true;
                 sandbox.stub(redisLock, 'acquireOrRenew').resolves(false);
-                await sm._renewLeadership('test');
-                expect(sm.isLeader()).to.be.false;
-                expect(sm._failedHealthcheckCount).to.equal(0);
+                const spy = sandbox.spy();
+                le.on('leadership-lost', spy);
+                await le._renewLeadership('test');
+                expect(le.isLeader()).to.be.false;
+                expect(spy.calledOnce).to.be.true;
             });
             it('should preserve the last known leadership when the lock call throws', async () => {
-                sm._isLeader = true;
+                le._isLeader = true;
                 sandbox.stub(redisLock, 'acquireOrRenew').rejects(new Error('redis down'));
-                await sm._renewLeadership('test');
-                expect(sm.isLeader()).to.be.true;
+                await le._renewLeadership('test');
+                expect(le.isLeader()).to.be.true;
             });
         });
 
         describe('_leaderHeartbeat', () => {
             it('should not renew when this instance is not the leader', async () => {
                 const renew = sandbox.stub(redisLock, 'acquireOrRenew').resolves(true);
-                sm._isLeader = false;
-                await sm._leaderHeartbeat();
+                le._isLeader = false;
+                await le._leaderHeartbeat();
                 expect(renew.called).to.be.false;
             });
             it('should renew when this instance is the leader', async () => {
                 const renew = sandbox.stub(redisLock, 'acquireOrRenew').resolves(true);
-                sm._isLeader = true;
-                await sm._leaderHeartbeat();
+                le._isLeader = true;
+                await le._leaderHeartbeat();
                 expect(renew.calledOnce).to.be.true;
             });
         });
@@ -145,44 +161,100 @@ describe('Leader Election', () => {
         describe('_backupLeaderCheck', () => {
             it('should schedule an election when the leader key is missing', async () => {
                 sandbox.stub(redisLock, 'exists').resolves(false);
-                const schedule = sandbox.stub(sm, '_scheduleElection');
-                await sm._backupLeaderCheck();
+                const schedule = sandbox.stub(le, '_scheduleElection');
+                await le._backupLeaderCheck();
                 expect(schedule.calledOnce).to.be.true;
             });
             it('should not schedule an election when the leader key exists', async () => {
                 sandbox.stub(redisLock, 'exists').resolves(true);
-                const schedule = sandbox.stub(sm, '_scheduleElection');
-                await sm._backupLeaderCheck();
+                const schedule = sandbox.stub(le, '_scheduleElection');
+                await le._backupLeaderCheck();
                 expect(schedule.called).to.be.false;
             });
         });
 
         describe('_scheduleElection', () => {
             it('should coalesce repeated triggers into a single election', async () => {
-                const renew = sandbox.stub(sm, '_renewLeadership').resolves();
-                sm._leaderElection.jitter = 10;
-                sm._scheduleElection('a');
-                sm._scheduleElection('b');
-                sm._scheduleElection('c');
-                expect(sm._electionScheduled).to.be.true;
+                const renew = sandbox.stub(le, '_renewLeadership').resolves();
+                le._leaderElection.jitter = 10;
+                le._scheduleElection('a');
+                le._scheduleElection('b');
+                le._scheduleElection('c');
+                expect(le._electionScheduled).to.be.true;
                 await delay(40);
                 expect(renew.calledOnce).to.be.true;
-                expect(sm._electionScheduled).to.be.false;
+                expect(le._electionScheduled).to.be.false;
             });
             it('should allow a new election after the previous one ran', async () => {
-                const renew = sandbox.stub(sm, '_renewLeadership').resolves();
-                sm._leaderElection.jitter = 5;
-                sm._scheduleElection('first');
+                const renew = sandbox.stub(le, '_renewLeadership').resolves();
+                le._leaderElection.jitter = 5;
+                le._scheduleElection('first');
                 await delay(25);
-                sm._scheduleElection('second');
+                le._scheduleElection('second');
                 await delay(25);
                 expect(renew.calledTwice).to.be.true;
             });
         });
 
+        describe('getLeaderElectionStatus', () => {
+            it('should report current, etcd leader, redis leader and all instances', async () => {
+                le._instanceId = 'inst-current';
+                le._etcd = {
+                    discovery: {
+                        keys: sandbox.stub().resolves(['/discovery/api-server/inst-a', '/discovery/api-server/inst-current']),
+                        get: sandbox.stub().callsFake(async ({ instanceId }) => ({ isLeader: instanceId === 'inst-a' })),
+                    },
+                };
+                sandbox.stub(redisLock, 'getOwner').resolves('inst-a');
+
+                const status = await le.getLeaderElectionStatus();
+                expect(status.current).to.equal('inst-current');
+                expect(status.etcdLeader).to.equal('inst-a');
+                expect(status.redisLeader).to.equal('inst-a');
+                expect(status.instances).to.have.lengthOf(2);
+                expect(status.instances.find((i) => i.isLeader).instanceId).to.equal('inst-a');
+            });
+            it('should report null leaders when no instance owns the lock', async () => {
+                le._instanceId = 'inst-current';
+                le._etcd = {
+                    discovery: {
+                        keys: sandbox.stub().resolves(['/discovery/api-server/inst-a']),
+                        get: sandbox.stub().resolves({ isLeader: false }),
+                    },
+                };
+                sandbox.stub(redisLock, 'getOwner').resolves(null);
+
+                const status = await le.getLeaderElectionStatus();
+                expect(status.etcdLeader).to.be.null;
+                expect(status.redisLeader).to.be.null;
+            });
+        });
+    });
+
+    describe('state-manager leader gating', () => {
+        let sm;
+        let sandbox;
+
+        // Leadership now lives in the leader-election service; inject a standalone instance
+        // so toggling its flag drives the state-manager's leader-only gates in isolation.
+        beforeEach(() => {
+            sandbox = sinon.createSandbox();
+            sm = new StateManager();
+            sm._leaderElection = new LeaderElection();
+            sm._options = { serviceName: 'api-server', healthchecks: { checkInterval: 5000, minAge: 10000 } };
+        });
+
+        afterEach(() => {
+            sandbox.restore();
+        });
+
+        const setLeader = (value) => {
+            sm._leaderElection._isLeader = value;
+        };
+
         describe('_emitJobResultChange', () => {
             it('should emit job-result-change when leader', () => {
-                sm._isLeader = true;
+                setLeader(true);
                 const spy = sandbox.spy();
                 sm.on('job-result-change', spy);
                 sm._emitJobResultChange({ jobId: 'j1' });
@@ -190,7 +262,7 @@ describe('Leader Election', () => {
                 expect(spy.firstCall.args[0]).to.eql({ jobId: 'j1' });
             });
             it('should not emit job-result-change when not leader', () => {
-                sm._isLeader = false;
+                setLeader(false);
                 const spy = sandbox.spy();
                 sm.on('job-result-change', spy);
                 sm._emitJobResultChange({ jobId: 'j1' });
@@ -204,11 +276,11 @@ describe('Leader Election', () => {
                 const spy = sandbox.spy();
                 sm.onJobStatus(spy);
 
-                sm._isLeader = false;
+                setLeader(false);
                 sm._etcd.jobs.status.emit('change', { jobId: 'j1' });
                 expect(spy.called).to.be.false;
 
-                sm._isLeader = true;
+                setLeader(true);
                 sm._etcd.jobs.status.emit('change', { jobId: 'j2' });
                 expect(spy.calledOnce).to.be.true;
                 expect(spy.firstCall.args[0]).to.eql({ jobId: 'j2' });
@@ -222,12 +294,12 @@ describe('Leader Election', () => {
                 sm.onBuildComplete(spy);
 
                 // not leader -> ignored even if completed
-                sm._isLeader = false;
+                setLeader(false);
                 sm._etcd.algorithms.builds.emit('change', { status: buildStatuses.COMPLETED });
                 expect(spy.called).to.be.false;
 
                 // leader but not completed -> ignored
-                sm._isLeader = true;
+                setLeader(true);
                 sm._etcd.algorithms.builds.emit('change', { status: buildStatuses.ACTIVE });
                 expect(spy.called).to.be.false;
 
@@ -239,7 +311,7 @@ describe('Leader Election', () => {
 
         describe('_healthcheckInterval gating', () => {
             it('should skip stuck-job detection and re-arm when not leader', async () => {
-                sm._isLeader = false;
+                setLeader(false);
                 const getJobs = sandbox.stub(sm, 'getNotCompletedJobs').resolves([]);
                 const rearm = sandbox.stub(sm, '_healthcheck');
                 await sm._healthcheckInterval();
@@ -247,14 +319,14 @@ describe('Leader Election', () => {
                 expect(rearm.calledOnce).to.be.true;
             });
             it('should run stuck-job detection when leader', async () => {
-                sm._isLeader = true;
+                setLeader(true);
                 const getJobs = sandbox.stub(sm, 'getNotCompletedJobs').resolves([]);
                 sandbox.stub(sm, '_healthcheck');
                 await sm._healthcheckInterval();
                 expect(getJobs.calledOnce).to.be.true;
             });
             it('should emit a result change and bump the failed count for stuck completed jobs', async () => {
-                sm._isLeader = true;
+                setLeader(true);
                 sm._options.healthchecks.minAge = 10;
                 sandbox.stub(sm, 'getNotCompletedJobs').resolves([
                     { jobId: 'stuck', result: { timestamp: Date.now() - 100000, status: 'completed' }, status: { status: 'completed' } },
@@ -266,7 +338,7 @@ describe('Leader Election', () => {
                 expect(sm._failedHealthcheckCount).to.equal(1);
             });
             it('should not flag fresh completed jobs younger than minAge', async () => {
-                sm._isLeader = true;
+                setLeader(true);
                 sm._options.healthchecks.minAge = 60000;
                 sandbox.stub(sm, 'getNotCompletedJobs').resolves([
                     { jobId: 'fresh', result: { timestamp: Date.now(), status: 'completed' }, status: { status: 'completed' } },
@@ -276,40 +348,6 @@ describe('Leader Election', () => {
                 await sm._healthcheckInterval();
                 expect(emit.called).to.be.false;
                 expect(sm._failedHealthcheckCount).to.equal(0);
-            });
-        });
-
-        describe('getLeaderElectionStatus', () => {
-            it('should report current, etcd leader, redis leader and all instances', async () => {
-                sm._instanceId = 'inst-current';
-                sm._etcd = {
-                    discovery: {
-                        keys: sandbox.stub().resolves(['/discovery/api-server/inst-a', '/discovery/api-server/inst-current']),
-                        get: sandbox.stub().callsFake(async ({ instanceId }) => ({ isLeader: instanceId === 'inst-a' })),
-                    },
-                };
-                sandbox.stub(redisLock, 'getOwner').resolves('inst-a');
-
-                const status = await sm.getLeaderElectionStatus();
-                expect(status.current).to.equal('inst-current');
-                expect(status.etcdLeader).to.equal('inst-a');
-                expect(status.redisLeader).to.equal('inst-a');
-                expect(status.instances).to.have.lengthOf(2);
-                expect(status.instances.find((i) => i.isLeader).instanceId).to.equal('inst-a');
-            });
-            it('should report null leaders when no instance owns the lock', async () => {
-                sm._instanceId = 'inst-current';
-                sm._etcd = {
-                    discovery: {
-                        keys: sandbox.stub().resolves(['/discovery/api-server/inst-a']),
-                        get: sandbox.stub().resolves({ isLeader: false }),
-                    },
-                };
-                sandbox.stub(redisLock, 'getOwner').resolves(null);
-
-                const status = await sm.getLeaderElectionStatus();
-                expect(status.etcdLeader).to.be.null;
-                expect(status.redisLeader).to.be.null;
             });
         });
     });

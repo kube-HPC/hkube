@@ -183,7 +183,10 @@ On boot, the elected leader (§2.6) migrates data from legacy storage to MongoDB
 
 Across multiple api-server replicas, exactly one instance must dispatch `job-result-change`
 events (so webhook delivery and job-completion writes happen once) and run the one-time
-bootstrap migration. This is enforced by a distributed leader lock in Redis.
+bootstrap migration. This is enforced by a distributed leader lock in Redis, owned by the
+dedicated `leader-election` service (`lib/state/leader-election.js`). The `state-manager`
+drives that service's init and consults `leaderElection.isLeader()` for its own leader-only
+gates; it no longer owns the election mechanics itself.
 
 **Lock:** `hkube:api-server:lock:leader` holds the owning instance's unique id with a TTL of
 `leaderElection.lockTtl` (`LEADER_LOCK_TTL`, default 3s). The Lua `acquireOrRenew` script
@@ -191,8 +194,11 @@ atomically claims the key when free, or renews its TTL when already owned by the
 otherwise it reports not-owner.
 
 **Logic Contract:**
-- On init every instance runs one election (`_renewLeadership`); the winner stores
-  `_isLeader = true`, the others stay followers.
+- On init the `state-manager` calls `leaderElection.init()`, which runs one election
+  (`_renewLeadership`); the winner stores `_isLeader = true`, the others stay followers. The
+  service generates the shared `instanceId` (used for the redis lock value and the etcd
+  discovery registration) and, once the `state-manager` has created the etcd client, receives
+  it via `setEtcd()` for discovery updates.
 - The **leader** renews the key TTL on a fixed heartbeat (`setInterval`, every
   `leaderElection.renewInterval`, default 1s); followers stay idle on the heartbeat tick.
   Leadership is therefore **stable** and does not depend on event traffic. (Previously renewal
@@ -211,23 +217,25 @@ otherwise it reports not-owner.
 - All **etcd-watch-driven singleton side effects run on the leader only**, because every
   replica receives the same etcd watch events and must not duplicate cluster-wide work:
   - `jobs.results` → `_emitJobResultChange` emits `job-result-change` (result webhook + job
-    completion) only when `_isLeader` is true.
-  - `jobs.status` → progress/status webhook dispatch runs only when `_isLeader` is true.
+    completion) only when `leaderElection.isLeader()` is true.
+  - `jobs.status` → progress/status webhook dispatch runs only when `leaderElection.isLeader()` is true.
   - `algorithms.builds` → build-complete handling (version creation + algorithm update) runs
-    only when `_isLeader` is true.
+    only when `leaderElection.isLeader()` is true.
   Followers drop these events because the leader already handled them. (Pre-DaemonSet, a
   single api-server replica meant no gating was needed; with one pod per node these paths
   would otherwise fire on every replica — e.g. duplicate webhooks and racing version writes.)
 - On leader crash the key expires after `leaderElection.lockTtl`; the `expired` keyspace
   notification (or the backup check) then elects a new leader, so the failover window is
   ≈ `lockTtl` (fast path) or ≤ `lockTtl + backupInterval` (backup only).
-- `pipelines-updater` runs the bootstrap migration only when `state-manager.isLeader()` is
+- `pipelines-updater` runs the bootstrap migration only when `leaderElection.isLeader()` is
   true, so it executes on a single instance.
+- On losing leadership the service emits `leadership-lost`; the `state-manager` clears its
+  leader-only `_failedHealthcheckCount` in response, so stale strikes never carry into a new term.
 - Redis is a hard dependency (`bootstrap` aborts when Redis is unreachable); a renewal or
   backup-check error preserves the last known leadership state rather than failing open.
 
-**Invariant:** at most one instance has `_isLeader === true` at any time (modulo the bounded
-failover window).
+**Invariant:** at most one instance has `leaderElection._isLeader === true` at any time (modulo
+the bounded failover window).
 
 ---
 

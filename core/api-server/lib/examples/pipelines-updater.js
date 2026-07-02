@@ -6,6 +6,7 @@ const pipelines = require('./pipelines.json');
 const drivers = require('./drivers.json');
 const experiments = require('./experiments.json');
 const stateManager = require('../state/state-manager');
+const leaderElection = require('../state/leader-election');
 const algorithmsVersionsService = require('../../lib/service/algorithm-versions');
 const pipelinesVersionsService = require('../../lib/service/pipeline-versions');
 const keycloak = require('../../lib/service/keycloak');
@@ -18,8 +19,8 @@ class PipelinesUpdater {
         const defaultAlgorithms = addDefaultAlgorithms ? algorithms : null;
         // Only the elected leader runs the one-time bootstrap migration, so that across
         // multiple instances the storage/etcd-to-db sync is not executed concurrently.
-        // Leadership is owned by state-manager's renewal heartbeat (see its leader election).
-        if (!stateManager.isLeader()) {
+        // Leadership is owned by the leader-election service's renewal heartbeat.
+        if (!leaderElection.isLeader()) {
             log.info('another instance is the leader, skipping bootstrap migration', { component });
             return;
         }

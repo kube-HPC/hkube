@@ -1,5 +1,6 @@
 const { pipelineTypes } = require('@hkube/consts');
 const stateManager = require('../state/state-manager');
+const leaderElection = require('../state/leader-election');
 const validator = require('../validation/api-validator');
 const execution = require('./execution');
 
@@ -34,7 +35,7 @@ class InternalService {
     }
 
     async getLeaderElection() {
-        return stateManager.getLeaderElectionStatus();
+        return leaderElection.getLeaderElectionStatus();
     }
 
     async _createPipeline(options) {
