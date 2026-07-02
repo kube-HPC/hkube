@@ -28,7 +28,7 @@
     "@hkube/db": "^2.0.16",
     "@hkube/etcd": "^5.1.14",
     "@hkube/healthchecks": "^1.0.1",
-    "@hkube/kubernetes-client": "kube-HPC/kubernetes-client.hkube#algorithm_operator_timeout_2456",
+    "@hkube/kubernetes-client": "^2.0.11",
     "@hkube/logger": "^2.0.2",
     "@hkube/metrics": "^1.0.42",
     "@hkube/uid": "^1.0.4",
