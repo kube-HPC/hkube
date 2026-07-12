@@ -483,7 +483,8 @@ When a node begins execution, the driver **pre-schedules** its child nodes:
 
 | Metric Name | Type | Labels | Description |
 |-------------|------|--------|-------------|
-| `pipeline_driver_pipelines_net` | Histogram | `pipeline_name`, `status` | Pipeline net runtime |
+| `pipeline_driver_pipelines_net` | Histogram | `pipeline_name`, `status` | Pipeline net runtime (driver start→end, live timer; resets on restart) |
+| `pipeline_driver_pipeline_gross_time_took` | Histogram | `pipeline_name`, `status` | Pipeline gross runtime including queue wait time |
 | `pipeline_driver_pipeline_started` | Counter | `pipeline_name` | Pipeline start count |
 | `pipeline_driver_pipeline_ended` | Counter | `pipeline_name`, `status` | Pipeline end count |
 | `pipeline_driver_streaming_edge_queue_size` | Gauge | `pipelineName`, `jobId`, `source`, `target` | Edge queue depth |
