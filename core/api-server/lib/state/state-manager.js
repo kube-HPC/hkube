@@ -9,19 +9,28 @@ const Logger = require('@hkube/logger');
 let log;
 const { buildStatuses, pipelineStatuses } = require('@hkube/consts');
 const component = require('../consts/componentNames').DB;
+const leaderElection = require('../leader-election/leader-election');
 
 class StateManager extends EventEmitter {
     constructor() {
         super();
         this._failedHealthcheckCount = 0;
+        this._leaderElection = leaderElection;
     }
 
     async init(options) {
         log = Logger.GetLogFromContainer();
         this._options = options;
-        this._etcd = new Etcd(options.etcd);
+        // Stuck-job detection is leader-only, so drop any strikes from a leadership term when
+        // this instance stops being the leader (see leader-election 'leadership-lost').
+        this._leaderElection.on('leadership-lost', () => {
+            this._failedHealthcheckCount = 0;
+        });
+        await this._leaderElection.init(options);
+        this._etcd = new Etcd({ ...options.etcd, instanceId: this._leaderElection.instanceId });
+        this._leaderElection.setEtcd(this._etcd);
         await this._watch();
-        await this._etcd.discovery.register({ serviceName: options.serviceName, data: options });
+        await this._etcd.discovery.register({ serviceName: options.serviceName, data: { ...options, isLeader: this._leaderElection.isLeader() } });
         log.info(`initializing etcd with options: ${JSON.stringify(options.etcd)}`, { component });
 
         const { provider, ...config } = options.db;
@@ -44,6 +53,13 @@ class StateManager extends EventEmitter {
     }
 
     async _healthcheckInterval() {
+        // Detecting stuck completed jobs and re-emitting their result change is a singleton
+        // side effect, so only the leader runs it. Followers re-arm the interval and return,
+        // so this pod resumes the work on its next tick if it later becomes leader.
+        if (!this._leaderElection.isLeader()) {
+            this._healthcheck();
+            return;
+        }
         try {
             const running = await this.getNotCompletedJobs();
             const completedToDelete = [];
@@ -60,13 +76,22 @@ class StateManager extends EventEmitter {
                 this._failedHealthcheckCount += 1;
             }
             for (const result of completedToDelete) {
-                this.emit('job-result-change', result);
+                await this._emitJobResultChange(result);
             }
         }
         catch (error) {
             log.throttle.warning(`Failed to run healthchecks: ${error.message}`, { component });
         }
         this._healthcheck();
+    }
+
+    // Only the leader dispatches job-result-change events, so across multiple instances each
+    // job completion is handled (webhooks, job completion) exactly once.
+    _emitJobResultChange(result) {
+        if (!this._leaderElection.isLeader()) {
+            return;
+        }
+        this.emit('job-result-change', result);
     }
 
     async _watch() {
@@ -78,9 +103,9 @@ class StateManager extends EventEmitter {
         await this._etcd.jobs.results.watch();
         await this._etcd.jobs.status.watch();
 
-        this._etcd.jobs.results.on('change', result => {
-            this.emit('job-result-change', result);
+        this._etcd.jobs.results.on('change', (result) => {
             this._failedHealthcheckCount = 0;
+            this._emitJobResultChange(result);
         });
     }
 
@@ -229,6 +254,11 @@ class StateManager extends EventEmitter {
 
     onBuildComplete(func) {
         this._etcd.algorithms.builds.on('change', (build) => {
+            // Singleton side effect (version creation + algorithm update): leader only, so
+            // multiple replicas watching the same build do not race or duplicate versions.
+            if (!this._leaderElection.isLeader()) {
+                return;
+            }
             if (build.status === buildStatuses.COMPLETED) {
                 func(build);
             }
@@ -354,6 +384,11 @@ class StateManager extends EventEmitter {
 
     onJobStatus(func) {
         this._etcd.jobs.status.on('change', (response) => {
+            // Singleton side effect (progress/status webhook): leader only, so the webhook is
+            // delivered once across replicas instead of once per pod.
+            if (!this._leaderElection.isLeader()) {
+                return;
+            }
             func(response);
         });
     }

@@ -19,7 +19,8 @@ const Components = {
     ETCD_WRAPPER: 'ETCD-Wrapper',
     NODES_STATISTICS: 'NodesStatistics',
     PROMETHEUS_QUERIER: 'PrometheusQuerier',
-    PIPELINES_UPDATER: 'Pipelines-Updater'
+    PIPELINES_UPDATER: 'Pipelines-Updater',
+    LEADER_ELECTION: 'Leader-Election'
 };
 
 module.exports = Components;

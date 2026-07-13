@@ -28,7 +28,10 @@ config.rest = {
         route: '/api',
         ms: process.env.API_SERVER_RATE_LIMIT_MS || 1000,
         max: process.env.API_SERVER_RATE_LIMIT_MAX || 5,
-        delay: process.env.API_SERVER_RATE_LIMIT_DELAY || 0
+        delay: process.env.API_SERVER_RATE_LIMIT_DELAY || 0,
+        redis:{
+            enabled: formatter.parseBool(process.env.API_SERVER_RATE_LIMIT_REDIS_ENABLED, true)
+        }
     }
 };
 
@@ -54,6 +57,13 @@ config.healthchecks = {
     port: process.env.HEALTHCHECK_PORT || '5000',
     enabled: formatter.parseBool(process.env.HEALTHCHECK_ENABLE, true)
 }
+
+config.leaderElection = {
+    lockTtl: formatter.parseInt(process.env.LEADER_LOCK_TTL, 2500),
+    renewInterval: formatter.parseInt(process.env.LEADER_RENEW_INTERVAL, 1000),
+    backupInterval: formatter.parseInt(process.env.LEADER_BACKUP_INTERVAL, 5000),
+    jitter: formatter.parseInt(process.env.LEADER_ELECTION_JITTER, 250),
+};
 
 config.ingressPrefix = process.env.INGRESS_PREFIX || '';
 

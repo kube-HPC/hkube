@@ -1,5 +1,6 @@
 const { pipelineTypes } = require('@hkube/consts');
 const stateManager = require('../state/state-manager');
+const leaderElection = require('../leader-election/leader-election');
 const validator = require('../validation/api-validator');
 const execution = require('./execution');
 
@@ -31,6 +32,10 @@ class InternalService {
         validator.internal.validateRawSubPipeline(options);
         const { pipeline, rootJobId, spanId: parentSpan } = await this._createPipeline(options);
         return execution._runPipeline({ pipeline, rootJobId, parentSpan, types: [pipelineTypes.INTERNAL, pipelineTypes.RAW, pipelineTypes.SUB_PIPELINE] });
+    }
+
+    async getLeaderElection() {
+        return leaderElection.getLeaderElectionStatus();
     }
 
     async _createPipeline(options) {
