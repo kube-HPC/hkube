@@ -69,13 +69,6 @@ class PipelineMetrics {
             labels: ['pipelineName', 'jobId', 'source', 'target']
         });
         metrics.addTimeMeasure({
-            name: metricsNames.pipeline_net_time_took,
-            description: 'Pipeline net time took in seconds',
-            labels: ['pipeline_name', 'status'],
-            buckets: utils.arithmatcSequence(30, 0, 2)
-                .concat(utils.geometricSequence(10, 56, 2, 1).slice(2)).map(i => i * 1000)
-        });
-        metrics.addTimeMeasure({
             name: metricsNames.pipeline_gross_time_took,
             description: 'Pipeline gross time took in seconds(includes time took in queue)',
             labels: ['pipeline_name', 'status'],
@@ -133,7 +126,7 @@ class PipelineMetrics {
     }
 
     endMetrics(options) {
-        const { jobId, pipeline, status, netTimeTook, grossTimeTook } = options;
+        const { jobId, pipeline, status, grossTimeTook } = options;
         if (!jobId || !pipeline) {
             return;
         }
@@ -151,12 +144,6 @@ class PipelineMetrics {
                     status
                 }
             });
-            if (netTimeTook != null) {
-                metrics.get(metricsNames.pipeline_net_time_took).retroactive({
-                    labelValues: { pipeline_name: pipeline, status },
-                    time: netTimeTook * 1000
-                });
-            }
             if (grossTimeTook != null) {
                 metrics.get(metricsNames.pipeline_gross_time_took).retroactive({
                     labelValues: { pipeline_name: pipeline, status },
