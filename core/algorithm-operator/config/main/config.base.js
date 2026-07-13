@@ -60,6 +60,8 @@ config.kubernetes = {
     isLocal: !!process.env.KUBERNETES_SERVICE_HOST,
     namespace: process.env.NAMESPACE || 'default',
     isPrivileged: formatter.parseBool(process.env.IS_PRIVILEGED, true),
+    // How many times to retry Kubernetes API requests before failing
+    requestAttemptRetryLimit: formatter.parseInt(process.env.KUBERNETES_REQUEST_RETRY_LIMIT, 2),
     version: '1.9'
 };
 
