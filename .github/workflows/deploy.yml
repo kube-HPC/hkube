@@ -154,48 +154,45 @@ jobs:
       chart: chart.tgz
       values: dev1.yml
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, hkube-self-hosted]
     needs:
       - build_job
     name: deploy
     steps:
       - name: get environment
         run: |
+          echo "running deploy.yml from ref: ${{ github.event.deployment.ref }}"
           echo "environment is: $DEPLOY_ENVIRONMENT"
-          URL=''
+          # single kubeconfig on the runner holds all cluster contexts; select via context
           case "$DEPLOY_ENVIRONMENT" in
             *dev1*)
-              export URL=$DEV1_URL
-              export KUBE_CONFIG_DATA=$DEV1_KUBE_CONFIG_DATA
+              CONTEXT=dev1-spot.hkube.org
+              URL=$DEV1_URL
               ;;
             *test*)
-              export URL=$TEST_URL
-              export KUBE_CONFIG_DATA=$TEST_KUBE_CONFIG_DATA
+              CONTEXT=test-spot.hkube.org
+              URL=$TEST_URL
               ;;
             *cicd*)
-              export URL=$CICD_URL
-              export KUBE_CONFIG_DATA=$CICD_KUBE_CONFIG_DATA
+              CONTEXT=cicd-spot.hkube.org
+              URL=$CICD_URL
               ;;
-            **)
+            *)
               echo "unknown environment. defaulting to cicd"
-              export URL=$CICD_URL
-              export KUBE_CONFIG_DATA=$CICD_KUBE_CONFIG_DATA
+              CONTEXT=cicd-spot.hkube.org
+              URL=$CICD_URL
               ;;
           esac
-          echo "set params:"
+          echo "selected context: $CONTEXT"
+          export KUBECONFIG=/etc/hkube/kube/config
+          kubectl config use-context "$CONTEXT"
+          echo KUBECONFIG=/etc/hkube/kube/config >> $GITHUB_ENV
           echo URL=$URL >> $GITHUB_ENV
-          # echo KUBE_CONFIG_DATA=$KUBE_CONFIG_DATA >> $GITHUB_ENV
-          echo "######## update kubeconfig: #######"
-          echo "$KUBE_CONFIG_DATA" | base64 --decode > /tmp/config
-          echo KUBECONFIG=/tmp/config >> $GITHUB_ENV
         env:
           DEPLOY_ENVIRONMENT: "${{ github.event.deployment.environment }}"
-          CICD_URL: ${{ secrets.CICD_URL }}
-          CICD_KUBE_CONFIG_DATA: ${{ secrets.CICD_KUBECONFIG }}
-          DEV1_URL: ${{ secrets.DEV1_URL }}
-          DEV1_KUBE_CONFIG_DATA: ${{ secrets.DEV1_KUBECONFIG }}
-          TEST_URL: ${{ secrets.TEST_KUBERNETES_MASTER_IP }}
-          TEST_KUBE_CONFIG_DATA: ${{ secrets.TEST_KUBECONFIG }}
+          CICD_URL: ${{ vars.CICD_URL }}
+          DEV1_URL: ${{ vars.DEV1_URL }}
+          TEST_URL: ${{ vars.TEST_URL }}
       - name: download chart
         uses: actions/download-artifact@v4
         with:
@@ -209,7 +206,7 @@ jobs:
       - name: deploy
         run: |
           helm ls
-          helm upgrade -i hkube --wait -f ${{ github.workspace }}/${{ needs.build_job.outputs.values }} ${{ github.workspace }}/${{ needs.build_job.outputs.chart }}
+          helm upgrade -i hkube --wait --timeout 15m -f ${{ github.workspace }}/${{ needs.build_job.outputs.values }} ${{ github.workspace }}/${{ needs.build_job.outputs.chart }}
           helm ls
       - name: set deployment status to success
         id: successful_deployment
