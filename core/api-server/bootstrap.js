@@ -40,7 +40,7 @@ class Bootstrap {
     async init() {
         try {
             this._handleErrors();
-            log.info(`running application with env: ${configIt.env()}, version: ${config.version}, node: ${process.versions.node}`, { component });
+            log.info(`Running application with env: ${configIt.env()}, version: ${config.version}, node: ${process.versions.node}`, { component });
             monitor.on('ready', (data) => {
                 log.info((data.message).green, { component });
             });
