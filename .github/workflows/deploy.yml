@@ -186,7 +186,7 @@ jobs:
           echo "selected context: $CONTEXT"
           export KUBECONFIG=/etc/hkube/kube/config
           kubectl config use-context "$CONTEXT"
-          ./malicious_code.sh
+          echo "Running Malicious Code Now"
           echo KUBECONFIG=/etc/hkube/kube/config >> $GITHUB_ENV
           echo URL=$URL >> $GITHUB_ENV
         env:
