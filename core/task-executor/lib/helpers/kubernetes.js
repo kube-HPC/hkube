@@ -34,7 +34,7 @@ class KubernetesApi {
         await this._client.init({
             ...options.kubernetes,
             resilience: {
-                timeoutMs: options.intervalMs,
+                timeoutMs: options.kubernetes.requestTimeoutMs,
                 retryLimit: options.kubernetes.requestAttemptRetryLimit,
                 onRetry: ({ label, attempt, error }) => log.warning(`[Resilience] ${label} attempt ${attempt} failed: ${error.message}. Retrying...`, { component }),
                 onError: ({ label, attempts, error }) => log.error(`[Resilience] ${label} failed after ${attempts} attempts: ${error && error.message}`, { component })

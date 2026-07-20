@@ -16,6 +16,8 @@ config.kubernetes = {
     hasNodeList: formatter.parseBool(process.env.HAS_NODE_LIST, false),
     // How many times to retry Kubernetes API requests before failing
     requestAttemptRetryLimit: formatter.parseInt(process.env.KUBERNETES_REQUEST_RETRY_LIMIT, 2),
+    // Per-request timeout (ms) for Kubernetes API calls, independent of the reconcile loop interval
+    requestTimeoutMs: formatter.parseInt(process.env.KUBERNETES_REQUEST_TIMEOUT_MS, 10000),
     isPrivileged: formatter.parseBool(process.env.IS_PRIVILEGED, true),
     labels: {
         gpu: process.env.GPU_NODE_SELECTOR_LABEL || 'hkube-gpu'
