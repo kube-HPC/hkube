@@ -1,0 +1,106 @@
+name: CreateDeployment (dispatch)
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment (default: dev1)'
+        required: false
+        default: dev1                 # same default as today
+        type: choice
+        options: [dev1, test, cicd]
+
+permissions:
+  contents: read
+  deployments: write
+  pull-requests: write                # rejection comment on the PR
+
+jobs:
+  authorize:
+    runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.gate.outputs.environment }}
+      ref:         ${{ steps.gate.outputs.ref }}
+      prNumber:    ${{ steps.gate.outputs.prNumber }}
+    steps:
+      - name: Resolve PR + fork-check + authorize
+        id: gate
+        uses: actions/github-script@v7
+        with:
+          # PAT: the default GITHUB_TOKEN cannot always read org membership.
+          github-token: ${{ secrets.GH_TOKEN }}
+          script: |
+            const org  = context.repo.owner;
+            const repo = context.repo.repo;
+            const base = `${org}/${repo}`;
+            const actor = context.actor;
+            const environment = context.payload.inputs.environment || 'dev1';
+            const branch = context.ref.replace('refs/heads/', '');
+
+            let prNumber; // set once the PR is resolved
+
+            // Post a rejection comment on the PR (if known), then fail the run.
+            async function reject(reason) {
+              if (prNumber) {
+                try {
+                  await github.rest.issues.createComment({
+                    owner: org, repo, issue_number: prNumber,
+                    body: `:no_entry: Deployment refused: ${reason}`,
+                  });
+                } catch (e) { core.warning(`could not comment: ${e.message}`); }
+              }
+              core.setFailed(reason);
+            }
+
+            // ---- Resolve the single open PR for the dispatched branch ----
+            const { data: prs } = await github.rest.pulls.list({
+              owner: org, repo, state: 'open', head: `${org}:${branch}`,
+            });
+            if (prs.length === 0) {
+              return reject(`No open PR found for branch '${branch}'.`);
+            }
+            const pr = prs[0];
+            prNumber = pr.number;
+
+            // ---- Layer 2: fork check ----
+            if (!pr.head.repo || pr.head.repo.full_name !== base) {
+              return reject(`PR #${prNumber} head is a fork (${pr.head.repo?.full_name}).`);
+            }
+
+            // ---- Layer 3a: strict org membership ----
+            try {
+              await github.rest.orgs.checkMembershipForUser({ org, username: actor });
+            } catch (e) {
+              return reject(`@${actor} is not a member of the ${org} org.`);
+            }
+
+            // ---- Layer 3b: push access ----
+            const { data: perm } =
+              await github.rest.repos.getCollaboratorPermissionLevel({
+                owner: org, repo, username: actor,
+              });
+            if (!['admin', 'write'].includes(perm.permission)) {
+              return reject(`@${actor} lacks push access (permission: ${perm.permission}).`);
+            }
+
+            core.info(`OK: ${actor} -> env=${environment} pr=#${prNumber} ref=${pr.head.ref}`);
+            core.setOutput('environment', environment);
+            core.setOutput('ref', pr.head.ref);
+            core.setOutput('prNumber', String(prNumber));
+
+  deployment:
+    needs: authorize
+    runs-on: ubuntu-latest
+    steps:
+      - name: create deployment
+        uses: octokit/request-action@v2.x
+        with:
+          route: POST /repos/:repository/deployments
+          repository: ${{ github.repository }}
+          ref:         ${{ needs.authorize.outputs.ref }}
+          environment: ${{ needs.authorize.outputs.environment }}
+          auto_merge: false
+          required_contexts: "[]"
+          payload: |
+            prNumber: ${{ needs.authorize.outputs.prNumber }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
