@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       environment:
-        description: 'Target environment'
+        description: 'Target environment (default: dev1)'
         required: false
         default: dev1                 # same default as today
         type: choice
