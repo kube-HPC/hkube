@@ -7,7 +7,8 @@ jobs:
     if: |
       github.event.deployment.environment == 'dev1' ||
       github.event.deployment.environment == 'cicd' ||
-      github.event.deployment.environment == 'test'
+      github.event.deployment.environment == 'test' ||
+      github.event.deployment.environment == 'e2e'
     steps:
       - name: get environment
         run: |
@@ -18,6 +19,10 @@ jobs:
             *dev1*)
               export URL=$DEV1_URL
               export KUBE_CONFIG_DATA=$DEV1_KUBE_CONFIG_DATA
+              ;;
+            *e2e*)
+              export URL=$E2E_URL
+              export KUBE_CONFIG_DATA=$E2E_KUBE_CONFIG_DATA
               ;;
             *test*)
               export URL=$TEST_URL
@@ -43,6 +48,8 @@ jobs:
           CICD_KUBE_CONFIG_DATA: ${{ secrets.CICD_KUBECONFIG }}
           DEV1_URL: ${{ secrets.DEV1_URL }}
           DEV1_KUBE_CONFIG_DATA: ${{ secrets.DEV1_KUBECONFIG }}
+          E2E_URL: ${{ secrets.E2E_URL }}
+          E2E_KUBE_CONFIG_DATA: ${{ secrets.E2E_KUBECONFIG }}
           TEST_URL: ${{ secrets.TEST_KUBERNETES_MASTER_IP }}
           TEST_KUBE_CONFIG_DATA: ${{ secrets.TEST_KUBECONFIG }}
       - name: set deployment status to in progress
@@ -169,6 +176,10 @@ jobs:
               CONTEXT=dev1-spot.hkube.org
               URL=$DEV1_URL
               ;;
+            *e2e*)
+              CONTEXT=e2e.hkube.org
+              URL=$E2E_URL
+              ;;
             *test*)
               CONTEXT=test-spot.hkube.org
               URL=$TEST_URL
@@ -192,6 +203,7 @@ jobs:
           DEPLOY_ENVIRONMENT: "${{ github.event.deployment.environment }}"
           CICD_URL: ${{ vars.CICD_URL }}
           DEV1_URL: ${{ vars.DEV1_URL }}
+          E2E_URL: ${{ vars.E2E_URL }}
           TEST_URL: ${{ vars.TEST_URL }}
       - name: download chart
         uses: actions/download-artifact@v4
