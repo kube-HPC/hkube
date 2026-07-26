@@ -29,10 +29,10 @@ Includes every fine-tune/fix we hit the first time so it works first try.
 Console: **IAM → Roles → Create role**
 - Trusted entity: **AWS service → EC2**.
 - Attach managed policy **`AmazonSSMManagedInstanceCore`** (enables SSM connect).
-- Name: `hkube-deployer-ssm-role` → Create.
+- Name: `hkube-self-hosted-ssm-role` → Create.
 
 Then add an inline policy for reading the kubeconfig from S3:
-**IAM → Roles → hkube-deployer-ssm-role → Add permissions → Create inline policy → JSON**:
+**IAM → Roles → hkube-self-hosted-ssm-role → Add permissions → Create inline policy → JSON**:
 ```json
 {
   "Version": "2012-10-17",
@@ -95,16 +95,15 @@ This is a single kubeconfig containing all cluster contexts.
 ## 6. Launch the runner EC2 instance
 
 Console: **EC2 → Instances → Launch instances**
-- Name: `hkube-deployer`.
+- Name: `hkube-self-hosted`.
 - AMI: **Ubuntu Server 22.04 LTS (x86_64)** (ships SSM agent preinstalled).
 - Instance type: `t3.small` (or `t3.medium`).
 - Key pair: **Proceed without a key pair** (we use SSM).
 - Network → Edit:
   - VPC: your VPC.
-  - Subnet: a **public subnet**.
-  - Auto-assign public IP: **Enable**.
+  - Subnet: a **public or private subnet**.
   - Firewall: **Select existing** → `hkube-runner-sg`.
-- Advanced details → **IAM instance profile**: `hkube-deployer-ssm-role`.
+- Advanced details → **IAM instance profile**: `hkube-self-hosted-ssm-role`.
 - Storage: `30 GiB gp3`.
 - Launch.
 
@@ -114,7 +113,7 @@ Console: **EC2 → Instances → Launch instances**
 
 ## 7. Connect via SSM and install tooling
 
-**EC2 → Instances → hkube-deployer → Connect → Session Manager → Connect.**
+**EC2 → Instances → hkube-self-hosted → Connect → Session Manager → Connect.**
 
 You start as `ssm-user`; elevate to root for installs:
 ```bash
@@ -144,7 +143,7 @@ unzip -q awscliv2.zip
 Verify the instance role works (no credentials needed — it uses the attached role):
 ```bash
 aws sts get-caller-identity
-# expect: arn:aws:sts::<acct>:assumed-role/hkube-deployer-ssm-role/i-xxxx
+# expect: arn:aws:sts::<acct>:assumed-role/hkube-self-hosted-ssm-role/i-xxxx
 ```
 
 > Docker/Node are NOT needed here — `build_job` stays on GitHub-hosted runners; this box
