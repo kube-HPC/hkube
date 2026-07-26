@@ -8,75 +8,31 @@ on:
         default: dev1                 # same default as today
         type: choice
         options: [dev1, test, cicd]
-      prNumber:
-        description: 'Specific PR number to deploy (optional; overrides branch auto-resolution)'
+      branch:
+        description: 'Branch (or ref) to deploy (optional; defaults to the branch this workflow is run from)'
         required: false
         type: string
 
 permissions:
   contents: read
   deployments: write
-  pull-requests: read
 
 jobs:
   deployment:
     runs-on: ubuntu-latest
     steps:
-      - name: Resolve PR
-        id: resolve
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const org  = context.repo.owner;
-            const repo = context.repo.repo;
-            const environment = context.payload.inputs.environment || 'dev1';
-            const branch = context.ref.replace('refs/heads/', '');
-            const prInput = (context.payload.inputs.prNumber || '').trim();
-
-            core.info(`--- CreateDeployment (dispatch), no authorization ---`);
-            core.info(`repo:        ${org}/${repo}`);
-            core.info(`actor:       ${context.actor}`);
-            core.info(`branch:      ${branch}`);
-            core.info(`environment: ${environment}`);
-            core.info(`prNumber in: ${prInput || '(none - auto-resolve from branch)'}`);
-
-            let pr;
-            if (prInput) {
-              core.info(`explicit prNumber '${prInput}' provided - overriding branch resolution`);
-              const { data } = await github.rest.pulls.get({
-                owner: org, repo, pull_number: Number(prInput),
-              });
-              pr = data;
-            } else {
-              core.info(`resolving open PR for head '${org}:${branch}' (sort=created, direction=desc)...`);
-              const { data: prs } = await github.rest.pulls.list({
-                owner: org, repo, state: 'open', head: `${org}:${branch}`,
-                sort: 'created', direction: 'desc',
-              });
-              if (prs.length === 0) {
-                core.setFailed(`No open PR found for branch '${branch}'.`);
-                return;
-              }
-              pr = prs[0];
-            }
-            core.info(`resolved PR #${pr.number}: "${pr.title}"`);
-            core.info(`  head: ${pr.head.repo?.full_name}@${pr.head.ref} (${pr.head.sha?.slice(0, 7)})`);
-            // Use the PR merge ref (exists in this repo even when the head is a fork)
-            // rather than pr.head.ref, which only exists in the contributor's fork.
-            core.setOutput('environment', environment);
-            core.setOutput('ref', `refs/pull/${pr.number}/head`);
-            core.setOutput('prNumber', String(pr.number));
       - name: create deployment
         uses: octokit/request-action@v2.x
         with:
           route: POST /repos/:repository/deployments
           repository: ${{ github.repository }}
-          ref:         ${{ steps.resolve.outputs.ref }}
-          environment: ${{ steps.resolve.outputs.environment }}
+          ref:         ${{ github.event.inputs.branch || github.ref_name }}
+          environment: ${{ github.event.inputs.environment }}
           auto_merge: false
           required_contexts: "[]"
           payload: |
-            prNumber: ${{ steps.resolve.outputs.prNumber }}
+            prNumber: ""
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+
 
