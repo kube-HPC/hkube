@@ -9,7 +9,7 @@ global:
         capacity: 50Gi
         name: hkube-storage
         nfs_root: /nfs/storageclass/e2e
-        nfs_server: 172.20.45.142
+        nfs_server: 10.30.239.124
         storage_class: "-"
       dev_pvc:
         name: hkube-dev-sources
