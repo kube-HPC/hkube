@@ -4,6 +4,7 @@ const auth = require('../../../../lib/service/auth');
 const routes = () => {
     const router = RestServer.router();
     router.post('/login', async (req, res, next) => {
+        //test
         try {
             // const { username, password } = req.body;
             const data = await auth.login(req.body);
