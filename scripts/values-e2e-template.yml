@@ -1,6 +1,6 @@
 global:
   clusterName: e2e
-  hkube_url: https://e2e.hkube.org/hkube
+  hkube_url: "${E2E_URL}/hkube"
   storage:
     binary: true
     fs:
@@ -29,8 +29,8 @@ api_server:
     rate_limit_max: 20
     rate_limit_redis_enabled: true
 env:
-  kibana_url: "https://e2e.hkube.org/system/kibana/"
-  grafana_url: "https://e2e.hkube.org/grafana"
+  kibana_url: "${E2E_URL}/system/kibana/"
+  grafana_url: "${E2E_URL}/grafana"
   default_storage: "fs"
 
 build_secret:
