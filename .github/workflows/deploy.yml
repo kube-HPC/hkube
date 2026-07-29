@@ -137,6 +137,7 @@ jobs:
           IMAGE_PULL_USERNAME: ${{ secrets.IMAGE_PULL_USERNAME }}
           IMAGE_PULL_PASSWORD: ${{ secrets.IMAGE_PULL_PASSWORD }}
           KEYCLOAK_ADMIN_PASS: ${{ secrets.KC_ADMIN_PASSWORD }}
+          E2E_URL: ${{ secrets.E2E_URL }}
       - uses: actions/upload-artifact@v4
         with:
           name: dev1.yml
