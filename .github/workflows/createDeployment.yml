@@ -40,6 +40,9 @@ jobs:
             *dev1*)
               environment=dev1
               ;;
+              *dev*)
+              environment=dev
+              ;;
               *e2e*)
               environment=e2e
               ;;
