@@ -6,6 +6,7 @@ jobs:
     name: build dockers
     if: |
       github.event.deployment.environment == 'dev1' ||
+      github.event.deployment.environment == 'dev' ||
       github.event.deployment.environment == 'cicd' ||
       github.event.deployment.environment == 'test' ||
       github.event.deployment.environment == 'e2e'
@@ -18,40 +19,32 @@ jobs:
           case "$DEPLOY_ENVIRONMENT" in
             *dev1*)
               export URL=$DEV1_URL
-              export KUBE_CONFIG_DATA=$DEV1_KUBE_CONFIG_DATA
+              ;;
+            *dev*)
+              export URL=$DEV_URL
               ;;
             *e2e*)
               export URL=$E2E_URL
-              export KUBE_CONFIG_DATA=$E2E_KUBE_CONFIG_DATA
               ;;
             *test*)
               export URL=$TEST_URL
-              export KUBE_CONFIG_DATA=$TEST_KUBE_CONFIG_DATA
               ;;
             *cicd*)
               export URL=$CICD_URL
-              export KUBE_CONFIG_DATA=$CICD_KUBE_CONFIG_DATA
               ;;
             **)
               echo "unknown environment. defaulting to cicd"
               export URL=$CICD_URL
-              export KUBE_CONFIG_DATA=$CICD_KUBE_CONFIG_DATA
               ;;
           esac
           echo URL=$URL >> $GITHUB_ENV
-          # echo KUBE_CONFIG_DATA=$KUBE_CONFIG_DATA >> $GITHUB_ENV
-          echo "$KUBE_CONFIG_DATA" | base64 --decode > /tmp/config
-          echo KUBECONFIG=/tmp/config >> $GITHUB_ENV
         env:
           DEPLOY_ENVIRONMENT: "${{ github.event.deployment.environment }}"
           CICD_URL: ${{ secrets.CICD_URL }}
-          CICD_KUBE_CONFIG_DATA: ${{ secrets.CICD_KUBECONFIG }}
           DEV1_URL: ${{ secrets.DEV1_URL }}
-          DEV1_KUBE_CONFIG_DATA: ${{ secrets.DEV1_KUBECONFIG }}
+          DEV_URL: ${{ secrets.DEV_URL }}
           E2E_URL: ${{ secrets.E2E_URL }}
-          E2E_KUBE_CONFIG_DATA: ${{ secrets.E2E_KUBECONFIG }}
           TEST_URL: ${{ secrets.TEST_KUBERNETES_MASTER_IP }}
-          TEST_KUBE_CONFIG_DATA: ${{ secrets.TEST_KUBECONFIG }}
       - name: set deployment status to in progress
         id: start_deployment
         uses: octokit/request-action@v2.x
@@ -138,6 +131,7 @@ jobs:
           IMAGE_PULL_PASSWORD: ${{ secrets.IMAGE_PULL_PASSWORD }}
           KEYCLOAK_ADMIN_PASS: ${{ secrets.KC_ADMIN_PASSWORD }}
           E2E_URL: ${{ secrets.E2E_URL }}
+          DEV_URL: ${{ secrets.DEV_URL }}
       - uses: actions/upload-artifact@v4
         with:
           name: dev1.yml
@@ -177,6 +171,10 @@ jobs:
               CONTEXT=dev1-spot.hkube.org
               URL=$DEV1_URL
               ;;
+            *dev*)
+              CONTEXT=dev.hkube.org
+              URL=$DEV_URL
+              ;;
             *e2e*)
               CONTEXT=e2e.hkube.org
               URL=$E2E_URL
@@ -202,10 +200,11 @@ jobs:
           echo URL=$URL >> $GITHUB_ENV
         env:
           DEPLOY_ENVIRONMENT: "${{ github.event.deployment.environment }}"
-          CICD_URL: ${{ vars.CICD_URL }}
-          DEV1_URL: ${{ vars.DEV1_URL }}
-          E2E_URL: ${{ vars.E2E_URL }}
-          TEST_URL: ${{ vars.TEST_URL }}
+          CICD_URL: ${{ secrets.CICD_URL }}
+          DEV1_URL: ${{ secrets.DEV1_URL }}
+          DEV_URL: ${{ secrets.DEV_URL }}
+          E2E_URL: ${{ secrets.E2E_URL }}
+          TEST_URL: ${{ secrets.TEST_URL }}
       - name: download chart
         uses: actions/download-artifact@v4
         with:

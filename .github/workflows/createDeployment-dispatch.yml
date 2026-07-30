@@ -7,7 +7,7 @@ on:
         required: false
         default: dev1                 # same default as today
         type: choice
-        options: [dev1, test, cicd, e2e]
+        options: [dev1, dev, test, cicd, e2e]
       prNumber:
         description: 'Specific PR number to deploy (optional; overrides branch auto-resolution)'
         required: false
