@@ -87,6 +87,6 @@ minio:
   enable: true
 
 keycloak:
-  enable: true
+  enable: false
   auth:
     adminPassword: ${KEYCLOAK_ADMIN_PASS}
