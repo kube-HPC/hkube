@@ -1,5 +1,5 @@
 global:
-  clusterName: cicd
+  clusterName: cicd-lz
   hkube_url: https://cicd.hkube.org/hkube
   storage:
     binary: true
