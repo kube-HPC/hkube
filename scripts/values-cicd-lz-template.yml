@@ -21,7 +21,7 @@ global:
   registry_password: ${IMAGE_PULL_PASSWORD}
   health_monitoring:
     enabled: true
-    dataSourceUrl: "http://metric-kube-prometheus-sta-prometheus.monitoring.svc.cicd:9090"
+    dataSourceUrl: "http://metric-kube-prometheus-sta-prometheus.monitoring.svc.cicd-lz:9090"
 
 env:
   kibana_url: "https://cicd.hkube.org/system/kibana/"
