@@ -49,6 +49,9 @@ jobs:
               *test*)
               environment=test
               ;;
+              *cicd-lz*)
+              environment=cicd-lz
+              ;;
               *cicd*)
               environment=cicd
               ;;
