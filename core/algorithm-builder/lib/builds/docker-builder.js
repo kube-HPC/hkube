@@ -97,7 +97,7 @@ const _writeStreamToFile = ({ readStream, src }) => {
 const _writeStream = async ({ buildId, filePath, src }) => {
     log.info(`getStream -> ${buildId}`, { component });
     const readStream = await storageManager.getStream({ path: filePath });
-    log.info(`writeStreamToFile -> ${buildId} - ${src}`, { component });
+    log.info(`writeStreamToFile ->  ${buildId} - ${src}`, { component });
     await _writeStreamToFile({ readStream, src });
 };
 
