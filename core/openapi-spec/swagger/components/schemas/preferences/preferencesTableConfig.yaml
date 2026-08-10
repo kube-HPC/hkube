@@ -1,0 +1,7 @@
+type: object
+properties:
+  columns:
+    type: object
+    description: Column name to settings map
+    additionalProperties:
+      $ref: "#/components/schemas/preferencesColumnSettings"

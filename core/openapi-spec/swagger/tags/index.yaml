@@ -48,3 +48,5 @@
   description: Kubernetes jobs and pods management for algorithms
 - name: Login
   description: Authentication and token generation
+- name: Preferences
+  description: User preferences management
