@@ -6,6 +6,7 @@ const pipelines = require('./pipelines.json');
 const drivers = require('./drivers.json');
 const experiments = require('./experiments.json');
 const stateManager = require('../state/state-manager');
+const leaderElection = require('../leader-election/leader-election');
 const algorithmsVersionsService = require('../../lib/service/algorithm-versions');
 const pipelinesVersionsService = require('../../lib/service/pipeline-versions');
 const keycloak = require('../../lib/service/keycloak');
@@ -16,6 +17,13 @@ class PipelinesUpdater {
         this._defaultStorage = options.defaultStorage;
         const addDefaultAlgorithms = options.addDefaultAlgorithms !== 'false';
         const defaultAlgorithms = addDefaultAlgorithms ? algorithms : null;
+        // Only the elected leader runs the one-time bootstrap migration, so that across
+        // multiple instances the storage/etcd-to-db sync is not executed concurrently.
+        // Leadership is owned by the leader-election service's renewal heartbeat.
+        if (!leaderElection.isLeader()) {
+            log.info('another instance is the leader, skipping bootstrap migration', { component });
+            return;
+        }
         log.info('--------starting sync process---------', { component });
         await this._pipelineDriversTemplate(options);
         await this._transferJobsToDB();
