@@ -125,8 +125,6 @@ dockerBuildKaniko() {
     --build-arg packagesToken=${packagesToken} \
     --build-arg baseImage=${baseImage} \
     --build-arg dependency_install_cmd=${dependency_install_cmd} \
-    --push-retry 5 \
-    --image-download-retry 3 \
     --force \
     --destination $image" > ${commands}/run
   
