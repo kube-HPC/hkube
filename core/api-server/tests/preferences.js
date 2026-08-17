@@ -272,23 +272,5 @@ describe('Preferences', () => {
             expect(responseB.body.theme).to.equal('lightsOut');
         });
 
-        it('should return another user preferences via userId query param', async () => {
-            const ownerUser = 'device-owner-user';
-            const viewerUser = 'device-viewer-user';
-
-            await request({
-                uri: preferencesPath,
-                method: 'PUT',
-                headers: { [USER_ID_HEADER]: ownerUser },
-                body: { ...samplePreferences, theme: 'lightsOut' }
-            });
-
-            const response = await request({
-                uri: `${preferencesPath}?userId=${ownerUser}`,
-                method: 'GET',
-                headers: { [USER_ID_HEADER]: viewerUser }
-            });
-            expect(response.body.theme).to.equal('lightsOut');
-        });
     });
 });

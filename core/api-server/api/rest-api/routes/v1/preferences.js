@@ -9,12 +9,11 @@ const routes = () => {
 
     router.get('/', keycloak.getProtect(), async (req, res, next) => {
         try {
-            const requestedUserId = req.query.userId;
-            const userId = requestedUserId || keycloak.getUserId(req);
-            if (!userId) {
+            const authenticatedUserId = keycloak.getUserId(req);
+            if (!authenticatedUserId) {
                 return res.status(HttpStatus.StatusCodes.BAD_REQUEST).json({ error: 'User identification required' });
             }
-            const preferences = await stateManager.getPreferences(userId);
+            const preferences = await stateManager.getPreferences(authenticatedUserId);
             return res.json(preferences);
         }
         catch (e) {
