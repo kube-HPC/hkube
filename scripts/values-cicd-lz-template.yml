@@ -88,5 +88,6 @@ minio:
 
 keycloak:
   enable: true
+  allow_insecure_tls: true
   auth:
     adminPassword: ${KEYCLOAK_ADMIN_PASS}
