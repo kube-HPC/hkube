@@ -204,9 +204,8 @@ jobs:
               ;;
           esac
           echo "selected context: $CONTEXT"
-          export KUBECONFIG=/etc/hkube/kube/config
-          kubectl config use-context "$CONTEXT"
           echo KUBECONFIG=/etc/hkube/kube/config >> $GITHUB_ENV
+          echo KUBE_CONTEXT=$CONTEXT >> $GITHUB_ENV
           echo URL=$URL >> $GITHUB_ENV
         env:
           DEPLOY_ENVIRONMENT: "${{ github.event.deployment.environment }}"
@@ -225,12 +224,12 @@ jobs:
         with:
           name: ${{ needs.build_job.outputs.values }}
       - name: verify kubectl
-        run: kubectl cluster-info
+        run: kubectl --context "$KUBE_CONTEXT" cluster-info
       - name: deploy
         run: |
-          helm ls
-          helm upgrade -i hkube --wait --timeout 15m -f ${{ github.workspace }}/${{ needs.build_job.outputs.values }} ${{ github.workspace }}/${{ needs.build_job.outputs.chart }}
-          helm ls
+          helm --kube-context "$KUBE_CONTEXT" ls
+          helm --kube-context "$KUBE_CONTEXT" upgrade -i hkube --wait --timeout 15m -f ${{ github.workspace }}/${{ needs.build_job.outputs.values }} ${{ github.workspace }}/${{ needs.build_job.outputs.chart }}
+          helm --kube-context "$KUBE_CONTEXT" ls
       - name: set deployment status to success
         id: successful_deployment
         uses: octokit/request-action@v2.x
