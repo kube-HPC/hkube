@@ -105,7 +105,7 @@ class KeycloakMiddleware {
         }
     }
 
-    getUserId(req) {
+    getUsername(req) {
         if (req?.kauth?.grant) {
             try {
                 const username = req.kauth.grant.access_token.content.preferred_username;

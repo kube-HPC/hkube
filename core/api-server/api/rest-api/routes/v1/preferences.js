@@ -9,11 +9,11 @@ const routes = () => {
 
     router.get('/', keycloak.getProtect(), async (req, res, next) => {
         try {
-            const authenticatedUserId = keycloak.getUserId(req);
-            if (!authenticatedUserId) {
+            const authenticatedUsername = keycloak.getUsername(req);
+            if (!authenticatedUsername) {
                 return res.status(HttpStatus.StatusCodes.BAD_REQUEST).json({ error: 'User identification required' });
             }
-            const preferences = await stateManager.getPreferences(authenticatedUserId);
+            const preferences = await stateManager.getPreferences(authenticatedUsername);
             return res.json(preferences);
         }
         catch (e) {
@@ -23,12 +23,12 @@ const routes = () => {
 
     router.put('/', keycloak.getProtect(), async (req, res, next) => {
         try {
-            const userId = keycloak.getUserId(req);
-            if (!userId) {
+            const username = keycloak.getUsername(req);
+            if (!username) {
                 return res.status(HttpStatus.StatusCodes.BAD_REQUEST).json({ error: 'User identification required' });
             }
             validator.preferences.validatePreferences(req.body);
-            const saved = await stateManager.setPreferences(userId, req.body);
+            const saved = await stateManager.setPreferences(username, req.body);
             return res.json(saved);
         }
         catch (e) {
@@ -38,11 +38,11 @@ const routes = () => {
 
     router.delete('/', keycloak.getProtect(), async (req, res, next) => {
         try {
-            const userId = keycloak.getUserId(req);
-            if (!userId) {
+            const username = keycloak.getUsername(req);
+            if (!username) {
                 return res.status(HttpStatus.StatusCodes.BAD_REQUEST).json({ error: 'User identification required' });
             }
-            const result = await stateManager.deletePreferences(userId);
+            const result = await stateManager.deletePreferences(username);
             return res.json(result);
         }
         catch (e) {
