@@ -2,9 +2,15 @@ const { expect } = require('chai');
 const HttpStatus = require('http-status-codes');
 const { request } = require('./utils');
 
-const USER_ID_HEADER = 'x-hkube-user-id';
+const keycloakHeaders = {
+    authorization: `Bearer ${process.env.KEYCLOAK_TEST_TOKEN}`
+};
+const secondKeycloakHeaders = {
+    authorization: `Bearer ${process.env.KEYCLOAK_TEST_TOKEN_2}`
+};
 
-let restUrl, preferencesPath;
+let restUrl;
+let preferencesPath;
 
 const samplePreferences = {
     theme: 'dark',
@@ -22,9 +28,13 @@ const samplePreferences = {
 };
 
 describe('Preferences', () => {
-    before(() => {
+    before(function setupPreferences() {
         restUrl = global.testParams.restUrl;
         preferencesPath = `${restUrl}/preferences`;
+        if (!global.testParams.config.keycloak.enabled || !process.env.KEYCLOAK_TEST_TOKEN || !process.env.KEYCLOAK_TEST_TOKEN_2) {
+            return this.skip();
+        }
+        return null;
     });
 
     describe('GET /preferences', () => {
@@ -32,27 +42,26 @@ describe('Preferences', () => {
             const response = await request({
                 uri: preferencesPath,
                 method: 'GET',
-                headers: { [USER_ID_HEADER]: 'device-new-user-test' }
+                headers: keycloakHeaders
             });
             expect(response.body).to.eql({});
         });
 
-        it('should return 400 when no user identification is provided', async () => {
+        it('should reject unauthenticated requests when Keycloak is enabled', async () => {
             const response = await request({
                 uri: preferencesPath,
                 method: 'GET'
             });
-            expect(response.body).to.have.property('error');
+            expect(response.response.statusCode).to.equal(HttpStatus.StatusCodes.UNAUTHORIZED);
         });
     });
 
     describe('PUT /preferences', () => {
         it('should create preferences and return saved object', async () => {
-            const userId = 'device-put-test-1';
             const response = await request({
                 uri: preferencesPath,
                 method: 'PUT',
-                headers: { [USER_ID_HEADER]: userId },
+                headers: keycloakHeaders,
                 body: samplePreferences
             });
             expect(response.body.theme).to.equal('dark');
@@ -61,13 +70,6 @@ describe('Preferences', () => {
         });
 
         it('should replace existing preferences (full replacement)', async () => {
-            const userId = 'device-put-test-2';
-            await request({
-                uri: preferencesPath,
-                method: 'PUT',
-                headers: { [USER_ID_HEADER]: userId },
-                body: samplePreferences
-            });
             const updatedPrefs = {
                 theme: 'light',
                 scoopIntervalHours: 1,
@@ -77,10 +79,16 @@ describe('Preferences', () => {
                     pipelines: { columns: {} }
                 }
             };
+            await request({
+                uri: preferencesPath,
+                method: 'PUT',
+                headers: keycloakHeaders,
+                body: samplePreferences
+            });
             const response = await request({
                 uri: preferencesPath,
                 method: 'PUT',
-                headers: { [USER_ID_HEADER]: userId },
+                headers: keycloakHeaders,
                 body: updatedPrefs
             });
             expect(response.body.theme).to.equal('light');
@@ -89,11 +97,10 @@ describe('Preferences', () => {
         });
 
         it('should reject unknown fields with a validation error', async () => {
-            const userId = 'device-put-stale-test';
             const response = await request({
                 uri: preferencesPath,
                 method: 'PUT',
-                headers: { [USER_ID_HEADER]: userId },
+                headers: keycloakHeaders,
                 body: { ...samplePreferences, extraField: 'should-be-rejected', hack: true }
             });
             expect(response.body).to.have.property('error');
@@ -101,11 +108,10 @@ describe('Preferences', () => {
         });
 
         it('should reject invalid theme value', async () => {
-            const userId = 'device-put-invalid-theme';
             const response = await request({
                 uri: preferencesPath,
                 method: 'PUT',
-                headers: { [USER_ID_HEADER]: userId },
+                headers: keycloakHeaders,
                 body: { theme: 'blue' }
             });
             expect(response.body).to.have.property('error');
@@ -113,11 +119,10 @@ describe('Preferences', () => {
         });
 
         it('should reject invalid scoopIntervalHours value', async () => {
-            const userId = 'device-put-invalid-scoop';
             const response = await request({
                 uri: preferencesPath,
                 method: 'PUT',
-                headers: { [USER_ID_HEADER]: userId },
+                headers: keycloakHeaders,
                 body: { scoopIntervalHours: 5 }
             });
             expect(response.body).to.have.property('error');
@@ -125,11 +130,10 @@ describe('Preferences', () => {
         });
 
         it('should reject invalid tables type', async () => {
-            const userId = 'device-put-invalid-tables';
             const response = await request({
                 uri: preferencesPath,
                 method: 'PUT',
-                headers: { [USER_ID_HEADER]: userId },
+                headers: keycloakHeaders,
                 body: { tables: 'not-an-object' }
             });
             expect(response.body).to.have.property('error');
@@ -137,11 +141,10 @@ describe('Preferences', () => {
         });
 
         it('should reject unknown table keys', async () => {
-            const userId = 'device-put-unknown-table';
             const response = await request({
                 uri: preferencesPath,
                 method: 'PUT',
-                headers: { [USER_ID_HEADER]: userId },
+                headers: keycloakHeaders,
                 body: { tables: { unknownTable: { columns: {} } } }
             });
             expect(response.body).to.have.property('error');
@@ -149,11 +152,10 @@ describe('Preferences', () => {
         });
 
         it('should reject unknown column properties', async () => {
-            const userId = 'device-put-unknown-col-prop';
             const response = await request({
                 uri: preferencesPath,
                 method: 'PUT',
-                headers: { [USER_ID_HEADER]: userId },
+                headers: keycloakHeaders,
                 body: { tables: { jobs: { columns: { name: { visible: true, color: 'red' } } } } }
             });
             expect(response.body).to.have.property('error');
@@ -161,11 +163,10 @@ describe('Preferences', () => {
         });
 
         it('should reject non-boolean visible', async () => {
-            const userId = 'device-put-bad-visible';
             const response = await request({
                 uri: preferencesPath,
                 method: 'PUT',
-                headers: { [USER_ID_HEADER]: userId },
+                headers: keycloakHeaders,
                 body: { tables: { jobs: { columns: { name: { visible: 'yes' } } } } }
             });
             expect(response.body).to.have.property('error');
@@ -173,11 +174,10 @@ describe('Preferences', () => {
         });
 
         it('should reject non-positive-integer width', async () => {
-            const userId = 'device-put-bad-width';
             const response = await request({
                 uri: preferencesPath,
                 method: 'PUT',
-                headers: { [USER_ID_HEADER]: userId },
+                headers: keycloakHeaders,
                 body: { tables: { jobs: { columns: { name: { width: -10 } } } } }
             });
             expect(response.body).to.have.property('error');
@@ -187,17 +187,16 @@ describe('Preferences', () => {
 
     describe('GET /preferences (after PUT)', () => {
         it('should return previously saved preferences', async () => {
-            const userId = 'device-get-after-put';
             await request({
                 uri: preferencesPath,
                 method: 'PUT',
-                headers: { [USER_ID_HEADER]: userId },
+                headers: keycloakHeaders,
                 body: samplePreferences
             });
             const response = await request({
                 uri: preferencesPath,
                 method: 'GET',
-                headers: { [USER_ID_HEADER]: userId }
+                headers: keycloakHeaders
             });
             expect(response.body.theme).to.equal('dark');
             expect(response.body.scoopIntervalHours).to.equal(24);
@@ -207,24 +206,23 @@ describe('Preferences', () => {
 
     describe('DELETE /preferences', () => {
         it('should remove preferences and return empty object', async () => {
-            const userId = 'device-delete-test';
             await request({
                 uri: preferencesPath,
                 method: 'PUT',
-                headers: { [USER_ID_HEADER]: userId },
+                headers: keycloakHeaders,
                 body: samplePreferences
             });
             const deleteResponse = await request({
                 uri: preferencesPath,
                 method: 'DELETE',
-                headers: { [USER_ID_HEADER]: userId }
+                headers: keycloakHeaders
             });
             expect(deleteResponse.body).to.eql({});
 
             const getResponse = await request({
                 uri: preferencesPath,
                 method: 'GET',
-                headers: { [USER_ID_HEADER]: userId }
+                headers: keycloakHeaders
             });
             expect(getResponse.body).to.eql({});
         });
@@ -233,44 +231,40 @@ describe('Preferences', () => {
             const response = await request({
                 uri: preferencesPath,
                 method: 'DELETE',
-                headers: { [USER_ID_HEADER]: 'device-nonexistent-user' }
+                headers: keycloakHeaders
             });
             expect(response.body).to.eql({});
         });
     });
 
     describe('User isolation', () => {
-        it('should keep preferences separate per userId', async () => {
-            const userA = 'device-user-a';
-            const userB = 'device-user-b';
-
+        it('should keep preferences separate per authenticated user', async () => {
             await request({
                 uri: preferencesPath,
                 method: 'PUT',
-                headers: { [USER_ID_HEADER]: userA },
-                body: { ...samplePreferences, theme: 'dark' }
+                headers: keycloakHeaders,
+                body: { theme: 'dark' }
             });
             await request({
                 uri: preferencesPath,
                 method: 'PUT',
-                headers: { [USER_ID_HEADER]: userB },
-                body: { ...samplePreferences, theme: 'lightsOut' }
+                headers: secondKeycloakHeaders,
+                body: { theme: 'lightsOut' }
             });
 
             const responseA = await request({
                 uri: preferencesPath,
                 method: 'GET',
-                headers: { [USER_ID_HEADER]: userA }
+                headers: keycloakHeaders
             });
             const responseB = await request({
                 uri: preferencesPath,
                 method: 'GET',
-                headers: { [USER_ID_HEADER]: userB }
+                headers: secondKeycloakHeaders
             });
 
             expect(responseA.body.theme).to.equal('dark');
             expect(responseB.body.theme).to.equal('lightsOut');
         });
-
     });
 });

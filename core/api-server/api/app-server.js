@@ -54,16 +54,6 @@ class AppServer {
         if (options.keycloak.enabled) {
             beforeRoutesMiddlewares.push(keycloak._keycloak.middleware());
         }
-        else {
-            // simulate a kauth grant from header — only active when Keycloak is disabled (dev/test)
-            beforeRoutesMiddlewares.push((req, _res, next) => {
-                const userId = req.headers['x-hkube-user-id'];
-                if (userId) {
-                    req.kauth = { grant: { access_token: { content: { preferred_username: userId } } } };
-                }
-                next();
-            });
-        }
         beforeRoutesMiddlewares.push(requestInterceptor.blockInternalFromIngress.bind(requestInterceptor));
 
         if (rateLimit?.redis?.enabled) {

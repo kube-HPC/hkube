@@ -2,13 +2,7 @@ get:
   tags:
     - Preferences
   summary: Get user preferences
-  description: Retrieve preferences for the authenticated user, or for another user via userId query param
-  parameters:
-    - name: userId
-      in: query
-      description: Optional user ID to retrieve preferences for a different user
-      schema:
-        type: string
+  description: Retrieve preferences for the authenticated user
   responses:
     "200":
       $ref: "#/components/responses/preferences_successGet"
