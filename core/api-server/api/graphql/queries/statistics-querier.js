@@ -20,7 +20,7 @@ class NodesStatistics {
     }
 
     checkHealth(maxDiff) {
-        log.debug('statistics health-checks');
+        log.debug('statistics health-check');
         if (!this._lastIntervalTime) {
             return true;
         }
