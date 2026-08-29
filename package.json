@@ -34,6 +34,6 @@
   "dependencies": {
     "@octokit/rest": "^16.27.3",
     "js-yaml": "^3.13.1",
-    "request-promise": "^4.2.4"
+    "request-promise": "^4.2.6"
   }
 }
