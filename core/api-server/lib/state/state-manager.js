@@ -580,16 +580,16 @@ class StateManager extends EventEmitter {
     }
 
     // User Preferences
-    async getPreferences(userId) {
-        return preferencesStore.get(userId);
+    async getPreferences(userName) {
+        return preferencesStore.get(userName);
     }
 
-    async setPreferences(userId, data) {
-        return preferencesStore.set(userId, data);
+    async setPreferences(userName, data) {
+        return preferencesStore.set(userName, data);
     }
 
-    async deletePreferences(userId) {
-        return preferencesStore.remove(userId);
+    async deletePreferences(userName) {
+        return preferencesStore.remove(userName);
     }
 
     async setGracefulJobs({ algorithmName, jobIds }) {
