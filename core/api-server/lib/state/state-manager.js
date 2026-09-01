@@ -8,6 +8,7 @@ const dbConnect = require('@hkube/db');
 const Logger = require('@hkube/logger');
 let log;
 const { buildStatuses, pipelineStatuses } = require('@hkube/consts');
+const preferencesStore = require('./preferences-store');
 const component = require('../consts/componentNames').DB;
 const leaderElection = require('../leader-election/leader-election');
 
@@ -37,6 +38,7 @@ class StateManager extends EventEmitter {
         this._db = dbConnect(config, provider);
         await this._db.init({ createIndices: true });
         log.info(`initialized mongo with options: ${JSON.stringify(this._db.config)}`, { component });
+        await preferencesStore.init(this._db.db);
         this._healthcheck();
     }
 
@@ -575,6 +577,19 @@ class StateManager extends EventEmitter {
 
     async updateJobCompletion({ jobId, completion }) {
         return this._db.jobs.patch({ query: { jobId }, data: { completion } });
+    }
+
+    // User Preferences
+    async getPreferences(userName) {
+        return preferencesStore.get(userName);
+    }
+
+    async setPreferences(userName, data) {
+        return preferencesStore.set(userName, data);
+    }
+
+    async deletePreferences(userName) {
+        return preferencesStore.remove(userName);
     }
 
     async setGracefulJobs({ algorithmName, jobIds }) {

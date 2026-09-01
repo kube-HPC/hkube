@@ -112,6 +112,10 @@
     {
       "name": "Login",
       "description": "Authentication and token generation"
+    },
+    {
+      "name": "Preferences",
+      "description": "User preferences management"
     }
   ],
   "externalDocs": {
@@ -41595,6 +41599,677 @@
         }
       }
     },
+    "/preferences": {
+      "get": {
+        "tags": [
+          "Preferences"
+        ],
+        "summary": "Get user preferences",
+        "description": "Retrieve preferences for the authenticated user",
+        "responses": {
+          "200": {
+            "description": "User preferences retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "theme": {
+                      "type": "string",
+                      "enum": [
+                        "light",
+                        "dark",
+                        "lightsOut"
+                      ],
+                      "description": "UI theme preference"
+                    },
+                    "scoopIntervalHours": {
+                      "type": "integer",
+                      "enum": [
+                        1,
+                        24,
+                        168,
+                        720
+                      ],
+                      "description": "Data scoop interval in hours"
+                    },
+                    "tables": {
+                      "type": "object",
+                      "description": "Per-table column configuration",
+                      "properties": {
+                        "jobs": {
+                          "type": "object",
+                          "properties": {
+                            "columns": {
+                              "type": "object",
+                              "description": "Column name to settings map",
+                              "additionalProperties": {
+                                "type": "object",
+                                "properties": {
+                                  "visible": {
+                                    "type": "boolean",
+                                    "description": "Whether the column is visible"
+                                  },
+                                  "width": {
+                                    "type": "integer",
+                                    "minimum": 1,
+                                    "description": "Column width in pixels"
+                                  }
+                                },
+                                "additionalProperties": false
+                              }
+                            }
+                          }
+                        },
+                        "algorithms": {
+                          "type": "object",
+                          "properties": {
+                            "columns": {
+                              "type": "object",
+                              "description": "Column name to settings map",
+                              "additionalProperties": {
+                                "type": "object",
+                                "properties": {
+                                  "visible": {
+                                    "type": "boolean",
+                                    "description": "Whether the column is visible"
+                                  },
+                                  "width": {
+                                    "type": "integer",
+                                    "minimum": 1,
+                                    "description": "Column width in pixels"
+                                  }
+                                },
+                                "additionalProperties": false
+                              }
+                            }
+                          }
+                        },
+                        "pipelines": {
+                          "type": "object",
+                          "properties": {
+                            "columns": {
+                              "type": "object",
+                              "description": "Column name to settings map",
+                              "additionalProperties": {
+                                "type": "object",
+                                "properties": {
+                                  "visible": {
+                                    "type": "boolean",
+                                    "description": "Whether the column is visible"
+                                  },
+                                  "width": {
+                                    "type": "integer",
+                                    "minimum": 1,
+                                    "description": "Column width in pixels"
+                                  }
+                                },
+                                "additionalProperties": false
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "example": {
+                  "theme": "dark",
+                  "scoopIntervalHours": 24,
+                  "tables": {
+                    "jobs": {
+                      "columns": {
+                        "name": {
+                          "visible": true,
+                          "width": 200
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "integer",
+                          "format": "int32"
+                        },
+                        "message": {
+                          "type": "string",
+                          "description": "Description of the error"
+                        }
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "error": {
+                    "code": 400,
+                    "message": "Unexpected token @ in JSON at position 14"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized (invalid or missing token)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "example": {
+                  "error": "Unauthorized"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "integer",
+                          "format": "int32"
+                        },
+                        "message": {
+                          "type": "string",
+                          "description": "Description of the error"
+                        }
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "error": {
+                    "value": {
+                      "status": 500,
+                      "message": "Internal Server Error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Preferences"
+        ],
+        "summary": "Set user preferences",
+        "description": "Full-replace the authenticated user's preferences",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "theme": {
+                    "type": "string",
+                    "enum": [
+                      "light",
+                      "dark",
+                      "lightsOut"
+                    ],
+                    "description": "UI theme preference"
+                  },
+                  "scoopIntervalHours": {
+                    "type": "integer",
+                    "enum": [
+                      1,
+                      24,
+                      168,
+                      720
+                    ],
+                    "description": "Data scoop interval in hours"
+                  },
+                  "tables": {
+                    "type": "object",
+                    "description": "Per-table column configuration",
+                    "properties": {
+                      "jobs": {
+                        "type": "object",
+                        "properties": {
+                          "columns": {
+                            "type": "object",
+                            "description": "Column name to settings map",
+                            "additionalProperties": {
+                              "type": "object",
+                              "properties": {
+                                "visible": {
+                                  "type": "boolean",
+                                  "description": "Whether the column is visible"
+                                },
+                                "width": {
+                                  "type": "integer",
+                                  "minimum": 1,
+                                  "description": "Column width in pixels"
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          }
+                        }
+                      },
+                      "algorithms": {
+                        "type": "object",
+                        "properties": {
+                          "columns": {
+                            "type": "object",
+                            "description": "Column name to settings map",
+                            "additionalProperties": {
+                              "type": "object",
+                              "properties": {
+                                "visible": {
+                                  "type": "boolean",
+                                  "description": "Whether the column is visible"
+                                },
+                                "width": {
+                                  "type": "integer",
+                                  "minimum": 1,
+                                  "description": "Column width in pixels"
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          }
+                        }
+                      },
+                      "pipelines": {
+                        "type": "object",
+                        "properties": {
+                          "columns": {
+                            "type": "object",
+                            "description": "Column name to settings map",
+                            "additionalProperties": {
+                              "type": "object",
+                              "properties": {
+                                "visible": {
+                                  "type": "boolean",
+                                  "description": "Whether the column is visible"
+                                },
+                                "width": {
+                                  "type": "integer",
+                                  "minimum": 1,
+                                  "description": "Column width in pixels"
+                                }
+                              },
+                              "additionalProperties": false
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              },
+              "example": {
+                "theme": "dark",
+                "scoopIntervalHours": 24,
+                "tables": {
+                  "jobs": {
+                    "columns": {
+                      "name": {
+                        "visible": true,
+                        "width": 200
+                      },
+                      "status": {
+                        "visible": false,
+                        "width": 120
+                      }
+                    }
+                  },
+                  "algorithms": {
+                    "columns": {}
+                  },
+                  "pipelines": {
+                    "columns": {}
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User preferences saved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "theme": {
+                      "type": "string",
+                      "enum": [
+                        "light",
+                        "dark",
+                        "lightsOut"
+                      ],
+                      "description": "UI theme preference"
+                    },
+                    "scoopIntervalHours": {
+                      "type": "integer",
+                      "enum": [
+                        1,
+                        24,
+                        168,
+                        720
+                      ],
+                      "description": "Data scoop interval in hours"
+                    },
+                    "tables": {
+                      "type": "object",
+                      "description": "Per-table column configuration",
+                      "properties": {
+                        "jobs": {
+                          "type": "object",
+                          "properties": {
+                            "columns": {
+                              "type": "object",
+                              "description": "Column name to settings map",
+                              "additionalProperties": {
+                                "type": "object",
+                                "properties": {
+                                  "visible": {
+                                    "type": "boolean",
+                                    "description": "Whether the column is visible"
+                                  },
+                                  "width": {
+                                    "type": "integer",
+                                    "minimum": 1,
+                                    "description": "Column width in pixels"
+                                  }
+                                },
+                                "additionalProperties": false
+                              }
+                            }
+                          }
+                        },
+                        "algorithms": {
+                          "type": "object",
+                          "properties": {
+                            "columns": {
+                              "type": "object",
+                              "description": "Column name to settings map",
+                              "additionalProperties": {
+                                "type": "object",
+                                "properties": {
+                                  "visible": {
+                                    "type": "boolean",
+                                    "description": "Whether the column is visible"
+                                  },
+                                  "width": {
+                                    "type": "integer",
+                                    "minimum": 1,
+                                    "description": "Column width in pixels"
+                                  }
+                                },
+                                "additionalProperties": false
+                              }
+                            }
+                          }
+                        },
+                        "pipelines": {
+                          "type": "object",
+                          "properties": {
+                            "columns": {
+                              "type": "object",
+                              "description": "Column name to settings map",
+                              "additionalProperties": {
+                                "type": "object",
+                                "properties": {
+                                  "visible": {
+                                    "type": "boolean",
+                                    "description": "Whether the column is visible"
+                                  },
+                                  "width": {
+                                    "type": "integer",
+                                    "minimum": 1,
+                                    "description": "Column width in pixels"
+                                  }
+                                },
+                                "additionalProperties": false
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "example": {
+                  "theme": "dark",
+                  "scoopIntervalHours": 24,
+                  "tables": {
+                    "jobs": {
+                      "columns": {
+                        "name": {
+                          "visible": true,
+                          "width": 200
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "integer",
+                          "format": "int32"
+                        },
+                        "message": {
+                          "type": "string",
+                          "description": "Description of the error"
+                        }
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "error": {
+                    "code": 400,
+                    "message": "Unexpected token @ in JSON at position 14"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized (invalid or missing token)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "example": {
+                  "error": "Unauthorized"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "integer",
+                          "format": "int32"
+                        },
+                        "message": {
+                          "type": "string",
+                          "description": "Description of the error"
+                        }
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "error": {
+                    "value": {
+                      "status": 500,
+                      "message": "Internal Server Error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Preferences"
+        ],
+        "summary": "Delete user preferences",
+        "description": "Remove the authenticated user's preferences",
+        "responses": {
+          "200": {
+            "description": "User preferences deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                },
+                "example": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "integer",
+                          "format": "int32"
+                        },
+                        "message": {
+                          "type": "string",
+                          "description": "Description of the error"
+                        }
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "error": {
+                    "code": 400,
+                    "message": "Unexpected token @ in JSON at position 14"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized (invalid or missing token)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "example": {
+                  "error": "Unauthorized"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "integer",
+                          "format": "int32"
+                        },
+                        "message": {
+                          "type": "string",
+                          "description": "Description of the error"
+                        }
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "error": {
+                    "value": {
+                      "status": 500,
+                      "message": "Internal Server Error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/auth/login": {
       "post": {
         "tags": [
@@ -47525,6 +48200,149 @@
           "version",
           "alias"
         ]
+      },
+      "preferencesBody": {
+        "type": "object",
+        "properties": {
+          "theme": {
+            "type": "string",
+            "enum": [
+              "light",
+              "dark",
+              "lightsOut"
+            ],
+            "description": "UI theme preference"
+          },
+          "scoopIntervalHours": {
+            "type": "integer",
+            "enum": [
+              1,
+              24,
+              168,
+              720
+            ],
+            "description": "Data scoop interval in hours"
+          },
+          "tables": {
+            "type": "object",
+            "description": "Per-table column configuration",
+            "properties": {
+              "jobs": {
+                "type": "object",
+                "properties": {
+                  "columns": {
+                    "type": "object",
+                    "description": "Column name to settings map",
+                    "additionalProperties": {
+                      "type": "object",
+                      "properties": {
+                        "visible": {
+                          "type": "boolean",
+                          "description": "Whether the column is visible"
+                        },
+                        "width": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "description": "Column width in pixels"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  }
+                }
+              },
+              "algorithms": {
+                "type": "object",
+                "properties": {
+                  "columns": {
+                    "type": "object",
+                    "description": "Column name to settings map",
+                    "additionalProperties": {
+                      "type": "object",
+                      "properties": {
+                        "visible": {
+                          "type": "boolean",
+                          "description": "Whether the column is visible"
+                        },
+                        "width": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "description": "Column width in pixels"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  }
+                }
+              },
+              "pipelines": {
+                "type": "object",
+                "properties": {
+                  "columns": {
+                    "type": "object",
+                    "description": "Column name to settings map",
+                    "additionalProperties": {
+                      "type": "object",
+                      "properties": {
+                        "visible": {
+                          "type": "boolean",
+                          "description": "Whether the column is visible"
+                        },
+                        "width": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "description": "Column width in pixels"
+                        }
+                      },
+                      "additionalProperties": false
+                    }
+                  }
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      "preferencesTableConfig": {
+        "type": "object",
+        "properties": {
+          "columns": {
+            "type": "object",
+            "description": "Column name to settings map",
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "visible": {
+                  "type": "boolean",
+                  "description": "Whether the column is visible"
+                },
+                "width": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "description": "Column width in pixels"
+                }
+              },
+              "additionalProperties": false
+            }
+          }
+        }
+      },
+      "preferencesColumnSettings": {
+        "type": "object",
+        "properties": {
+          "visible": {
+            "type": "boolean",
+            "description": "Whether the column is visible"
+          },
+          "width": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Column width in pixels"
+          }
+        },
+        "additionalProperties": false
       },
       "loginRequest": {
         "type": "object",
@@ -66203,6 +67021,267 @@
               "cicd-hkube-algo-metrics",
               "cicd-hkube-datasource"
             ]
+          }
+        }
+      },
+      "preferences_successGet": {
+        "description": "User preferences retrieved successfully",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "theme": {
+                  "type": "string",
+                  "enum": [
+                    "light",
+                    "dark",
+                    "lightsOut"
+                  ],
+                  "description": "UI theme preference"
+                },
+                "scoopIntervalHours": {
+                  "type": "integer",
+                  "enum": [
+                    1,
+                    24,
+                    168,
+                    720
+                  ],
+                  "description": "Data scoop interval in hours"
+                },
+                "tables": {
+                  "type": "object",
+                  "description": "Per-table column configuration",
+                  "properties": {
+                    "jobs": {
+                      "type": "object",
+                      "properties": {
+                        "columns": {
+                          "type": "object",
+                          "description": "Column name to settings map",
+                          "additionalProperties": {
+                            "type": "object",
+                            "properties": {
+                              "visible": {
+                                "type": "boolean",
+                                "description": "Whether the column is visible"
+                              },
+                              "width": {
+                                "type": "integer",
+                                "minimum": 1,
+                                "description": "Column width in pixels"
+                              }
+                            },
+                            "additionalProperties": false
+                          }
+                        }
+                      }
+                    },
+                    "algorithms": {
+                      "type": "object",
+                      "properties": {
+                        "columns": {
+                          "type": "object",
+                          "description": "Column name to settings map",
+                          "additionalProperties": {
+                            "type": "object",
+                            "properties": {
+                              "visible": {
+                                "type": "boolean",
+                                "description": "Whether the column is visible"
+                              },
+                              "width": {
+                                "type": "integer",
+                                "minimum": 1,
+                                "description": "Column width in pixels"
+                              }
+                            },
+                            "additionalProperties": false
+                          }
+                        }
+                      }
+                    },
+                    "pipelines": {
+                      "type": "object",
+                      "properties": {
+                        "columns": {
+                          "type": "object",
+                          "description": "Column name to settings map",
+                          "additionalProperties": {
+                            "type": "object",
+                            "properties": {
+                              "visible": {
+                                "type": "boolean",
+                                "description": "Whether the column is visible"
+                              },
+                              "width": {
+                                "type": "integer",
+                                "minimum": 1,
+                                "description": "Column width in pixels"
+                              }
+                            },
+                            "additionalProperties": false
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            },
+            "example": {
+              "theme": "dark",
+              "scoopIntervalHours": 24,
+              "tables": {
+                "jobs": {
+                  "columns": {
+                    "name": {
+                      "visible": true,
+                      "width": 200
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "preferences_successSet": {
+        "description": "User preferences saved successfully",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "theme": {
+                  "type": "string",
+                  "enum": [
+                    "light",
+                    "dark",
+                    "lightsOut"
+                  ],
+                  "description": "UI theme preference"
+                },
+                "scoopIntervalHours": {
+                  "type": "integer",
+                  "enum": [
+                    1,
+                    24,
+                    168,
+                    720
+                  ],
+                  "description": "Data scoop interval in hours"
+                },
+                "tables": {
+                  "type": "object",
+                  "description": "Per-table column configuration",
+                  "properties": {
+                    "jobs": {
+                      "type": "object",
+                      "properties": {
+                        "columns": {
+                          "type": "object",
+                          "description": "Column name to settings map",
+                          "additionalProperties": {
+                            "type": "object",
+                            "properties": {
+                              "visible": {
+                                "type": "boolean",
+                                "description": "Whether the column is visible"
+                              },
+                              "width": {
+                                "type": "integer",
+                                "minimum": 1,
+                                "description": "Column width in pixels"
+                              }
+                            },
+                            "additionalProperties": false
+                          }
+                        }
+                      }
+                    },
+                    "algorithms": {
+                      "type": "object",
+                      "properties": {
+                        "columns": {
+                          "type": "object",
+                          "description": "Column name to settings map",
+                          "additionalProperties": {
+                            "type": "object",
+                            "properties": {
+                              "visible": {
+                                "type": "boolean",
+                                "description": "Whether the column is visible"
+                              },
+                              "width": {
+                                "type": "integer",
+                                "minimum": 1,
+                                "description": "Column width in pixels"
+                              }
+                            },
+                            "additionalProperties": false
+                          }
+                        }
+                      }
+                    },
+                    "pipelines": {
+                      "type": "object",
+                      "properties": {
+                        "columns": {
+                          "type": "object",
+                          "description": "Column name to settings map",
+                          "additionalProperties": {
+                            "type": "object",
+                            "properties": {
+                              "visible": {
+                                "type": "boolean",
+                                "description": "Whether the column is visible"
+                              },
+                              "width": {
+                                "type": "integer",
+                                "minimum": 1,
+                                "description": "Column width in pixels"
+                              }
+                            },
+                            "additionalProperties": false
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "additionalProperties": false
+            },
+            "example": {
+              "theme": "dark",
+              "scoopIntervalHours": 24,
+              "tables": {
+                "jobs": {
+                  "columns": {
+                    "name": {
+                      "visible": true,
+                      "width": 200
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "preferences_successDelete": {
+        "description": "User preferences deleted successfully",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object"
+            },
+            "example": {}
           }
         }
       },
