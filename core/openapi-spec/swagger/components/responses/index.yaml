@@ -292,6 +292,14 @@ storage_successGetStream:
 storage_successGetTypes:
   $ref: ./storage/successGetTypes.yaml
 
+# preferences
+preferences_successGet:
+  $ref: ./preferences/successGet.yaml
+preferences_successSet:
+  $ref: ./preferences/successSet.yaml
+preferences_successDelete:
+  $ref: ./preferences/successDelete.yaml
+
 # webhooks
 webhooks_successList:
   $ref: ./webhooks/successList.yaml

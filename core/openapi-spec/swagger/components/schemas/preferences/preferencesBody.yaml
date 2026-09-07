@@ -1,0 +1,29 @@
+type: object
+properties:
+  theme:
+    type: string
+    enum:
+      - light
+      - dark
+      - lightsOut
+    description: UI theme preference
+  scoopIntervalHours:
+    type: integer
+    enum:
+      - 1
+      - 24
+      - 168
+      - 720
+    description: Data scoop interval in hours
+  tables:
+    type: object
+    description: Per-table column configuration
+    properties:
+      jobs:
+        $ref: "#/components/schemas/preferencesTableConfig"
+      algorithms:
+        $ref: "#/components/schemas/preferencesTableConfig"
+      pipelines:
+        $ref: "#/components/schemas/preferencesTableConfig"
+    additionalProperties: false
+additionalProperties: false

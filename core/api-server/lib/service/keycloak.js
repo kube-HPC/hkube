@@ -104,6 +104,21 @@ class KeycloakMiddleware {
             return this._options.defaultUserAuditingName;
         }
     }
+
+    getUsername(req) {
+        if (req?.kauth?.grant) {
+            try {
+                const username = req.kauth.grant.access_token.content.preferred_username;
+                if (username) {
+                    return username;
+                }
+            }
+            catch (e) {
+                // fall through
+            }
+        }
+        return null;
+    }
 }
 
 module.exports = new KeycloakMiddleware();

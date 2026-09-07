@@ -1,0 +1,14 @@
+description: User preferences saved successfully
+content:
+  application/json:
+    schema:
+      $ref: "#/components/schemas/preferencesBody"
+    example:
+      theme: dark
+      scoopIntervalHours: 24
+      tables:
+        jobs:
+          columns:
+            name:
+              visible: true
+              width: 200

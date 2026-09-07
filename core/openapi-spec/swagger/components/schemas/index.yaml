@@ -294,6 +294,14 @@ nodes:
 versionAlias:
   $ref: ./versions/versionAlias.yaml
   
+# preferences
+preferencesBody:
+  $ref: ./preferences/preferencesBody.yaml
+preferencesTableConfig:
+  $ref: ./preferences/preferencesTableConfig.yaml
+preferencesColumnSettings:
+  $ref: ./preferences/preferencesColumnSettings.yaml
+
 # auth
 loginRequest:
   $ref: ./auth/loginRequest.yaml
