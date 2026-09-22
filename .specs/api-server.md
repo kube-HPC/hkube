@@ -317,6 +317,7 @@ the bounded failover window).
 | `rest.rateLimit.ms` | `API_SERVER_RATE_LIMIT_MS` | `1000` | Rate limit window (ms) |
 | `rest.rateLimit.max` | `API_SERVER_RATE_LIMIT_MAX` | `5` | Max requests per window |
 | `rest.rateLimit.delay` | `API_SERVER_RATE_LIMIT_DELAY` | `0` | Delay before rate limiting kicks in |
+| `rest.rateLimit.redis.enabled` | `API_SERVER_RATE_LIMIT_REDIS_ENABLED` | `false` | Use redis store for rate limiting instead of in-memory |
 | `storageResultsThreshold` | `STORAGE_RESULTS_THRESHOLD` | `100Ki` | Max result size before "big data" flag |
 | `maxStorageFetchKeys` | `MAX_STORAGE_FETCH_KEYS` | `100` | Max keys to list from storage |
 | `defaultAlgorithmReservedMemoryRatio` | `DEFAULT_ALGORITHM_RESERVED_MEMORY_RATIO` | `0.2` | Fraction of algorithm mem reserved for overhead |
