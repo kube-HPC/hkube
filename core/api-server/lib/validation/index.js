@@ -14,6 +14,7 @@ const Gateways = require('./gateways');
 const Outputs = require('./outputs');
 const HyperparamsTuner = require('./hyperparams-tuners');
 const Auth = require('./auth');
+const Preferences = require('./preferences');
 
 module.exports = {
     Algorithms,
@@ -31,5 +32,6 @@ module.exports = {
     DataSources,
     Outputs,
     HyperparamsTuner,
-    Auth
+    Auth,
+    Preferences
 };

@@ -15,7 +15,8 @@ const {
     DataSources,
     Outputs,
     HyperparamsTuner: HyperparamsTuners,
-    Auth
+    Auth,
+    Preferences
 } = require('./index');
 
 class ApiValidator {
@@ -37,6 +38,7 @@ class ApiValidator {
         this.lists = new Lists(innerValidator);
         this.dataSources = new DataSources(innerValidator);
         this.auth = new Auth(innerValidator);
+        this.preferences = new Preferences(innerValidator);
     }
 }
 

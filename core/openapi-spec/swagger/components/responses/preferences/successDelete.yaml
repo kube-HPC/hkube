@@ -1,0 +1,6 @@
+description: User preferences deleted successfully
+content:
+  application/json:
+    schema:
+      type: object
+    example: {}
