@@ -1,0 +1,10 @@
+type: object
+properties:
+  visible:
+    type: boolean
+    description: Whether the column is visible
+  width:
+    type: integer
+    minimum: 1
+    description: Column width in pixels
+additionalProperties: false
