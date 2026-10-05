@@ -28,6 +28,7 @@ api_server:
     rate_limit_ms: 1000
     rate_limit_max: 20
     rate_limit_redis_enabled: true
+    elasticsearch_logs_index: "cff497d0-aab2-11f1-8e08-4b7477e917d4"
 env:
   kibana_url: "${E2E_URL}/system/kibana/"
   grafana_url: "${E2E_URL}/grafana"
