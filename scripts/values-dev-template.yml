@@ -23,11 +23,6 @@ global:
   health_monitoring:
     enabled: true
     dataSourceUrl: "http://metric-kube-prometheus-sta-prometheus.monitoring.svc.dev:9090"
-api_server:
-  env:
-    rate_limit_ms: 1000
-    rate_limit_max: 20
-    rate_limit_redis_enabled: true
 env:
   kibana_url: "${DEV_URL}/system/kibana/"
   grafana_url: "${DEV_URL}/grafana"
