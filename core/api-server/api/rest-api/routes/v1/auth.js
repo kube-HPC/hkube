@@ -2,6 +2,7 @@ const RestServer = require('@hkube/rest-server');
 const auth = require('../../../../lib/service/auth');
 
 const routes = () => {
+    // test
     const router = RestServer.router();
     router.post('/login', async (req, res, next) => {
         try {
