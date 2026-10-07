@@ -91,7 +91,7 @@ async function startApolloServer(typeDefs, resolvers, app, httpServer, port, con
  */
 const graphqlServer = (app, httpServer, port, config, keycloak) => {
     startApolloServer(_typeDefs, _resolvers.getResolvers(), app, httpServer, port, config, keycloak).catch(err => {
-        log.error(`GraphQL server error: ${err.message || err}`, { component });
+        log.error(`GraphQL  server error: ${err.message || err}`, { component });
     });
 };
 
