@@ -43,6 +43,14 @@ properties:
       - cartesian
   kind:
     $ref: "#/components/schemas/nodeKind"
+  stateType:
+    type: string
+    nullable: true
+    description: Read-only. Resolved from the algorithm stateType (gateway is always stateful). A conflicting value is rejected
+    enum:
+      - stateless
+      - stateful
+      - null
   minStatelessCount:
     type: integer
     description: Minimum number of stateless nodes to create during pipeline initiation.

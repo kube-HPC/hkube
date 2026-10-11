@@ -3,7 +3,7 @@
   "info": {
     "title": "HKube API",
     "description": "HKube RESTful API",
-    "version": "2.11.0",
+    "version": "2.11.2",
     "contact": {
       "email": "hkube.dev@gmail.com"
     },
@@ -245,6 +245,16 @@
                             "gateway",
                             "output",
                             "hyperparamsTuner"
+                          ]
+                        },
+                        "stateType": {
+                          "type": "string",
+                          "nullable": true,
+                          "description": "Read-only. Resolved from the algorithm stateType (gateway is always stateful). A conflicting value is rejected",
+                          "enum": [
+                            "stateless",
+                            "stateful",
+                            null
                           ]
                         },
                         "minStatelessCount": {
@@ -860,6 +870,16 @@
                             "gateway",
                             "output",
                             "hyperparamsTuner"
+                          ]
+                        },
+                        "stateType": {
+                          "type": "string",
+                          "nullable": true,
+                          "description": "Read-only. Resolved from the algorithm stateType (gateway is always stateful). A conflicting value is rejected",
+                          "enum": [
+                            "stateless",
+                            "stateful",
+                            null
                           ]
                         },
                         "minStatelessCount": {
@@ -17050,6 +17070,16 @@
                               "hyperparamsTuner"
                             ]
                           },
+                          "stateType": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "Read-only. Resolved from the algorithm stateType (gateway is always stateful). A conflicting value is rejected",
+                            "enum": [
+                              "stateless",
+                              "stateful",
+                              null
+                            ]
+                          },
                           "minStatelessCount": {
                             "type": "integer",
                             "description": "Minimum number of stateless nodes to create during pipeline initiation.",
@@ -18178,6 +18208,16 @@
                                 "hyperparamsTuner"
                               ]
                             },
+                            "stateType": {
+                              "type": "string",
+                              "nullable": true,
+                              "description": "Read-only. Resolved from the algorithm stateType (gateway is always stateful). A conflicting value is rejected",
+                              "enum": [
+                                "stateless",
+                                "stateful",
+                                null
+                              ]
+                            },
                             "minStatelessCount": {
                               "type": "integer",
                               "description": "Minimum number of stateless nodes to create during pipeline initiation.",
@@ -18967,6 +19007,16 @@
                                 "gateway",
                                 "output",
                                 "hyperparamsTuner"
+                              ]
+                            },
+                            "stateType": {
+                              "type": "string",
+                              "nullable": true,
+                              "description": "Read-only. Resolved from the algorithm stateType (gateway is always stateful). A conflicting value is rejected",
+                              "enum": [
+                                "stateless",
+                                "stateful",
+                                null
                               ]
                             },
                             "minStatelessCount": {
@@ -19800,6 +19850,16 @@
                             "hyperparamsTuner"
                           ]
                         },
+                        "stateType": {
+                          "type": "string",
+                          "nullable": true,
+                          "description": "Read-only. Resolved from the algorithm stateType (gateway is always stateful). A conflicting value is rejected",
+                          "enum": [
+                            "stateless",
+                            "stateful",
+                            null
+                          ]
+                        },
                         "minStatelessCount": {
                           "type": "integer",
                           "description": "Minimum number of stateless nodes to create during pipeline initiation.",
@@ -20303,6 +20363,16 @@
                               "gateway",
                               "output",
                               "hyperparamsTuner"
+                            ]
+                          },
+                          "stateType": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "Read-only. Resolved from the algorithm stateType (gateway is always stateful). A conflicting value is rejected",
+                            "enum": [
+                              "stateless",
+                              "stateful",
+                              null
                             ]
                           },
                           "minStatelessCount": {
@@ -20979,6 +21049,16 @@
                             "hyperparamsTuner"
                           ]
                         },
+                        "stateType": {
+                          "type": "string",
+                          "nullable": true,
+                          "description": "Read-only. Resolved from the algorithm stateType (gateway is always stateful). A conflicting value is rejected",
+                          "enum": [
+                            "stateless",
+                            "stateful",
+                            null
+                          ]
+                        },
                         "minStatelessCount": {
                           "type": "integer",
                           "description": "Minimum number of stateless nodes to create during pipeline initiation.",
@@ -21482,6 +21562,16 @@
                               "gateway",
                               "output",
                               "hyperparamsTuner"
+                            ]
+                          },
+                          "stateType": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "Read-only. Resolved from the algorithm stateType (gateway is always stateful). A conflicting value is rejected",
+                            "enum": [
+                              "stateless",
+                              "stateful",
+                              null
                             ]
                           },
                           "minStatelessCount": {
@@ -32492,6 +32582,16 @@
                                 "hyperparamsTuner"
                               ]
                             },
+                            "stateType": {
+                              "type": "string",
+                              "nullable": true,
+                              "description": "Read-only. Resolved from the algorithm stateType (gateway is always stateful). A conflicting value is rejected",
+                              "enum": [
+                                "stateless",
+                                "stateful",
+                                null
+                              ]
+                            },
                             "minStatelessCount": {
                               "type": "integer",
                               "description": "Minimum number of stateless nodes to create during pipeline initiation.",
@@ -33153,6 +33253,16 @@
                               "gateway",
                               "output",
                               "hyperparamsTuner"
+                            ]
+                          },
+                          "stateType": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "Read-only. Resolved from the algorithm stateType (gateway is always stateful). A conflicting value is rejected",
+                            "enum": [
+                              "stateless",
+                              "stateful",
+                              null
                             ]
                           },
                           "minStatelessCount": {
@@ -33984,6 +34094,16 @@
                               "hyperparamsTuner"
                             ]
                           },
+                          "stateType": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "Read-only. Resolved from the algorithm stateType (gateway is always stateful). A conflicting value is rejected",
+                            "enum": [
+                              "stateless",
+                              "stateful",
+                              null
+                            ]
+                          },
                           "minStatelessCount": {
                             "type": "integer",
                             "description": "Minimum number of stateless nodes to create during pipeline initiation.",
@@ -34724,6 +34844,16 @@
                               "gateway",
                               "output",
                               "hyperparamsTuner"
+                            ]
+                          },
+                          "stateType": {
+                            "type": "string",
+                            "nullable": true,
+                            "description": "Read-only. Resolved from the algorithm stateType (gateway is always stateful). A conflicting value is rejected",
+                            "enum": [
+                              "stateless",
+                              "stateful",
+                              null
                             ]
                           },
                           "minStatelessCount": {
@@ -46443,6 +46573,16 @@
                         "hyperparamsTuner"
                       ]
                     },
+                    "stateType": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Read-only. Resolved from the algorithm stateType (gateway is always stateful). A conflicting value is rejected",
+                      "enum": [
+                        "stateless",
+                        "stateful",
+                        null
+                      ]
+                    },
                     "minStatelessCount": {
                       "type": "integer",
                       "description": "Minimum number of stateless nodes to create during pipeline initiation.",
@@ -47100,6 +47240,16 @@
                     "hyperparamsTuner"
                   ]
                 },
+                "stateType": {
+                  "type": "string",
+                  "nullable": true,
+                  "description": "Read-only. Resolved from the algorithm stateType (gateway is always stateful). A conflicting value is rejected",
+                  "enum": [
+                    "stateless",
+                    "stateful",
+                    null
+                  ]
+                },
                 "minStatelessCount": {
                   "type": "integer",
                   "description": "Minimum number of stateless nodes to create during pipeline initiation.",
@@ -47599,6 +47749,16 @@
               "gateway",
               "output",
               "hyperparamsTuner"
+            ]
+          },
+          "stateType": {
+            "type": "string",
+            "nullable": true,
+            "description": "Read-only. Resolved from the algorithm stateType (gateway is always stateful). A conflicting value is rejected",
+            "enum": [
+              "stateless",
+              "stateful",
+              null
             ]
           },
           "minStatelessCount": {
@@ -59564,6 +59724,16 @@
                             "hyperparamsTuner"
                           ]
                         },
+                        "stateType": {
+                          "type": "string",
+                          "nullable": true,
+                          "description": "Read-only. Resolved from the algorithm stateType (gateway is always stateful). A conflicting value is rejected",
+                          "enum": [
+                            "stateless",
+                            "stateful",
+                            null
+                          ]
+                        },
                         "minStatelessCount": {
                           "type": "integer",
                           "description": "Minimum number of stateless nodes to create during pipeline initiation.",
@@ -60296,6 +60466,16 @@
                           "hyperparamsTuner"
                         ]
                       },
+                      "stateType": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "Read-only. Resolved from the algorithm stateType (gateway is always stateful). A conflicting value is rejected",
+                        "enum": [
+                          "stateless",
+                          "stateful",
+                          null
+                        ]
+                      },
                       "minStatelessCount": {
                         "type": "integer",
                         "description": "Minimum number of stateless nodes to create during pipeline initiation.",
@@ -60840,6 +61020,16 @@
                           "gateway",
                           "output",
                           "hyperparamsTuner"
+                        ]
+                      },
+                      "stateType": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "Read-only. Resolved from the algorithm stateType (gateway is always stateful). A conflicting value is rejected",
+                        "enum": [
+                          "stateless",
+                          "stateful",
+                          null
                         ]
                       },
                       "minStatelessCount": {
@@ -61396,6 +61586,16 @@
                           "gateway",
                           "output",
                           "hyperparamsTuner"
+                        ]
+                      },
+                      "stateType": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "Read-only. Resolved from the algorithm stateType (gateway is always stateful). A conflicting value is rejected",
+                        "enum": [
+                          "stateless",
+                          "stateful",
+                          null
                         ]
                       },
                       "minStatelessCount": {
@@ -64702,6 +64902,16 @@
                           "hyperparamsTuner"
                         ]
                       },
+                      "stateType": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "Read-only. Resolved from the algorithm stateType (gateway is always stateful). A conflicting value is rejected",
+                        "enum": [
+                          "stateless",
+                          "stateful",
+                          null
+                        ]
+                      },
                       "minStatelessCount": {
                         "type": "integer",
                         "description": "Minimum number of stateless nodes to create during pipeline initiation.",
@@ -65295,6 +65505,16 @@
                             "hyperparamsTuner"
                           ]
                         },
+                        "stateType": {
+                          "type": "string",
+                          "nullable": true,
+                          "description": "Read-only. Resolved from the algorithm stateType (gateway is always stateful). A conflicting value is rejected",
+                          "enum": [
+                            "stateless",
+                            "stateful",
+                            null
+                          ]
+                        },
                         "minStatelessCount": {
                           "type": "integer",
                           "description": "Minimum number of stateless nodes to create during pipeline initiation.",
@@ -65842,6 +66062,16 @@
                           "hyperparamsTuner"
                         ]
                       },
+                      "stateType": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "Read-only. Resolved from the algorithm stateType (gateway is always stateful). A conflicting value is rejected",
+                        "enum": [
+                          "stateless",
+                          "stateful",
+                          null
+                        ]
+                      },
                       "minStatelessCount": {
                         "type": "integer",
                         "description": "Minimum number of stateless nodes to create during pipeline initiation.",
@@ -66384,6 +66614,16 @@
                           "gateway",
                           "output",
                           "hyperparamsTuner"
+                        ]
+                      },
+                      "stateType": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "Read-only. Resolved from the algorithm stateType (gateway is always stateful). A conflicting value is rejected",
+                        "enum": [
+                          "stateless",
+                          "stateful",
+                          null
                         ]
                       },
                       "minStatelessCount": {
