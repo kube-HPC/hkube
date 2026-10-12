@@ -28,8 +28,7 @@ content:
           progressVerbosityLevel: "info"
         priority: 3
         nodes:
-          - stateType: "stateful"
-            nodeName: "A"
+          - nodeName: "A"
             algorithmName: "stream-alg"
             input:
               - msgPerSec: "@flowInput.msgPerSec"
@@ -39,8 +38,7 @@ content:
             ttl: 0
             kind: "algorithm"
             minStatelessCount: 0
-          - stateType: "stateless"
-            nodeName: "B"
+          - nodeName: "B"
             algorithmName: "stream-alg"
             minStatelessCount: 0
             maxStatelessCount: 0
@@ -51,8 +49,7 @@ content:
               limit: 3
             ttl: 0
             kind: "algorithm"
-          - stateType: "stateless"
-            nodeName: "C"
+          - nodeName: "C"
             algorithmName: "stream-alg"
             minStatelessCount: 3
             input:
@@ -62,8 +59,7 @@ content:
               limit: 3
             ttl: 0
             kind: "algorithm"
-          - stateType: "stateless"
-            nodeName: "D"
+          - nodeName: "D"
             algorithmName: "stream-alg"
             minStatelessCount: 1
             input:

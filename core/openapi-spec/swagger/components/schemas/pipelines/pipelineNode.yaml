@@ -43,6 +43,14 @@ properties:
       - cartesian
   kind:
     $ref: "#/components/schemas/nodeKind"
+  stateType:
+    type: string
+    nullable: true
+    description: Optional and read-only. Derived from the algorithm stateType (stateless if unset; gateway nodes are always stateful). If sent, must match the derived value, otherwise the request is rejected. Not persisted in stored pipelines
+    enum:
+      - stateless
+      - stateful
+      - null
   minStatelessCount:
     type: integer
     description: Minimum number of stateless nodes to create during pipeline initiation.

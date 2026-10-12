@@ -13,8 +13,7 @@ const versionsService = require('./pipeline-versions');
 class PipelineService {
     async updatePipeline(options, userName) {
         validator.pipelines.validateUpdatePipeline(options);
-        await validator.algorithms.validateAlgorithmExists(options);
-        validator.gateways.validateGatewayNodes(options.nodes);
+        await this._validateNodesAndStripStateType(options);
         const oldPipeLine = await this.getPipeline(options);
         const newPipeline = {
             modified: Date.now(),
@@ -184,8 +183,7 @@ class PipelineService {
     async insertPipeline(options, failOnError = true, allowOverwrite = false, userName) {
         try {
             validator.pipelines.validateUpdatePipeline(options);
-            await validator.algorithms.validateAlgorithmExists(options);
-            validator.gateways.validateGatewayNodes(options.nodes);
+            await this._validateNodesAndStripStateType(options);
         }
         catch (error) {
             if (error.code === 409) {
@@ -265,6 +263,16 @@ class PipelineService {
         newPipeline.auditTrail = [auditEntry];
         await stateManager.insertPipeline(newPipeline);
         return newPipeline;
+    }
+
+    // node stateType is resolved from the algorithm on every execution, so it is never persisted
+    async _validateNodesAndStripStateType(pipeline) {
+        const algorithms = await validator.algorithms.validateAlgorithmExists(pipeline);
+        validator.pipelines.validateNodesStateType(pipeline, algorithms);
+        validator.pipelines.validateStatelessCounts(pipeline, algorithms);
+        pipeline.nodes.forEach((node) => {
+            delete node.stateType; // eslint-disable-line no-param-reassign
+        });
     }
 
     _comparePipelines(oldPipeline, newPipeline) {

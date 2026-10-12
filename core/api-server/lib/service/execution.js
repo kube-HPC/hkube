@@ -20,7 +20,7 @@ const auditing = require('../utils/auditing');
 class ExecutionService {
     async runRaw(options, userName) {
         validator.executions.validateRunRawPipeline(options);
-        return this._runPipeline({ pipeline: options, parentSpan: options.spanId, types: [pipelineTypes.RAW], userName });
+        return this._runPipeline({ pipeline: options, parentSpan: options.spanId, types: [pipelineTypes.RAW], options: { validateStateType: true }, userName });
     }
 
     async runStored(options, userName) {
@@ -98,7 +98,7 @@ class ExecutionService {
     async _runPipeline(payload) {
         const { pipeline, rootJobId, options, parentSpan, types, externalId, userName } = payload;
         const { flowInputMetadata, flowInput, ...restPipeline } = pipeline;
-        const { validateNodes } = options || {};
+        const { validateNodes, validateStateType } = options || {};
         let extendedPipeline = restPipeline;
         const userPipeline = cloneDeep(extendedPipeline);
 
@@ -113,6 +113,10 @@ class ExecutionService {
             extendedPipeline = await pipelineCreator.updateOutput(extendedPipeline, jobId);
             extendedPipeline = await pipelineCreator.updateOptimize(extendedPipeline, jobId);
             const algorithms = await validator.algorithms.validateAlgorithmExists(extendedPipeline);
+            if (validateStateType) {
+                validator.pipelines.validateNodesStateType(extendedPipeline, algorithms);
+            }
+            validator.pipelines.validateStatelessCounts(extendedPipeline, algorithms);
             extendedPipeline = await pipelineCreator.buildStreamingFlow(extendedPipeline, jobId, algorithms);
 
             const shouldValidateNodes = validateNodes ?? true;
