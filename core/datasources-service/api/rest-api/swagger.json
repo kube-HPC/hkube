@@ -250,7 +250,7 @@
                         "stateType": {
                           "type": "string",
                           "nullable": true,
-                          "description": "Read-only. Resolved from the algorithm stateType (gateway is always stateful). A conflicting value is rejected",
+                          "description": "Optional and read-only. Derived from the algorithm stateType (stateless if unset; gateway nodes are always stateful). If sent, must match the derived value, otherwise the request is rejected. Not persisted in stored pipelines",
                           "enum": [
                             "stateless",
                             "stateful",
@@ -326,7 +326,7 @@
                                 },
                                 "stateType": {
                                   "type": "string",
-                                  "description": "The state type of the gateway (e.g., stateful, stateless)"
+                                  "description": "Set by the system. Gateways are always stateful"
                                 },
                                 "algorithmImage": {
                                   "type": "string",
@@ -875,7 +875,7 @@
                         "stateType": {
                           "type": "string",
                           "nullable": true,
-                          "description": "Read-only. Resolved from the algorithm stateType (gateway is always stateful). A conflicting value is rejected",
+                          "description": "Optional and read-only. Derived from the algorithm stateType (stateless if unset; gateway nodes are always stateful). If sent, must match the derived value, otherwise the request is rejected. Not persisted in stored pipelines",
                           "enum": [
                             "stateless",
                             "stateful",
@@ -951,7 +951,7 @@
                                 },
                                 "stateType": {
                                   "type": "string",
-                                  "description": "The state type of the gateway (e.g., stateful, stateless)"
+                                  "description": "Set by the system. Gateways are always stateful"
                                 },
                                 "algorithmImage": {
                                   "type": "string",
@@ -11515,6 +11515,7 @@
                       "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
                     },
                     "stateType": {
+                      "description": "Streaming state type. Source of truth for every pipeline node using this algorithm. Unset means a batch algorithm (treated as stateless in stream pipelines)",
                       "enum": [
                         "stateless",
                         "stateful"
@@ -12342,6 +12343,7 @@
                             "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
                           },
                           "stateType": {
+                            "description": "Streaming state type. Source of truth for every pipeline node using this algorithm. Unset means a batch algorithm (treated as stateless in stream pipelines)",
                             "enum": [
                               "stateless",
                               "stateful"
@@ -12967,6 +12969,7 @@
                         "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
                       },
                       "stateType": {
+                        "description": "Streaming state type. Source of truth for every pipeline node using this algorithm. Unset means a batch algorithm (treated as stateless in stream pipelines)",
                         "enum": [
                           "stateless",
                           "stateful"
@@ -13602,6 +13605,7 @@
                         "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
                       },
                       "stateType": {
+                        "description": "Streaming state type. Source of truth for every pipeline node using this algorithm. Unset means a batch algorithm (treated as stateless in stream pipelines)",
                         "enum": [
                           "stateless",
                           "stateful"
@@ -14132,6 +14136,7 @@
                           "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
                         },
                         "stateType": {
+                          "description": "Streaming state type. Source of truth for every pipeline node using this algorithm. Unset means a batch algorithm (treated as stateless in stream pipelines)",
                           "enum": [
                             "stateless",
                             "stateful"
@@ -14799,6 +14804,7 @@
                         "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
                       },
                       "stateType": {
+                        "description": "Streaming state type. Source of truth for every pipeline node using this algorithm. Unset means a batch algorithm (treated as stateless in stream pipelines)",
                         "enum": [
                           "stateless",
                           "stateful"
@@ -15334,6 +15340,7 @@
                           "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
                         },
                         "stateType": {
+                          "description": "Streaming state type. Source of truth for every pipeline node using this algorithm. Unset means a batch algorithm (treated as stateless in stream pipelines)",
                           "enum": [
                             "stateless",
                             "stateful"
@@ -16028,6 +16035,7 @@
                         "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
                       },
                       "stateType": {
+                        "description": "Streaming state type. Source of truth for every pipeline node using this algorithm. Unset means a batch algorithm (treated as stateless in stream pipelines)",
                         "enum": [
                           "stateless",
                           "stateful"
@@ -16563,6 +16571,7 @@
                           "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
                         },
                         "stateType": {
+                          "description": "Streaming state type. Source of truth for every pipeline node using this algorithm. Unset means a batch algorithm (treated as stateless in stream pipelines)",
                           "enum": [
                             "stateless",
                             "stateful"
@@ -17073,7 +17082,7 @@
                           "stateType": {
                             "type": "string",
                             "nullable": true,
-                            "description": "Read-only. Resolved from the algorithm stateType (gateway is always stateful). A conflicting value is rejected",
+                            "description": "Optional and read-only. Derived from the algorithm stateType (stateless if unset; gateway nodes are always stateful). If sent, must match the derived value, otherwise the request is rejected. Not persisted in stored pipelines",
                             "enum": [
                               "stateless",
                               "stateful",
@@ -17149,7 +17158,7 @@
                                   },
                                   "stateType": {
                                     "type": "string",
-                                    "description": "The state type of the gateway (e.g., stateful, stateless)"
+                                    "description": "Set by the system. Gateways are always stateful"
                                   },
                                   "algorithmImage": {
                                     "type": "string",
@@ -18211,7 +18220,7 @@
                             "stateType": {
                               "type": "string",
                               "nullable": true,
-                              "description": "Read-only. Resolved from the algorithm stateType (gateway is always stateful). A conflicting value is rejected",
+                              "description": "Optional and read-only. Derived from the algorithm stateType (stateless if unset; gateway nodes are always stateful). If sent, must match the derived value, otherwise the request is rejected. Not persisted in stored pipelines",
                               "enum": [
                                 "stateless",
                                 "stateful",
@@ -18287,7 +18296,7 @@
                                     },
                                     "stateType": {
                                       "type": "string",
-                                      "description": "The state type of the gateway (e.g., stateful, stateless)"
+                                      "description": "Set by the system. Gateways are always stateful"
                                     },
                                     "algorithmImage": {
                                       "type": "string",
@@ -19012,7 +19021,7 @@
                             "stateType": {
                               "type": "string",
                               "nullable": true,
-                              "description": "Read-only. Resolved from the algorithm stateType (gateway is always stateful). A conflicting value is rejected",
+                              "description": "Optional and read-only. Derived from the algorithm stateType (stateless if unset; gateway nodes are always stateful). If sent, must match the derived value, otherwise the request is rejected. Not persisted in stored pipelines",
                               "enum": [
                                 "stateless",
                                 "stateful",
@@ -19088,7 +19097,7 @@
                                     },
                                     "stateType": {
                                       "type": "string",
-                                      "description": "The state type of the gateway (e.g., stateful, stateless)"
+                                      "description": "Set by the system. Gateways are always stateful"
                                     },
                                     "algorithmImage": {
                                       "type": "string",
@@ -19434,7 +19443,6 @@
                     "priority": 3,
                     "nodes": [
                       {
-                        "stateType": "stateful",
                         "nodeName": "A",
                         "algorithmName": "stream-alg",
                         "input": [
@@ -19451,7 +19459,6 @@
                         "minStatelessCount": 0
                       },
                       {
-                        "stateType": "stateless",
                         "nodeName": "B",
                         "algorithmName": "stream-alg",
                         "minStatelessCount": 0,
@@ -19469,7 +19476,6 @@
                         "kind": "algorithm"
                       },
                       {
-                        "stateType": "stateless",
                         "nodeName": "C",
                         "algorithmName": "stream-alg",
                         "minStatelessCount": 3,
@@ -19486,7 +19492,6 @@
                         "kind": "algorithm"
                       },
                       {
-                        "stateType": "stateless",
                         "nodeName": "D",
                         "algorithmName": "stream-alg",
                         "minStatelessCount": 1,
@@ -19853,7 +19858,7 @@
                         "stateType": {
                           "type": "string",
                           "nullable": true,
-                          "description": "Read-only. Resolved from the algorithm stateType (gateway is always stateful). A conflicting value is rejected",
+                          "description": "Optional and read-only. Derived from the algorithm stateType (stateless if unset; gateway nodes are always stateful). If sent, must match the derived value, otherwise the request is rejected. Not persisted in stored pipelines",
                           "enum": [
                             "stateless",
                             "stateful",
@@ -19929,7 +19934,7 @@
                                 },
                                 "stateType": {
                                   "type": "string",
-                                  "description": "The state type of the gateway (e.g., stateful, stateless)"
+                                  "description": "Set by the system. Gateways are always stateful"
                                 },
                                 "algorithmImage": {
                                   "type": "string",
@@ -20368,7 +20373,7 @@
                           "stateType": {
                             "type": "string",
                             "nullable": true,
-                            "description": "Read-only. Resolved from the algorithm stateType (gateway is always stateful). A conflicting value is rejected",
+                            "description": "Optional and read-only. Derived from the algorithm stateType (stateless if unset; gateway nodes are always stateful). If sent, must match the derived value, otherwise the request is rejected. Not persisted in stored pipelines",
                             "enum": [
                               "stateless",
                               "stateful",
@@ -20444,7 +20449,7 @@
                                   },
                                   "stateType": {
                                     "type": "string",
-                                    "description": "The state type of the gateway (e.g., stateful, stateless)"
+                                    "description": "Set by the system. Gateways are always stateful"
                                   },
                                   "algorithmImage": {
                                     "type": "string",
@@ -21052,7 +21057,7 @@
                         "stateType": {
                           "type": "string",
                           "nullable": true,
-                          "description": "Read-only. Resolved from the algorithm stateType (gateway is always stateful). A conflicting value is rejected",
+                          "description": "Optional and read-only. Derived from the algorithm stateType (stateless if unset; gateway nodes are always stateful). If sent, must match the derived value, otherwise the request is rejected. Not persisted in stored pipelines",
                           "enum": [
                             "stateless",
                             "stateful",
@@ -21128,7 +21133,7 @@
                                 },
                                 "stateType": {
                                   "type": "string",
-                                  "description": "The state type of the gateway (e.g., stateful, stateless)"
+                                  "description": "Set by the system. Gateways are always stateful"
                                 },
                                 "algorithmImage": {
                                   "type": "string",
@@ -21567,7 +21572,7 @@
                           "stateType": {
                             "type": "string",
                             "nullable": true,
-                            "description": "Read-only. Resolved from the algorithm stateType (gateway is always stateful). A conflicting value is rejected",
+                            "description": "Optional and read-only. Derived from the algorithm stateType (stateless if unset; gateway nodes are always stateful). If sent, must match the derived value, otherwise the request is rejected. Not persisted in stored pipelines",
                             "enum": [
                               "stateless",
                               "stateful",
@@ -21643,7 +21648,7 @@
                                   },
                                   "stateType": {
                                     "type": "string",
-                                    "description": "The state type of the gateway (e.g., stateful, stateless)"
+                                    "description": "Set by the system. Gateways are always stateful"
                                   },
                                   "algorithmImage": {
                                     "type": "string",
@@ -25507,6 +25512,7 @@
                           "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
                         },
                         "stateType": {
+                          "description": "Streaming state type. Source of truth for every pipeline node using this algorithm. Unset means a batch algorithm (treated as stateless in stream pipelines)",
                           "enum": [
                             "stateless",
                             "stateful"
@@ -26259,6 +26265,7 @@
                             "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
                           },
                           "stateType": {
+                            "description": "Streaming state type. Source of truth for every pipeline node using this algorithm. Unset means a batch algorithm (treated as stateless in stream pipelines)",
                             "enum": [
                               "stateless",
                               "stateful"
@@ -29189,6 +29196,7 @@
                         "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
                       },
                       "stateType": {
+                        "description": "Streaming state type. Source of truth for every pipeline node using this algorithm. Unset means a batch algorithm (treated as stateless in stream pipelines)",
                         "enum": [
                           "stateless",
                           "stateful"
@@ -29886,6 +29894,7 @@
                       "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
                     },
                     "stateType": {
+                      "description": "Streaming state type. Source of truth for every pipeline node using this algorithm. Unset means a batch algorithm (treated as stateless in stream pipelines)",
                       "enum": [
                         "stateless",
                         "stateful"
@@ -30719,6 +30728,7 @@
                       "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
                     },
                     "stateType": {
+                      "description": "Streaming state type. Source of truth for every pipeline node using this algorithm. Unset means a batch algorithm (treated as stateless in stream pipelines)",
                       "enum": [
                         "stateless",
                         "stateful"
@@ -31428,6 +31438,7 @@
                       "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
                     },
                     "stateType": {
+                      "description": "Streaming state type. Source of truth for every pipeline node using this algorithm. Unset means a batch algorithm (treated as stateless in stream pipelines)",
                       "enum": [
                         "stateless",
                         "stateful"
@@ -32110,6 +32121,7 @@
                       "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
                     },
                     "stateType": {
+                      "description": "Streaming state type. Source of truth for every pipeline node using this algorithm. Unset means a batch algorithm (treated as stateless in stream pipelines)",
                       "enum": [
                         "stateless",
                         "stateful"
@@ -32585,7 +32597,7 @@
                             "stateType": {
                               "type": "string",
                               "nullable": true,
-                              "description": "Read-only. Resolved from the algorithm stateType (gateway is always stateful). A conflicting value is rejected",
+                              "description": "Optional and read-only. Derived from the algorithm stateType (stateless if unset; gateway nodes are always stateful). If sent, must match the derived value, otherwise the request is rejected. Not persisted in stored pipelines",
                               "enum": [
                                 "stateless",
                                 "stateful",
@@ -32661,7 +32673,7 @@
                                     },
                                     "stateType": {
                                       "type": "string",
-                                      "description": "The state type of the gateway (e.g., stateful, stateless)"
+                                      "description": "Set by the system. Gateways are always stateful"
                                     },
                                     "algorithmImage": {
                                       "type": "string",
@@ -33258,7 +33270,7 @@
                           "stateType": {
                             "type": "string",
                             "nullable": true,
-                            "description": "Read-only. Resolved from the algorithm stateType (gateway is always stateful). A conflicting value is rejected",
+                            "description": "Optional and read-only. Derived from the algorithm stateType (stateless if unset; gateway nodes are always stateful). If sent, must match the derived value, otherwise the request is rejected. Not persisted in stored pipelines",
                             "enum": [
                               "stateless",
                               "stateful",
@@ -33334,7 +33346,7 @@
                                   },
                                   "stateType": {
                                     "type": "string",
-                                    "description": "The state type of the gateway (e.g., stateful, stateless)"
+                                    "description": "Set by the system. Gateways are always stateful"
                                   },
                                   "algorithmImage": {
                                     "type": "string",
@@ -34097,7 +34109,7 @@
                           "stateType": {
                             "type": "string",
                             "nullable": true,
-                            "description": "Read-only. Resolved from the algorithm stateType (gateway is always stateful). A conflicting value is rejected",
+                            "description": "Optional and read-only. Derived from the algorithm stateType (stateless if unset; gateway nodes are always stateful). If sent, must match the derived value, otherwise the request is rejected. Not persisted in stored pipelines",
                             "enum": [
                               "stateless",
                               "stateful",
@@ -34173,7 +34185,7 @@
                                   },
                                   "stateType": {
                                     "type": "string",
-                                    "description": "The state type of the gateway (e.g., stateful, stateless)"
+                                    "description": "Set by the system. Gateways are always stateful"
                                   },
                                   "algorithmImage": {
                                     "type": "string",
@@ -34849,7 +34861,7 @@
                           "stateType": {
                             "type": "string",
                             "nullable": true,
-                            "description": "Read-only. Resolved from the algorithm stateType (gateway is always stateful). A conflicting value is rejected",
+                            "description": "Optional and read-only. Derived from the algorithm stateType (stateless if unset; gateway nodes are always stateful). If sent, must match the derived value, otherwise the request is rejected. Not persisted in stored pipelines",
                             "enum": [
                               "stateless",
                               "stateful",
@@ -34925,7 +34937,7 @@
                                   },
                                   "stateType": {
                                     "type": "string",
-                                    "description": "The state type of the gateway (e.g., stateful, stateless)"
+                                    "description": "Set by the system. Gateways are always stateful"
                                   },
                                   "algorithmImage": {
                                     "type": "string",
@@ -36083,7 +36095,7 @@
                       },
                       "stateType": {
                         "type": "string",
-                        "description": "The state type of the gateway (e.g., stateful, stateless)"
+                        "description": "Set by the system. Gateways are always stateful"
                       },
                       "algorithmImage": {
                         "type": "string",
@@ -36276,7 +36288,7 @@
                     },
                     "stateType": {
                       "type": "string",
-                      "description": "The state type of the gateway (e.g., stateful, stateless)"
+                      "description": "Set by the system. Gateways are always stateful"
                     },
                     "algorithmImage": {
                       "type": "string",
@@ -42895,6 +42907,7 @@
             "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
           },
           "stateType": {
+            "description": "Streaming state type. Source of truth for every pipeline node using this algorithm. Unset means a batch algorithm (treated as stateless in stream pipelines)",
             "enum": [
               "stateless",
               "stateful"
@@ -43398,6 +43411,7 @@
                 "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
               },
               "stateType": {
+                "description": "Streaming state type. Source of truth for every pipeline node using this algorithm. Unset means a batch algorithm (treated as stateless in stream pipelines)",
                 "enum": [
                   "stateless",
                   "stateful"
@@ -45890,7 +45904,7 @@
           },
           "stateType": {
             "type": "string",
-            "description": "The state type of the gateway (e.g., stateful, stateless)"
+            "description": "Set by the system. Gateways are always stateful"
           },
           "algorithmImage": {
             "type": "string",
@@ -46576,7 +46590,7 @@
                     "stateType": {
                       "type": "string",
                       "nullable": true,
-                      "description": "Read-only. Resolved from the algorithm stateType (gateway is always stateful). A conflicting value is rejected",
+                      "description": "Optional and read-only. Derived from the algorithm stateType (stateless if unset; gateway nodes are always stateful). If sent, must match the derived value, otherwise the request is rejected. Not persisted in stored pipelines",
                       "enum": [
                         "stateless",
                         "stateful",
@@ -46652,7 +46666,7 @@
                             },
                             "stateType": {
                               "type": "string",
-                              "description": "The state type of the gateway (e.g., stateful, stateless)"
+                              "description": "Set by the system. Gateways are always stateful"
                             },
                             "algorithmImage": {
                               "type": "string",
@@ -47243,7 +47257,7 @@
                 "stateType": {
                   "type": "string",
                   "nullable": true,
-                  "description": "Read-only. Resolved from the algorithm stateType (gateway is always stateful). A conflicting value is rejected",
+                  "description": "Optional and read-only. Derived from the algorithm stateType (stateless if unset; gateway nodes are always stateful). If sent, must match the derived value, otherwise the request is rejected. Not persisted in stored pipelines",
                   "enum": [
                     "stateless",
                     "stateful",
@@ -47319,7 +47333,7 @@
                         },
                         "stateType": {
                           "type": "string",
-                          "description": "The state type of the gateway (e.g., stateful, stateless)"
+                          "description": "Set by the system. Gateways are always stateful"
                         },
                         "algorithmImage": {
                           "type": "string",
@@ -47754,7 +47768,7 @@
           "stateType": {
             "type": "string",
             "nullable": true,
-            "description": "Read-only. Resolved from the algorithm stateType (gateway is always stateful). A conflicting value is rejected",
+            "description": "Optional and read-only. Derived from the algorithm stateType (stateless if unset; gateway nodes are always stateful). If sent, must match the derived value, otherwise the request is rejected. Not persisted in stored pipelines",
             "enum": [
               "stateless",
               "stateful",
@@ -47830,7 +47844,7 @@
                   },
                   "stateType": {
                     "type": "string",
-                    "description": "The state type of the gateway (e.g., stateful, stateless)"
+                    "description": "Set by the system. Gateways are always stateful"
                   },
                   "algorithmImage": {
                     "type": "string",
@@ -49430,6 +49444,7 @@
                         "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
                       },
                       "stateType": {
+                        "description": "Streaming state type. Source of truth for every pipeline node using this algorithm. Unset means a batch algorithm (treated as stateless in stream pipelines)",
                         "enum": [
                           "stateless",
                           "stateful"
@@ -50108,6 +50123,7 @@
                       "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
                     },
                     "stateType": {
+                      "description": "Streaming state type. Source of truth for every pipeline node using this algorithm. Unset means a batch algorithm (treated as stateless in stream pipelines)",
                       "enum": [
                         "stateless",
                         "stateful"
@@ -53981,7 +53997,7 @@
                   },
                   "stateType": {
                     "type": "string",
-                    "description": "The state type of the gateway (e.g., stateful, stateless)"
+                    "description": "Set by the system. Gateways are always stateful"
                   },
                   "algorithmImage": {
                     "type": "string",
@@ -54101,7 +54117,7 @@
                 },
                 "stateType": {
                   "type": "string",
-                  "description": "The state type of the gateway (e.g., stateful, stateless)"
+                  "description": "Set by the system. Gateways are always stateful"
                 },
                 "algorithmImage": {
                   "type": "string",
@@ -56359,6 +56375,7 @@
                       "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
                     },
                     "stateType": {
+                      "description": "Streaming state type. Source of truth for every pipeline node using this algorithm. Unset means a batch algorithm (treated as stateless in stream pipelines)",
                       "enum": [
                         "stateless",
                         "stateful"
@@ -56949,6 +56966,7 @@
                     "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
                   },
                   "stateType": {
+                    "description": "Streaming state type. Source of truth for every pipeline node using this algorithm. Unset means a batch algorithm (treated as stateless in stream pipelines)",
                     "enum": [
                       "stateless",
                       "stateful"
@@ -57492,6 +57510,7 @@
                   "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
                 },
                 "stateType": {
+                  "description": "Streaming state type. Source of truth for every pipeline node using this algorithm. Unset means a batch algorithm (treated as stateless in stream pipelines)",
                   "enum": [
                     "stateless",
                     "stateful"
@@ -58042,6 +58061,7 @@
                       "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
                     },
                     "stateType": {
+                      "description": "Streaming state type. Source of truth for every pipeline node using this algorithm. Unset means a batch algorithm (treated as stateless in stream pipelines)",
                       "enum": [
                         "stateless",
                         "stateful"
@@ -58593,6 +58613,7 @@
                         "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
                       },
                       "stateType": {
+                        "description": "Streaming state type. Source of truth for every pipeline node using this algorithm. Unset means a batch algorithm (treated as stateless in stream pipelines)",
                         "enum": [
                           "stateless",
                           "stateful"
@@ -59161,6 +59182,7 @@
                       "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
                     },
                     "stateType": {
+                      "description": "Streaming state type. Source of truth for every pipeline node using this algorithm. Unset means a batch algorithm (treated as stateless in stream pipelines)",
                       "enum": [
                         "stateless",
                         "stateful"
@@ -59727,7 +59749,7 @@
                         "stateType": {
                           "type": "string",
                           "nullable": true,
-                          "description": "Read-only. Resolved from the algorithm stateType (gateway is always stateful). A conflicting value is rejected",
+                          "description": "Optional and read-only. Derived from the algorithm stateType (stateless if unset; gateway nodes are always stateful). If sent, must match the derived value, otherwise the request is rejected. Not persisted in stored pipelines",
                           "enum": [
                             "stateless",
                             "stateful",
@@ -59803,7 +59825,7 @@
                                 },
                                 "stateType": {
                                   "type": "string",
-                                  "description": "The state type of the gateway (e.g., stateful, stateless)"
+                                  "description": "Set by the system. Gateways are always stateful"
                                 },
                                 "algorithmImage": {
                                   "type": "string",
@@ -60149,7 +60171,6 @@
                 "priority": 3,
                 "nodes": [
                   {
-                    "stateType": "stateful",
                     "nodeName": "A",
                     "algorithmName": "stream-alg",
                     "input": [
@@ -60166,7 +60187,6 @@
                     "minStatelessCount": 0
                   },
                   {
-                    "stateType": "stateless",
                     "nodeName": "B",
                     "algorithmName": "stream-alg",
                     "minStatelessCount": 0,
@@ -60184,7 +60204,6 @@
                     "kind": "algorithm"
                   },
                   {
-                    "stateType": "stateless",
                     "nodeName": "C",
                     "algorithmName": "stream-alg",
                     "minStatelessCount": 3,
@@ -60201,7 +60220,6 @@
                     "kind": "algorithm"
                   },
                   {
-                    "stateType": "stateless",
                     "nodeName": "D",
                     "algorithmName": "stream-alg",
                     "minStatelessCount": 1,
@@ -60469,7 +60487,7 @@
                       "stateType": {
                         "type": "string",
                         "nullable": true,
-                        "description": "Read-only. Resolved from the algorithm stateType (gateway is always stateful). A conflicting value is rejected",
+                        "description": "Optional and read-only. Derived from the algorithm stateType (stateless if unset; gateway nodes are always stateful). If sent, must match the derived value, otherwise the request is rejected. Not persisted in stored pipelines",
                         "enum": [
                           "stateless",
                           "stateful",
@@ -60545,7 +60563,7 @@
                               },
                               "stateType": {
                                 "type": "string",
-                                "description": "The state type of the gateway (e.g., stateful, stateless)"
+                                "description": "Set by the system. Gateways are always stateful"
                               },
                               "algorithmImage": {
                                 "type": "string",
@@ -61025,7 +61043,7 @@
                       "stateType": {
                         "type": "string",
                         "nullable": true,
-                        "description": "Read-only. Resolved from the algorithm stateType (gateway is always stateful). A conflicting value is rejected",
+                        "description": "Optional and read-only. Derived from the algorithm stateType (stateless if unset; gateway nodes are always stateful). If sent, must match the derived value, otherwise the request is rejected. Not persisted in stored pipelines",
                         "enum": [
                           "stateless",
                           "stateful",
@@ -61101,7 +61119,7 @@
                               },
                               "stateType": {
                                 "type": "string",
-                                "description": "The state type of the gateway (e.g., stateful, stateless)"
+                                "description": "Set by the system. Gateways are always stateful"
                               },
                               "algorithmImage": {
                                 "type": "string",
@@ -61591,7 +61609,7 @@
                       "stateType": {
                         "type": "string",
                         "nullable": true,
-                        "description": "Read-only. Resolved from the algorithm stateType (gateway is always stateful). A conflicting value is rejected",
+                        "description": "Optional and read-only. Derived from the algorithm stateType (stateless if unset; gateway nodes are always stateful). If sent, must match the derived value, otherwise the request is rejected. Not persisted in stored pipelines",
                         "enum": [
                           "stateless",
                           "stateful",
@@ -61667,7 +61685,7 @@
                               },
                               "stateType": {
                                 "type": "string",
-                                "description": "The state type of the gateway (e.g., stateful, stateless)"
+                                "description": "Set by the system. Gateways are always stateful"
                               },
                               "algorithmImage": {
                                 "type": "string",
@@ -62374,6 +62392,7 @@
                   "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
                 },
                 "stateType": {
+                  "description": "Streaming state type. Source of truth for every pipeline node using this algorithm. Unset means a batch algorithm (treated as stateless in stream pipelines)",
                   "enum": [
                     "stateless",
                     "stateful"
@@ -62910,6 +62929,7 @@
                   "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
                 },
                 "stateType": {
+                  "description": "Streaming state type. Source of truth for every pipeline node using this algorithm. Unset means a batch algorithm (treated as stateless in stream pipelines)",
                   "enum": [
                     "stateless",
                     "stateful"
@@ -63452,6 +63472,7 @@
                     "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
                   },
                   "stateType": {
+                    "description": "Streaming state type. Source of truth for every pipeline node using this algorithm. Unset means a batch algorithm (treated as stateless in stream pipelines)",
                     "enum": [
                       "stateless",
                       "stateful"
@@ -64032,6 +64053,7 @@
                   "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
                 },
                 "stateType": {
+                  "description": "Streaming state type. Source of truth for every pipeline node using this algorithm. Unset means a batch algorithm (treated as stateless in stream pipelines)",
                   "enum": [
                     "stateless",
                     "stateful"
@@ -64568,6 +64590,7 @@
                   "description": "attach key value metadata to algorithm pod, usually for tools and libraries"
                 },
                 "stateType": {
+                  "description": "Streaming state type. Source of truth for every pipeline node using this algorithm. Unset means a batch algorithm (treated as stateless in stream pipelines)",
                   "enum": [
                     "stateless",
                     "stateful"
@@ -64905,7 +64928,7 @@
                       "stateType": {
                         "type": "string",
                         "nullable": true,
-                        "description": "Read-only. Resolved from the algorithm stateType (gateway is always stateful). A conflicting value is rejected",
+                        "description": "Optional and read-only. Derived from the algorithm stateType (stateless if unset; gateway nodes are always stateful). If sent, must match the derived value, otherwise the request is rejected. Not persisted in stored pipelines",
                         "enum": [
                           "stateless",
                           "stateful",
@@ -64981,7 +65004,7 @@
                               },
                               "stateType": {
                                 "type": "string",
-                                "description": "The state type of the gateway (e.g., stateful, stateless)"
+                                "description": "Set by the system. Gateways are always stateful"
                               },
                               "algorithmImage": {
                                 "type": "string",
@@ -65508,7 +65531,7 @@
                         "stateType": {
                           "type": "string",
                           "nullable": true,
-                          "description": "Read-only. Resolved from the algorithm stateType (gateway is always stateful). A conflicting value is rejected",
+                          "description": "Optional and read-only. Derived from the algorithm stateType (stateless if unset; gateway nodes are always stateful). If sent, must match the derived value, otherwise the request is rejected. Not persisted in stored pipelines",
                           "enum": [
                             "stateless",
                             "stateful",
@@ -65584,7 +65607,7 @@
                                 },
                                 "stateType": {
                                   "type": "string",
-                                  "description": "The state type of the gateway (e.g., stateful, stateless)"
+                                  "description": "Set by the system. Gateways are always stateful"
                                 },
                                 "algorithmImage": {
                                   "type": "string",
@@ -66065,7 +66088,7 @@
                       "stateType": {
                         "type": "string",
                         "nullable": true,
-                        "description": "Read-only. Resolved from the algorithm stateType (gateway is always stateful). A conflicting value is rejected",
+                        "description": "Optional and read-only. Derived from the algorithm stateType (stateless if unset; gateway nodes are always stateful). If sent, must match the derived value, otherwise the request is rejected. Not persisted in stored pipelines",
                         "enum": [
                           "stateless",
                           "stateful",
@@ -66141,7 +66164,7 @@
                               },
                               "stateType": {
                                 "type": "string",
-                                "description": "The state type of the gateway (e.g., stateful, stateless)"
+                                "description": "Set by the system. Gateways are always stateful"
                               },
                               "algorithmImage": {
                                 "type": "string",
@@ -66619,7 +66642,7 @@
                       "stateType": {
                         "type": "string",
                         "nullable": true,
-                        "description": "Read-only. Resolved from the algorithm stateType (gateway is always stateful). A conflicting value is rejected",
+                        "description": "Optional and read-only. Derived from the algorithm stateType (stateless if unset; gateway nodes are always stateful). If sent, must match the derived value, otherwise the request is rejected. Not persisted in stored pipelines",
                         "enum": [
                           "stateless",
                           "stateful",
@@ -66695,7 +66718,7 @@
                               },
                               "stateType": {
                                 "type": "string",
-                                "description": "The state type of the gateway (e.g., stateful, stateless)"
+                                "description": "Set by the system. Gateways are always stateful"
                               },
                               "algorithmImage": {
                                 "type": "string",

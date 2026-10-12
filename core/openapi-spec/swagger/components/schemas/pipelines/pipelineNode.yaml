@@ -46,7 +46,7 @@ properties:
   stateType:
     type: string
     nullable: true
-    description: Read-only. Resolved from the algorithm stateType (gateway is always stateful). A conflicting value is rejected
+    description: Optional and read-only. Derived from the algorithm stateType (stateless if unset; gateway nodes are always stateful). If sent, must match the derived value, otherwise the request is rejected. Not persisted in stored pipelines
     enum:
       - stateless
       - stateful
