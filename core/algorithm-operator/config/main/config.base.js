@@ -5,7 +5,7 @@ const config = module.exports = {};
 const useSentinel = !!process.env.REDIS_SENTINEL_SERVICE_HOST;
 config.serviceName = packageJson.name;
 config.version = packageJson.version;
-config.intervalMs = process.env.INTERVAL_MS || 10000;
+config.intervalMs = 2000; // process.env.INTERVAL_MS || 10000;
 config.boardsIntervalMs = process.env.BOARDS_INTERVAL_MS || 2000;
 config.boardTimeOut = formatter.parseInt(process.env.BOARDS_TIMEOUT, 3 * 60 * 60) * 1000;
 config.defaultStorage = process.env.DEFAULT_STORAGE || 's3';
