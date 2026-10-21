@@ -55,6 +55,12 @@ config.healthchecks = {
     enabled: formatter.parseBool(process.env.HEALTHCHECK_ENABLE, true)
 }
 
+// Retries for etcd job-status STM conflicts (pipeline-driver writes the same key concurrently, e.g. streaming progress).
+config.jobStatusUpdate = {
+    conflictRetries: formatter.parseInt(process.env.JOB_STATUS_UPDATE_CONFLICT_RETRIES, 5),
+    conflictRetryDelay: formatter.parseInt(process.env.JOB_STATUS_UPDATE_CONFLICT_RETRY_DELAY_MS, 100),
+};
+
 config.ingressPrefix = process.env.INGRESS_PREFIX || '';
 
 config.debugUrl = {
