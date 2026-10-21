@@ -12,6 +12,8 @@ const preferencesStore = require('./preferences-store');
 const component = require('../consts/componentNames').DB;
 const leaderElection = require('../leader-election/leader-election');
 
+const STM_CONFLICT_MESSAGE = 'A conflict occurred executing the software transaction';
+
 class StateManager extends EventEmitter {
     constructor() {
         super();
@@ -438,7 +440,30 @@ class StateManager extends EventEmitter {
 
     async updateJobStatus(status) {
         await this._db.jobs.updateStatus(status);
-        await this._etcd.jobs.status.update(status);
+        await this._updateEtcdJobStatus(status);
+    }
+
+    _isStmConflictError(error) {
+        return error?.constructor?.name === 'STMConflictError' || error?.message === STM_CONFLICT_MESSAGE;
+    }
+
+    // @hkube/etcd runs status updates as an STM with retries: 0, so a concurrent write
+    // (e.g. pipeline-driver streaming progress) fails the whole request unless we retry here.
+    async _updateEtcdJobStatus(status) {
+        const { conflictRetries = 5, conflictRetryDelay = 100 } = this._options?.jobStatusUpdate || {};
+        for (let attempt = 0; ; attempt += 1) {
+            try {
+                return await this._etcd.jobs.status.update(status);
+            }
+            catch (e) {
+                if (!this._isStmConflictError(e) || attempt >= conflictRetries) {
+                    throw e;
+                }
+                const delay = conflictRetryDelay + Math.floor(Math.random() * conflictRetryDelay);
+                log.warning(`etcd conflict updating status of job ${status.jobId} to ${status.status}, retry ${attempt + 1}/${conflictRetries} in ${delay}ms`, { component });
+                await new Promise(resolve => setTimeout(resolve, delay));
+            }
+        }
     }
 
     async updateJobResult(result) {

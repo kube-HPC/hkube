@@ -253,7 +253,7 @@ the bounded failover window).
 | Pipeline versions | MongoDB (`pipelines.versions`) | Create on insert/update |
 | Experiment definitions | MongoDB (`experiments`) | CRUD via state-manager |
 | Job records | MongoDB + Etcd (`jobs`) | Create on run, update status/result |
-| Job status | MongoDB + Etcd (`jobs.status`) | Update on stop/pause/resume/complete |
+| Job status | MongoDB + Etcd (`jobs.status`) | Update on stop/pause/resume/complete. The etcd write is an STM shared with pipeline-driver (progress) and pipeline-driver-queue; `STMConflictError` is retried (`jobStatusUpdate.*`), other errors fail immediately |
 | Job results | MongoDB + Etcd (`jobs.results`) | Update on complete |
 | Webhook delivery records | MongoDB (`webhooks.result`, `webhooks.status`) | Update on webhook send |
 | TensorBoard/OptunaBoard records | MongoDB (`tensorboards`, `optunaboards`) | CRUD lifecycle |
@@ -334,6 +334,8 @@ the bounded failover window).
 | `leaderElection.renewInterval` | `LEADER_RENEW_INTERVAL` | `1000` ms | How often the leader renews the lock TTL |
 | `leaderElection.backupInterval` | `LEADER_BACKUP_INTERVAL` | `5000` ms | Backup existence-check interval that re-elects when the key is missing |
 | `leaderElection.jitter` | `LEADER_ELECTION_JITTER` | `250` ms | Max random delay before an election, to spread concurrent attempts |
+| `jobStatusUpdate.conflictRetries` | `JOB_STATUS_UPDATE_CONFLICT_RETRIES` | `5` | Retries of the etcd job-status update on `STMConflictError` (stop/pause/resume) |
+| `jobStatusUpdate.conflictRetryDelay` | `JOB_STATUS_UPDATE_CONFLICT_RETRY_DELAY_MS` | `100` ms | Base delay between conflict retries; actual delay is randomized in `[delay, 2*delay)` |
 | `jobs.producer.prefix` | — | `pipeline-driver-queue` | Redis queue prefix for job production |
 | `jobs.producer.jobType` | — | `pipeline-job` | Redis job type name |
 | `discoveryInterval` (DatabaseQuerier) | — | `2000` ms (hardcoded) | Etcd discovery polling interval |
