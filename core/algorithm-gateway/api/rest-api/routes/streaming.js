@@ -6,6 +6,12 @@ const routes = () => {
     router.post('/message', (req, res) => {
         const { flow } = req.query;
         const message = req.body;
+        if (!flow || typeof flow !== 'string' || flow.length === 0) {
+            return res.status(400).json({ error: 'flow query parameter is required' });
+        }
+        if (message === undefined || message === null) {
+            return res.status(400).json({ error: 'message body is required' });
+        }
         algorithm.streamMessage(message, flow);
         res.json({ message: 'OK' });
     });
