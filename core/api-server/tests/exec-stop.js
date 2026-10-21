@@ -1,6 +1,9 @@
 const { expect } = require('chai');
 const HttpStatus = require('http-status-codes');
+const sinon = require('sinon');
+const { STMConflictError } = require('etcd3');
 const { pipelineStatuses } = require('@hkube/consts');
+const stateManager = require('../lib/state/state-manager');
 const { request } = require('./utils');
 let restUrl;
 
@@ -162,6 +165,52 @@ describe('Executions', function () {
             };
             const response = await request(optionsStop);
             expect(response.body.error.message).to.equal(`No jobs found matching criteria (pipelineName: ${optionsStop.body.pipelineName}, statuses: ${pipelineStatuses.ACTIVE},${pipelineStatuses.RESUMED})`);
+        });
+        describe('etcd STM conflict on job status update', () => {
+            let originalOptions;
+            before(() => {
+                originalOptions = stateManager._options.jobStatusUpdate;
+                stateManager._options.jobStatusUpdate = { conflictRetries: 3, conflictRetryDelay: 5 };
+            });
+            after(() => {
+                stateManager._options.jobStatusUpdate = originalOptions;
+            });
+            afterEach(() => {
+                sinon.restore();
+            });
+            const runStored = async () => {
+                const stored = await request({ uri: restUrl + '/exec/stored', body: { name: 'flow1' } });
+                return stored.body.jobId;
+            };
+            it('should retry and stop the job when etcd status update conflicts', async () => {
+                const jobId = await runStored();
+                const statusApi = stateManager._etcd.jobs.status;
+                const original = statusApi.update.bind(statusApi);
+                const stub = sinon.stub(statusApi, 'update');
+                stub.onCall(0).rejects(new STMConflictError());
+                stub.onCall(1).rejects(new STMConflictError());
+                stub.callsFake(original);
+                const response = await request({ uri: restPath, body: { jobId } });
+                expect(response.body.error).to.not.exist;
+                expect(response.body.stoppedJobIds).to.include(jobId);
+                expect(stub.callCount).to.equal(3);
+                const status = await stateManager._etcd.jobs.status.get({ jobId });
+                expect(status.status).to.equal(pipelineStatuses.STOPPED);
+            });
+            it('should fail after exhausting conflict retries', async () => {
+                const jobId = await runStored();
+                const stub = sinon.stub(stateManager._etcd.jobs.status, 'update').rejects(new STMConflictError());
+                const response = await request({ uri: restPath, body: { jobId } });
+                expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.INTERNAL_SERVER_ERROR);
+                expect(stub.callCount).to.equal(4);
+            });
+            it('should not retry on non-conflict etcd errors', async () => {
+                const jobId = await runStored();
+                const stub = sinon.stub(stateManager._etcd.jobs.status, 'update').rejects(new Error('etcd unavailable'));
+                const response = await request({ uri: restPath, body: { jobId } });
+                expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.INTERNAL_SERVER_ERROR);
+                expect(stub.callCount).to.equal(1);
+            });
         });
     });
 });
