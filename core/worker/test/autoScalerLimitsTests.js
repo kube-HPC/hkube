@@ -67,7 +67,7 @@ describe('auto-scaler stateless limits intervention log', () => {
         expect(capBoth(20)).to.equal(10);
         const logs = interventionLogs();
         expect(logs).to.have.lengthOf(1);
-        expect(logs[0]).to.equal(`scaling bothLimits intervention, node node-a: required 20 -> 10 (min 2, max 10). ${ROUND_TRIP_REASON}`);
+        expect(logs[0]).to.equal(`scaling bothLimits intervention, node node-a: required 20 replicas is above maxStatelessCount 10, setting required to 10. ${ROUND_TRIP_REASON}`);
     });
 
     it('should raise to min and log the final value', () => {
@@ -75,17 +75,17 @@ describe('auto-scaler stateless limits intervention log', () => {
         expect(capBoth(1)).to.equal(4);
         const logs = interventionLogs();
         expect(logs).to.have.lengthOf(1);
-        expect(logs[0]).to.equal(`scaling bothLimits intervention, node node-a: required 1 -> 4 (min 4). ${ROUND_TRIP_REASON}`);
+        expect(logs[0]).to.equal(`scaling bothLimits intervention, node node-a: required 1 replicas is below minStatelessCount 4, setting required to 4. ${ROUND_TRIP_REASON}`);
     });
 
     it('should log once for fixed-size node (min = max) across ticks', () => {
         createAutoScaler({ min: 15, max: 15 });
-        [5, 6, 5, 7, 3, 5, 20, 15, 5].forEach((required) => {
+        [5, 6, 5, 7, 3, 5, 20, 5].forEach((required) => {
             expect(capBoth(required)).to.equal(15);
         });
         const logs = interventionLogs();
         expect(logs).to.have.lengthOf(1);
-        expect(logs[0]).to.equal(`scaling bothLimits intervention, node node-a: required 5 -> 15 (min 15, max 15). ${ROUND_TRIP_REASON}`);
+        expect(logs[0]).to.equal(`scaling bothLimits intervention, node node-a: required 5 replicas is below minStatelessCount 15, setting required to 15. ${ROUND_TRIP_REASON}`);
     });
 
     it('should log again only when decision or reason changes', () => {
@@ -106,6 +106,21 @@ describe('auto-scaler stateless limits intervention log', () => {
         expect(interventionLogs()).to.have.lengthOf(2);
     });
 
+    it('should log again when required crosses a limit after being within limits', () => {
+        createAutoScaler({ min: 2, max: 10 });
+        [20, 25, 5, 7, 20, 30, 15].forEach(required => capBoth(required));
+        const logs = interventionLogs();
+        expect(logs).to.have.lengthOf(2);
+        expect(logs[0]).to.contain('required 20 replicas is above maxStatelessCount 10, setting required to 10');
+        expect(logs[1]).to.contain('required 20 replicas is above maxStatelessCount 10, setting required to 10');
+    });
+
+    it('should log again for fixed-size node when required hits the fixed size and leaves it', () => {
+        createAutoScaler({ min: 15, max: 15 });
+        [5, 6, 15, 5, 6].forEach(required => capBoth(required));
+        expect(interventionLogs()).to.have.lengthOf(2);
+    });
+
     it('should log only on actual cap for single-limit types', () => {
         createAutoScaler({ min: 2, max: 10 });
         const { maxStateless, minStateless } = autoScaler._limitActionType;
@@ -116,8 +131,8 @@ describe('auto-scaler stateless limits intervention log', () => {
         expect(autoScaler._capScaleByLimits(1, minStateless)).to.equal(2);
         const logs = interventionLogs();
         expect(logs).to.have.lengthOf(2);
-        expect(logs[0]).to.contain('required 12 -> 10 (max 10)');
-        expect(logs[1]).to.contain('required 1 -> 2 (min 2)');
+        expect(logs[0]).to.contain('required 12 replicas is above maxStatelessCount 10, setting required to 10');
+        expect(logs[1]).to.contain('required 1 replicas is below minStatelessCount 2, setting required to 2');
     });
 
     it('should log once per metrics tick stream for fixed-size node and still update required', () => {
