@@ -36,9 +36,6 @@ config.streaming = {
             maxScaleUpReplicasPerTick: formatters.parseInt(process.env.AUTO_SCALER_MAX_REPLICAS_PER_SCALE, 10),
             replicasOnFirstScale: formatters.parseInt(process.env.AUTO_SCALER_REPLICAS_FIRST_SCALE, 1),
             minTimeToCleanUpQueue: formatters.parseInt(process.env.AUTO_SCALER_MIN_TIME_CLEAN_QUEUE, 30), // seconds
-        },
-        scaleIntervention: {
-            throttleMs: formatters.parseInt(process.env.SCALE_INTERVENTION_LOG_THROTTLE_TIME, 200)
         }
     },
     election: {
