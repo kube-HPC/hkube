@@ -6,6 +6,7 @@ const etcd = require('./helpers/etcd');
 const kubernetes = require('./helpers/kubernetes');
 const reconciler = require('./reconcile/reconciler');
 const { normalizeResources } = require('./reconcile/normalize');
+const { settings } = require('./helpers/settings');
 let log;
 
 class Executor {
@@ -54,6 +55,17 @@ class Executor {
         return (diff < maxDiff);
     }
 
+    /**
+     * LimitRange defaults are used only to size the worker container when HKube does not set
+     * its resources (resources.enable=false), so skip the Kubernetes call otherwise.
+     */
+    async _getContainerDefaults() {
+        if (settings.applyResources) {
+            return {};
+        }
+        return kubernetes.getContainerDefaultResources();
+    }
+
     async _interval(options) {
         this._lastIntervalTime = Date.now();
         try {
@@ -64,7 +76,7 @@ class Executor {
 
             const { pods } = resources;
             const normResources = normalizeResources(resources);
-            const containerDefaults = await kubernetes.getContainerDefaultResources();
+            const containerDefaults = await this._getContainerDefaults();
             const data = {
                 versions,
                 normResources,

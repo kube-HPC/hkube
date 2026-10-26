@@ -42,8 +42,14 @@ module.exports = {
                 getAllPVCNames: async () => { return ['pvc-1', 'pvc-2']; },
                 getAllSecretNames: async () => { return ['secret-1', 'secret-2']; },
                 getAllConfigMapNames: async () => { return ['config-map-1', 'config-map-2']; },
-                getAllQueueNames: async () => { return ['test', 'default']; },
-                getContainerDefaultResources: async () => { return { cpu: { defaultRequest: 0.1, defaultLimits: 0.2 }, memory: { defaultRequest: '128Mi', defaultLimits: '256Mi' } }; },
+                getAllQueueNames: async (...theArgs) => {
+                    registerCount('getAllQueueNames', theArgs);
+                    return ['test', 'default'];
+                },
+                getContainerDefaultResources: async (...theArgs) => {
+                    registerCount('getContainerDefaultResources', theArgs);
+                    return { cpu: { defaultRequest: 0.1, defaultLimits: 0.2 }, memory: { defaultRequest: '128Mi', defaultLimits: '256Mi' } };
+                },
             },
             callCount: (name) => {
                 return callCount[name];

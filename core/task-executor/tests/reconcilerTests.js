@@ -1247,6 +1247,25 @@ describe('reconciler', () => {
     });
 
     describe('reconcile algorithms with kaiObject', function() {
+        it('should not fetch Kai queues when no algorithm has kaiObject', async () => {
+            const algorithm = 'black-alg';
+            const res = await reconciler.reconcile(createReconcileArgs(algorithm));
+            expect(res).to.eql({ [algorithm]: { idle: 0, required: 1, paused: 0, created: 1, skipped: 0, resumed: 0 } });
+            expect(callCount('getAllQueueNames')).to.be.undefined;
+        });
+
+        it('should not fetch Kai queues when kaiObject is empty', async () => {
+            const algorithm = 'algo-kai-object-empty';
+            await reconciler.reconcile(createReconcileArgs(algorithm));
+            expect(callCount('getAllQueueNames')).to.be.undefined;
+        });
+
+        it('should fetch Kai queues once when an algorithm has kaiObject', async () => {
+            const algorithm = 'algo-kai-object';
+            await reconciler.reconcile(createReconcileArgs(algorithm));
+            expect(callCount('getAllQueueNames')).to.have.lengthOf(1);
+        });
+
         it('should schedule algorithm with kaiObject', async () => {
             const algorithm = 'algo-kai-object';
             const argument = createReconcileArgs(algorithm);

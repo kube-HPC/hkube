@@ -61,7 +61,7 @@ class JobsHandler {
             versions, requests, registry, clusterOptions, workerResources, reconcileResult);
 
         // 2. Match jobs to resources, and skip those that doesn't have the required resources.
-        const extraResources = await this._getExtraResources();
+        const extraResources = await this._getExtraResources(createDetails);
         const { jobsToRequest, skipped } = matchJobsToResources(createDetails, normResources, scheduledRequests, extraResources, containerDefaults);
         
         // 3. Find workers to stop if resources insufficient
@@ -242,13 +242,17 @@ class JobsHandler {
 
     /**
      * Retrieves additional Kubernetes resources (PVCs, ConfigMaps, Secrets, Kai Queues).
+     * Kai queues are fetched only when at least one job to create has a non-empty kaiObject,
+     * since listing them requires cluster-scope permissions on CRDs.
      *
      * @private
+     * @param {Object[]} [createDetails=[]] - Job creation details from _processAllRequests.
      * @returns {Promise<{allVolumesNames: Object, existingQueuesNames: string[]}>}
      */
-    async _getExtraResources() {
+    async _getExtraResources(createDetails = []) {
         const allVolumesNames = await this._getAllVolumeNames();
-        const existingQueuesNames = await kubernetes.getAllQueueNames();
+        const needsKaiQueues = createDetails.some(({ jobDetails }) => jobDetails?.kaiObject && Object.keys(jobDetails.kaiObject).length > 0);
+        const existingQueuesNames = needsKaiQueues ? await kubernetes.getAllQueueNames() : [];
         return { allVolumesNames, existingQueuesNames };
     }
 
