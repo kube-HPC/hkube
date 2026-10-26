@@ -17,4 +17,36 @@ describe('executor', () => {
             expect(spy2.callCount).to.eql(1);
         });
     });
+
+    describe('_getContainerDefaults', () => {
+        let executor, settings, originalApplyResources;
+
+        before(() => {
+            executor = require('../lib/executor');
+            ({ settings } = require('../lib/helpers/settings'));
+        });
+
+        beforeEach(() => {
+            originalApplyResources = settings.applyResources;
+            global.testParams.clearCount();
+        });
+
+        afterEach(() => {
+            settings.applyResources = originalApplyResources;
+        });
+
+        it('should not fetch LimitRanges when worker resources are applied', async () => {
+            settings.applyResources = true;
+            const res = await executor._getContainerDefaults();
+            expect(res).to.eql({});
+            expect(global.testParams.callCount('getContainerDefaultResources')).to.be.undefined;
+        });
+
+        it('should fetch LimitRanges when worker resources are not applied', async () => {
+            settings.applyResources = false;
+            const res = await executor._getContainerDefaults();
+            expect(res).to.have.keys('cpu', 'memory');
+            expect(global.testParams.callCount('getContainerDefaultResources')).to.have.lengthOf(1);
+        });
+    });
 });

@@ -1315,6 +1315,22 @@ describe('Managers tests', () => {
                 // existingQueuesNames structure
                 expect(existingQueuesNames).to.be.an('array');
             });
+
+            it('should not fetch Kai queues when no job has a kaiObject', async () => {
+                global.testParams.clearCount();
+                const createDetails = [{ jobDetails: { algorithmName: 'a' } }, { jobDetails: { algorithmName: 'b', kaiObject: {} } }];
+                const { existingQueuesNames } = await jobsHandler._getExtraResources(createDetails);
+                expect(existingQueuesNames).to.eql([]);
+                expect(global.testParams.callCount('getAllQueueNames')).to.be.undefined;
+            });
+
+            it('should fetch Kai queues when a job has a kaiObject', async () => {
+                global.testParams.clearCount();
+                const createDetails = [{ jobDetails: { algorithmName: 'a' } }, { jobDetails: { algorithmName: 'b', kaiObject: { queue: 'test' } } }];
+                const { existingQueuesNames } = await jobsHandler._getExtraResources(createDetails);
+                expect(existingQueuesNames).to.eql(['test', 'default']);
+                expect(global.testParams.callCount('getAllQueueNames')).to.have.lengthOf(1);
+            });
         });
 
         describe('_getAllVolumeNames Method', () => {
