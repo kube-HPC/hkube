@@ -29,7 +29,7 @@ class Bootstrap {
                 await m.init(main);  // eslint-disable-line
             }
             await healthcheck.init({ port: main.healthchecks.port });
-            healthcheck.start(main.healthchecks.path, () => operator.checkHealth(main.healthchecks.maxDiff), 'health');
+            healthcheck.start(main.healthchecks.path, () => operator.checkHealth(main.healthchecks.maxDiff, main.healthchecks.reconcileMaxDiff), 'health');
         }
         catch (error) {
             this._onInitFailed(error);

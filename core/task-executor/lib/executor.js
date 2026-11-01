@@ -69,10 +69,17 @@ class Executor {
     async _interval(options) {
         this._lastIntervalTime = Date.now();
         try {
-            const [{ versions, registry, clusterOptions }, resources] = await Promise.all([
+            // allSettled: the cycle ends only after both calls finished, so cycles never overlap
+            const [configMapResult, resourcesResult] = await Promise.allSettled([
                 kubernetes.getVersionsConfigMap(),
                 kubernetes.getResourcesPerNode()
             ]);
+            const failed = [configMapResult, resourcesResult].find(r => r.status === 'rejected');
+            if (failed) {
+                throw failed.reason;
+            }
+            const { versions, registry, clusterOptions } = configMapResult.value;
+            const resources = resourcesResult.value;
 
             const { pods } = resources;
             const normResources = normalizeResources(resources);

@@ -22,6 +22,8 @@ class Operator {
         this._boardsInterval = this._boardsInterval.bind(this);
         this._lastIntervalTime = null;
         this._lastIntervalBoardTime = null;
+        // Startup counts as the reference point, so a pod that never reconciles turns unhealthy
+        this._lastReconcileSuccessTime = Date.now();
 
         if (options.isDevMode) {
             this._algorithmQueueDevMode({ options });
@@ -33,7 +35,7 @@ class Operator {
         this._driversSettings = this._prepareDriversData(options);
     }
 
-    checkHealth(maxDiff) {
+    checkHealth(maxDiff, reconcileMaxDiff) {
         log.debug('health-checks');
         if (!this._lastIntervalTime || !this._lastIntervalBoardTime) {
             return true;
@@ -42,7 +44,12 @@ class Operator {
         log.debug(`diff = ${diff}`);
         const boardDiff = Date.now() - this._lastIntervalBoardTime;
         log.debug(`diff = ${boardDiff}`);
-        return (diff < maxDiff && boardDiff < maxDiff);
+        const reconcileDiff = Date.now() - this._lastReconcileSuccessTime;
+        const reconcileHealthy = !reconcileMaxDiff || reconcileDiff < reconcileMaxDiff;
+        if (!reconcileHealthy) {
+            log.warning(`no successful reconcile for ${reconcileDiff}ms (max ${reconcileMaxDiff}ms)`, { component });
+        }
+        return (diff < maxDiff && boardDiff < maxDiff && reconcileHealthy);
     }
 
     async _interval(options) {
@@ -51,15 +58,19 @@ class Operator {
             log.debug('Reconcile interval.', { component });
             const configMap = await kubernetes.getVersionsConfigMap();
             const { algorithms, count } = await db.getAlgorithmTemplates();
-            await Promise.all([
-                this._algorithmBuilds({ ...configMap }, options),
-                this._tensorboards({ ...configMap, boardTimeOut: this._boardTimeOut }, options),
-                this._optunaboards({ ...configMap, boardTimeOut: this._boardTimeOut }, options),
-                this._algorithmDebug(configMap, algorithms, options),
-                this._algorithmQueue({ ...configMap, resources: options.resources.algorithmQueue }, algorithms, options, count),
-                this._algorithmGateways({ ...configMap, algorithms }),
-                this._pipelineDriversHandle(configMap, options)
-            ]);
+            const reconcilers = {
+                algorithmBuilds: () => this._algorithmBuilds({ ...configMap }, options),
+                tensorboards: () => this._tensorboards({ ...configMap, boardTimeOut: this._boardTimeOut }, options),
+                optunaboards: () => this._optunaboards({ ...configMap, boardTimeOut: this._boardTimeOut }, options),
+                algorithmDebug: () => this._algorithmDebug(configMap, algorithms, options),
+                algorithmQueue: () => this._algorithmQueue({ ...configMap, resources: options.resources.algorithmQueue }, algorithms, options, count),
+                algorithmGateways: () => this._algorithmGateways({ ...configMap, algorithms }),
+                pipelineDrivers: () => this._pipelineDriversHandle(configMap, options)
+            };
+            const results = await this._runReconcilers(reconcilers);
+            if (results.pipelineDrivers.status === 'fulfilled') {
+                this._lastReconcileSuccessTime = Date.now();
+            }
         }
         catch (e) {
             log.throttle.error(e.message, { component }, e);
@@ -67,6 +78,25 @@ class Operator {
         finally {
             setTimeout(this._interval, this._intervalMs, options);
         }
+    }
+
+    /**
+     * Runs all reconcilers and waits until every one has settled, so the next cycle
+     * never starts while calls from this cycle are still running. Each failure is logged.
+     */
+    async _runReconcilers(reconcilers) {
+        const names = Object.keys(reconcilers);
+        const settled = await Promise.allSettled(names.map(async name => reconcilers[name]()));
+        const results = {};
+        names.forEach((name, i) => {
+            const result = settled[i];
+            results[name] = result;
+            if (result.status === 'rejected') {
+                const error = result.reason || {};
+                log.throttle.error(`reconcile ${name} failed: ${error.message}`, { component }, error);
+            }
+        });
+        return results;
     }
 
     _prepareDriversData(options) {

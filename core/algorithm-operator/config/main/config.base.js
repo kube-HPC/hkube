@@ -62,6 +62,8 @@ config.kubernetes = {
     isPrivileged: formatter.parseBool(process.env.IS_PRIVILEGED, true),
     // How many times to retry Kubernetes API requests before failing
     requestAttemptRetryLimit: formatter.parseInt(process.env.KUBERNETES_REQUEST_RETRY_LIMIT, 2),
+    // Timeout per Kubernetes API request attempt (aborts the request). Independent of INTERVAL_MS.
+    requestTimeoutMs: formatter.parseInt(process.env.KUBERNETES_REQUEST_TIMEOUT_MS, 10000),
     version: '1.9'
 };
 
@@ -94,5 +96,7 @@ config.healthchecks = {
     path: process.env.HEALTHCHECK_PATH || '/healthz',
     port: process.env.HEALTHCHECK_PORT || '5000',
     maxDiff: process.env.HEALTHCHECK_MAX_DIFF || '30000',
+    // Unhealthy when there was no successful reconcile (pipeline drivers) within this time
+    reconcileMaxDiff: formatter.parseInt(process.env.HEALTHCHECK_RECONCILE_MAX_DIFF, 120000),
     logExternalRequests: formatter.parseBool(process.env.LOG_EXTERNAL_REQUESTS, true)
 };

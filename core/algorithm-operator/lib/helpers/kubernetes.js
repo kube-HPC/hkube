@@ -29,9 +29,9 @@ class KubernetesApi extends EventEmitter {
         await this._client.init({
             ...options.kubernetes,
             resilience: {
-                timeoutMs: options.intervalMs,
+                timeoutMs: options.kubernetes.requestTimeoutMs,
                 retryLimit: options.kubernetes.requestAttemptRetryLimit,
-                onRetry: ({ label, attempt, error }) => log.warning(`[Resilience] ${label} attempt ${attempt} failed: ${error.message}. Retrying...`, { component }),
+                onRetry: ({ label, attempt, error, delayMs }) => log.warning(`[Resilience] ${label} attempt ${attempt} failed: ${error.message}. Retrying in ${delayMs}ms...`, { component }),
                 onError: ({ label, attempts, error }) => log.error(`[Resilience] ${label} failed after ${attempts} attempts: ${error && error.message}`, { component })
             }
         });
