@@ -1,4 +1,6 @@
 const { expect } = require('chai');
+const sinon = require('sinon');
+const parse = require('@hkube/units-converter');
 const { stateType } = require('@hkube/consts');
 const configIt = require('@hkube/config');
 const clone = require('lodash.clonedeep');
@@ -1382,6 +1384,61 @@ describe('reconciler', () => {
 
             expect(res).to.exist;
             expect(res[algorithm].required).to.be.lessThan(amount);
+        });
+    });
+
+    describe('discovery defaultWorkerResources', () => {
+        const limitRangeDefaults = { cpu: { defaultRequest: '100m' }, memory: { defaultRequest: '256Mi' } };
+        let discoverySpy;
+
+        const getDefaultWorkerResources = () => discoverySpy.lastCall.args[0].defaultWorkerResources;
+
+        beforeEach(() => {
+            discoverySpy = sinon.spy(etcd, 'updateDiscovery');
+        });
+
+        afterEach(() => {
+            discoverySpy.restore();
+        });
+
+        it('should publish config worker memory with Mi unit when applyResources is enabled', async () => {
+            globalSettings.applyResources = true;
+            await reconciler.reconcile({ normResources, options });
+
+            const { cpu, mem } = getDefaultWorkerResources();
+            expect(cpu).to.eql(options.resources.worker.cpu);
+            expect(mem).to.eql(`${options.resources.worker.mem}Mi`);
+            expect(parse.getMemoryInMi(mem)).to.eql(options.resources.worker.mem);
+        });
+
+        it('should prefer config worker resources over container defaults when applyResources is enabled', async () => {
+            globalSettings.applyResources = true;
+            await reconciler.reconcile({ normResources, options, containerDefaults: limitRangeDefaults });
+
+            expect(getDefaultWorkerResources()).to.eql({
+                cpu: options.resources.worker.cpu,
+                mem: `${options.resources.worker.mem}Mi`
+            });
+        });
+
+        it('should fall back to container default memory when config worker memory is missing', async () => {
+            globalSettings.applyResources = true;
+            const localOptions = { ...options, resources: { ...options.resources, worker: { cpu: options.resources.worker.cpu } } };
+            await reconciler.reconcile({ normResources, options: localOptions, containerDefaults: limitRangeDefaults });
+
+            expect(getDefaultWorkerResources()).to.eql({ cpu: options.resources.worker.cpu, mem: '256Mi' });
+        });
+
+        it('should publish container defaults as-is when applyResources is disabled', async () => {
+            await reconciler.reconcile({ normResources, options, containerDefaults: limitRangeDefaults });
+
+            expect(getDefaultWorkerResources()).to.eql({ cpu: '100m', mem: '256Mi' });
+        });
+
+        it('should publish empty defaults when applyResources is disabled and no container defaults', async () => {
+            await reconciler.reconcile({ normResources, options });
+
+            expect(getDefaultWorkerResources()).to.eql({});
         });
     });
 });

@@ -124,21 +124,23 @@ const _buildNodeStats = (normResources, normalizedWorkers) => {
  * @param {Object} options.resources - Resource configurations.
  * @param {Object} options.resources.worker - Worker resource configuration.
  * @param {number|string} [options.resources.worker.cpu] - Worker CPU request.
- * @param {number|string} [options.resources.worker.mem] - Worker memory request.
+ * @param {number} [options.resources.worker.mem] - Worker memory request in MiB (no unit).
  * @param {Object} containerDefaults - Default container resources from Kubernetes.
  * @param {Object} [containerDefaults.cpu] - Default CPU resource from Kubernetes.
  * @param {string|number} [containerDefaults.cpu.defaultRequest] - Default CPU request
  * @param {Object} [containerDefaults.memory] - Default memory resource from Kubernetes.
- * @param {string|number} [containerDefaults.memory.defaultRequest] - Default memory request
- * @returns {Promise<{cpu: (number|string|undefined), mem: (number|string|undefined)}>}
- *          Default worker resources (CPU, memory), or `undefined` if not resolved.
+ * @param {string} [containerDefaults.memory.defaultRequest] - Default memory request (with unit, e.g. "256Mi")
+ * @returns {Promise<{cpu: (number|string|undefined), mem: (string|undefined)}>}
+ *          Default worker resources (CPU, memory with unit), or `undefined` if not resolved.
  */
 const _resolveWorkerResourceDefaults = async (options, containerDefaults) => {
     const defaults = {};
 
     if (settings.applyResources) {
-        defaults.cpu = options.resources.worker.cpu;
-        defaults.mem = options.resources.worker.mem;
+        const { cpu, mem } = options.resources.worker;
+        defaults.cpu = cpu;
+        // Config memory is a plain MiB number; consumers (api-server) require a unit, same as the Job spec in createOptions.
+        if (mem) defaults.mem = `${mem}Mi`;
     }
 
     if (!defaults.cpu && containerDefaults?.cpu) defaults.cpu = containerDefaults.cpu.defaultRequest;
