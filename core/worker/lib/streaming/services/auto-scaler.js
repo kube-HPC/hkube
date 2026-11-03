@@ -49,13 +49,13 @@ class AutoScaler {
         this._isStateful = options.node.stateType === stateType.Stateful;
         this._statelessCountLimits = { minStateless: options.node.minStatelessCount, maxStateless: options.node.maxStatelessCount };
         this._limitActionType = { minStateless: 'minStatelessCount', maxStateless: 'maxStatelessCount', both: 'bothLimits' };
-        this._interventionLogCallTrack = { action: null, required: null, allowed: null, timeStamp: null };
         this._onSourceRemove = onSourceRemove;
         this.reset();
     }
 
     reset() {
         this._metrics = {};
+        this._lastInterventionLog = null;
         this._statistics = new Statistics(this._config, this._onSourceRemove);
 
         if (!this._isStateful) {
@@ -210,27 +210,22 @@ class AutoScaler {
         log.info(`scaling ${action} ${replicas} replicas for node ${this._nodeName} from ${currentSize} to ${scaleTo} replicas`, { component });
     }
 
-    _scalingInterventionLog(action, required, allowed, customMessage = '') {
-        const currentTime = Date.now();
-        let sizeMessage = '';
-        // Log-spam prevention
-        if (this._interventionLogCallTrack.timeStamp) {
-            if (this._interventionLogCallTrack.action === action
-                && this._interventionLogCallTrack.required === required
-                && this._interventionLogCallTrack.allowed.type === allowed.type
-                && this._interventionLogCallTrack.allowed.size === allowed.size
-                && currentTime - this._interventionLogCallTrack.timeStamp < this._config.scaleIntervention.throttleMs) {
-                return;
-            }
-        }
-        this._interventionLogCallTrack = { timeStamp: currentTime, action, required, allowed };
-        if (action === this._limitActionType.both) {
-            if (allowed?.size?.min) sizeMessage += `min-${allowed.size.min},`;
-            if (allowed?.size?.max) sizeMessage += `max-${allowed.size.max},`;
-            log.info(`scaling ${action} intervention, node ${this._nodeName} changed from required ${required}. ${sizeMessage} ${customMessage}`, { component });
+    /**
+     * Logs a limit intervention (required replicas changed by min/max stateless limits).
+     * Consecutive repeats of the same type + decision + reason are suppressed, so a node pinned
+     * to a limit logs once. It logs again when the outcome changes, or after required went
+     * back within limits and then crossed a limit again.
+     */
+    _scalingInterventionLog(type, required, decision, customMessage = '') {
+        const lastLog = this._lastInterventionLog;
+        if (lastLog && lastLog.type === type && lastLog.decision === decision && lastLog.customMessage === customMessage) {
             return;
-        } // custom message for first intervention that handles required in both limits.
-        log.info(`scaling ${action} intervention, node ${this._nodeName} changed from required ${required} to ${allowed.type}:${allowed.size}. ${customMessage}`, { component });
+        }
+        this._lastInterventionLog = { type, decision, customMessage };
+        const [relation, limitName] = decision > required
+            ? ['below', this._limitActionType.minStateless]
+            : ['above', this._limitActionType.maxStateless];
+        log.info(`scaling ${type} intervention, node ${this._nodeName}: required ${required} replicas is ${relation} ${limitName} ${decision}, setting required to ${decision}. ${customMessage}`, { component });
     }
 
     /**
@@ -270,38 +265,39 @@ class AutoScaler {
      */
     _capScaleByLimits(required, type, customMessage = '') {
         let decision = required;
-        const sizes = {};
         const { minStateless, maxStateless } = this._statelessCountLimits;
 
         switch (type) {
             case this._limitActionType.maxStateless:
                 if (maxStateless && required > maxStateless) {
-                    this._scalingInterventionLog('up', required, { type: this._limitActionType.maxStateless, size: maxStateless }, customMessage);
-                    return maxStateless;
+                    decision = maxStateless;
                 }
                 break;
 
             case this._limitActionType.minStateless:
                 if (minStateless && required < minStateless) {
-                    this._scalingInterventionLog('down', required, { type: this._limitActionType.minStateless, size: minStateless }, customMessage);
-                    return minStateless;
+                    decision = minStateless;
                 }
                 break;
 
             case this._limitActionType.both:
                 if (minStateless) {
                     decision = Math.max(decision, minStateless);
-                    sizes.min = minStateless;
                 }
                 if (maxStateless) {
                     decision = Math.min(decision, maxStateless);
-                    sizes.max = maxStateless;
                 }
-                this._scalingInterventionLog(this._limitActionType.both, required, { type: this._limitActionType.both, size: sizes }, customMessage);
                 break;
 
             default:
                 break;
+        }
+        if (decision !== required) {
+            this._scalingInterventionLog(type, required, decision, customMessage);
+        }
+        else {
+            // back within limits - next intervention starts a new episode and is logged
+            this._lastInterventionLog = null;
         }
         return decision;
     }
