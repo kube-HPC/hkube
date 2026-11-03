@@ -730,7 +730,7 @@ describe('Store/Pipelines', () => {
             const response = await request(options);
             expect(response.body).to.have.property('error');
             expect(response.body.error.code).to.equal(StatusCodes.BAD_REQUEST);
-            expect(response.body.error.message).to.equal('Gateway node A stateType must be "stateful". Got stateless');
+            expect(response.body.error.message).to.equal('node A stateType "stateless" conflicts with gateway stateType "stateful". stateType can only be changed in the algorithm configuration');
         });
     });
     describe('/store/pipelines PUT', () => {
@@ -826,7 +826,7 @@ describe('Store/Pipelines', () => {
             const response = await request(options);
             expect(response.body).to.have.property('error');
             expect(response.body.error.code).to.equal(StatusCodes.BAD_REQUEST);
-            expect(response.body.error.message).to.equal('Gateway node A stateType must be "stateful". Got stateless');
+            expect(response.body.error.message).to.equal('node A stateType "stateless" conflicts with gateway stateType "stateful". stateType can only be changed in the algorithm configuration');
         });
         it('should throw validation error for minStatelessCount', async () => {
             const options = {
@@ -879,7 +879,7 @@ describe('Store/Pipelines', () => {
                         {
                             nodeName: 'B',
                             kind: 'algorithm',
-                            algorithmName: 'green-alg',
+                            algorithmName: 'stateful-alg',
                             maxStatelessCount: 1,
                             input: []
                         }
@@ -1008,5 +1008,171 @@ describe('Store/Pipelines', () => {
             expect(responseVersion.body).to.have.property('createdBy');
             expect(responseVersion.body.createdBy).to.eql(config.keycloak.defaultUserAuditingName)
     });
+        it('should throw when algorithm node stateType conflicts with algorithm stateType', async () => {
+            const options = {
+                uri: restPath,
+                method: 'POST',
+                body: {
+                    kind: 'stream',
+                    name: 'stateTypeConflict',
+                    nodes: [
+                        {
+                            nodeName: 'A',
+                            kind: 'algorithm',
+                            algorithmName: 'stateful-alg',
+                            stateType: 'stateless',
+                            input: []
+                        },
+                        {
+                            nodeName: 'B',
+                            kind: 'algorithm',
+                            algorithmName: 'green-alg',
+                            input: []
+                        }
+                    ],
+                    streaming: {
+                        flows: {
+                            analyze: 'A >> B'
+                        }
+                    }
+                }
+            };
+            const response = await request(options);
+            expect(response.body).to.have.property('error');
+            expect(response.body.error.code).to.equal(StatusCodes.BAD_REQUEST);
+            expect(response.body.error.message).to.equal('node A stateType "stateless" conflicts with algorithm stateful-alg stateType "stateful". stateType can only be changed in the algorithm configuration');
+        });
+        it('should throw when node stateType is stateful but algorithm has no stateType', async () => {
+            const options = {
+                uri: restPath,
+                method: 'POST',
+                body: {
+                    kind: 'stream',
+                    name: 'stateTypeConflictDefault',
+                    nodes: [
+                        {
+                            nodeName: 'A',
+                            kind: 'algorithm',
+                            algorithmName: 'stateful-alg',
+                            input: []
+                        },
+                        {
+                            nodeName: 'B',
+                            kind: 'algorithm',
+                            algorithmName: 'green-alg',
+                            stateType: 'stateful',
+                            input: []
+                        }
+                    ],
+                    streaming: {
+                        flows: {
+                            analyze: 'A >> B'
+                        }
+                    }
+                }
+            };
+            const response = await request(options);
+            expect(response.body.error.code).to.equal(StatusCodes.BAD_REQUEST);
+            expect(response.body.error.message).to.equal('node B stateType "stateful" conflicts with algorithm green-alg stateType "stateless". stateType can only be changed in the algorithm configuration');
+        });
+        it('should throw when node stateType is invalid', async () => {
+            const options = {
+                uri: restPath,
+                method: 'POST',
+                body: {
+                    kind: 'stream',
+                    name: 'stateTypeInvalid',
+                    nodes: [
+                        {
+                            nodeName: 'A',
+                            kind: 'algorithm',
+                            algorithmName: 'stateful-alg',
+                            stateType: 'no_such',
+                            input: []
+                        }
+                    ],
+                    streaming: {
+                        flows: {
+                            analyze: 'A >> A'
+                        }
+                    }
+                }
+            };
+            const response = await request(options);
+            expect(response.body.error.code).to.equal(StatusCodes.BAD_REQUEST);
+            expect(response.body.error.message).to.contain('stateType should be equal to one of the allowed values');
+        });
+        it('should store pipeline without node stateType when it matches the algorithm', async () => {
+            const options = {
+                uri: restPath,
+                method: 'POST',
+                body: {
+                    kind: 'stream',
+                    name: 'stateTypeStripped',
+                    nodes: [
+                        {
+                            nodeName: 'A',
+                            kind: 'gateway',
+                            stateType: 'stateful'
+                        },
+                        {
+                            nodeName: 'B',
+                            kind: 'algorithm',
+                            algorithmName: 'stateful-alg',
+                            stateType: 'stateful',
+                            input: []
+                        },
+                        {
+                            nodeName: 'C',
+                            kind: 'algorithm',
+                            algorithmName: 'stateless-alg',
+                            input: []
+                        }
+                    ],
+                    streaming: {
+                        flows: {
+                            analyze: 'A >> B >> C'
+                        }
+                    }
+                }
+            };
+            const response = await request(options);
+            expect(response.response.statusCode).to.equal(StatusCodes.CREATED);
+            const stored = await request({ uri: `${restPath}/stateTypeStripped`, method: 'GET' });
+            stored.body.nodes.forEach(n => expect(n).to.not.have.property('stateType'));
+        });
+        it('should allow stateless counts on stateless algorithm without node stateType', async () => {
+            const options = {
+                uri: restPath,
+                method: 'POST',
+                body: {
+                    kind: 'stream',
+                    name: 'statelessCountsResolved',
+                    nodes: [
+                        {
+                            nodeName: 'A',
+                            kind: 'algorithm',
+                            algorithmName: 'stateful-alg',
+                            input: []
+                        },
+                        {
+                            nodeName: 'B',
+                            kind: 'algorithm',
+                            algorithmName: 'stateless-alg',
+                            minStatelessCount: 2,
+                            maxStatelessCount: 4,
+                            input: []
+                        }
+                    ],
+                    streaming: {
+                        flows: {
+                            analyze: 'A >> B'
+                        }
+                    }
+                }
+            };
+            const response = await request(options);
+            expect(response.response.statusCode).to.equal(StatusCodes.CREATED);
+        });
     });
 });

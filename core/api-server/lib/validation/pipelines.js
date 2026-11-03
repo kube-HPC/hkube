@@ -1,4 +1,4 @@
-const { nodeKind, stateType } = require('@hkube/consts');
+const { nodeKind, stateType, pipelineKind } = require('@hkube/consts');
 const { InvalidDataError } = require('../errors');
 
 class ApiValidator {
@@ -38,20 +38,44 @@ class ApiValidator {
                 throw new InvalidDataError('debugOverride node not in nodes list');
             }
         });
-        if (pipeline.kind === 'stream') {
-            const notStatelessNodes = pipeline.nodes.filter(n => n?.stateType !== stateType.Stateless);
-            notStatelessNodes.forEach((node) => {
-                if (node?.minStatelessCount !== 0 || node?.maxStatelessCount) {
-                    throw new InvalidDataError(`Nodes which are not stateType=${stateType.Stateless} cant have minStatelessCount or maxStatelessCount`);
-                }
-            });
-            const statelessNodes = pipeline.nodes.filter(n => n?.stateType === stateType.Stateless && n?.maxStatelessCount >= 0);
-            statelessNodes.forEach((node) => {
-                if (node.minStatelessCount > node.maxStatelessCount) {
-                    throw new InvalidDataError('maxStatelessCount must be greater or equal to minStatelessCount');
-                }
-            });
+    }
+
+    _resolveStateType(node, algorithms) {
+        if (node.kind === nodeKind.Gateway) {
+            return stateType.Stateful;
         }
+        return algorithms.get(node.algorithmName)?.stateType || stateType.Stateless;
+    }
+
+    validateNodesStateType(pipeline, algorithms) {
+        if (pipeline.kind !== pipelineKind.Stream) {
+            return;
+        }
+        pipeline.nodes.forEach((node) => {
+            if (!node.stateType) {
+                return;
+            }
+            const resolved = this._resolveStateType(node, algorithms);
+            if (node.stateType !== resolved) {
+                const source = node.kind === nodeKind.Gateway ? 'gateway' : `algorithm ${node.algorithmName}`;
+                throw new InvalidDataError(`node ${node.nodeName} stateType "${node.stateType}" conflicts with ${source} stateType "${resolved}". stateType can only be changed in the algorithm configuration`);
+            }
+        });
+    }
+
+    validateStatelessCounts(pipeline, algorithms) {
+        if (pipeline.kind !== pipelineKind.Stream) {
+            return;
+        }
+        pipeline.nodes.forEach((node) => {
+            const isStateless = this._resolveStateType(node, algorithms) === stateType.Stateless;
+            if (!isStateless && (node.minStatelessCount !== 0 || node.maxStatelessCount)) {
+                throw new InvalidDataError(`Nodes which are not stateType=${stateType.Stateless} cant have minStatelessCount or maxStatelessCount`);
+            }
+            if (isStateless && node.maxStatelessCount >= 0 && node.minStatelessCount > node.maxStatelessCount) {
+                throw new InvalidDataError('maxStatelessCount must be greater or equal to minStatelessCount');
+            }
+        });
     }
 }
 

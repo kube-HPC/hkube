@@ -32,6 +32,7 @@ class Debug extends AlgorithmBase {
         const debug = await stateManager.getAlgorithm({ name: newAlgName });
         if (debug) {
             // update to set the last modified timestamp
+            debug.stateType = originalAlg.stateType;
             await stateManager.updateAlgorithm(debug);
             return { algorithmName: debug.name };
         }
@@ -43,6 +44,7 @@ class Debug extends AlgorithmBase {
             debugUrl,
             debugName: algorithmName,
             kind: nodeKind.Debug,
+            stateType: originalAlg.stateType,
             algorithmImage: 'hkube/algorithm-debug',
             type: buildTypes.IMAGE,
             options: {

@@ -593,7 +593,40 @@ describe('Streaming', () => {
                 method: 'GET'
             })
             expect(extendedPipelineResponse.body.nodes[0].stateType).to.eql('stateful');
-
+            expect(extendedPipelineResponse.body.nodes[0].retry.policy).to.eql('Always');
+            expect(extendedPipelineResponse.body.nodes[1].stateType).to.eql('stateless');
+        });
+        it('should throw if algorithm node stateType conflicts with algorithm', async () => {
+            const options = {
+                uri: restPath,
+                body: {
+                    kind: 'stream',
+                    name: 'string',
+                    nodes: [
+                        {
+                            nodeName: 'A',
+                            kind: 'algorithm',
+                            algorithmName: 'stateful-alg',
+                            stateType: 'stateless',
+                            input: []
+                        },
+                        {
+                            nodeName: 'B',
+                            kind: 'algorithm',
+                            algorithmName: 'green-alg',
+                            input: []
+                        }
+                    ],
+                    streaming: {
+                        flows: {
+                            analyze: 'A >> B'
+                        }
+                    }
+                }
+            };
+            const response = await request(options);
+            expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
+            expect(response.body.error.message).to.eq('node A stateType "stateless" conflicts with algorithm stateful-alg stateType "stateful". stateType can only be changed in the algorithm configuration');
         });
         it('should throw if gateway stateType is not stateful', async () => {
             const options = {
@@ -623,7 +656,7 @@ describe('Streaming', () => {
             };
             const response = await request(options);
             expect(response.body.error.code).to.equal(HttpStatus.StatusCodes.BAD_REQUEST);
-            expect(response.body.error.message).to.eq('Gateway node A stateType must be "stateful". Got stateless');
+            expect(response.body.error.message).to.eq('node A stateType "stateless" conflicts with gateway stateType "stateful". stateType can only be changed in the algorithm configuration');
         });
         it('should insert gateway without spec', async () => {
             const options = {

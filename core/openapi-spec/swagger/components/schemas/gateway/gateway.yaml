@@ -25,7 +25,7 @@ properties:
     description: URL to access the gateway
   stateType:
     type: string
-    description: The state type of the gateway (e.g., stateful, stateless)
+    description: Set by the system. Gateways are always stateful
   algorithmImage:
     $ref: "#/components/schemas/algorithmImage"
   algorithmEnv:

@@ -18,7 +18,12 @@ class PreferencesStore {
 
     // One-time migration: rename legacy `userId` field/index to `userName`.
     async _migrateUserIdToUserName() {
-        const indexes = await this._collection.indexes();
+        const indexes = await this._collection.indexes().catch((e) => {
+            if (e.codeName === 'NamespaceNotFound') {
+                return [];
+            }
+            throw e;
+        });
         if (indexes.some(index => index.name === 'userId')) {
             await this._collection.dropIndex('userId');
         }

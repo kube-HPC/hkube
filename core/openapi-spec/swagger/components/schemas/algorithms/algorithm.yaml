@@ -188,6 +188,7 @@ properties:
     nullable: true
     description: attach key value metadata to algorithm pod, usually for tools and libraries
   stateType:
+    description: Streaming state type. Source of truth for every pipeline node using this algorithm. Unset means a batch algorithm (treated as stateless in stream pipelines)
     enum:
       - stateless
       - stateful

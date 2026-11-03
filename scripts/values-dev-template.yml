@@ -92,7 +92,7 @@ minio:
   enable: true
 
 keycloak:
-  enable: true
+  enable: false
   allow_insecure_tls: true
   auth:
     adminPassword: ${KEYCLOAK_ADMIN_PASS}

@@ -185,26 +185,20 @@ class PipelineCreator {
         }
 
         for (const node of pipeline.nodes) { // eslint-disable-line
-            const algorithm = algorithms.get(node.algorithmName);
-            if (algorithm && !node.stateType) {
-                node.stateType = algorithm.stateType || stateType.Stateless;
-            }
-            const type = node.stateType || stateType.Stateless;
-            node.retry = StreamRetryPolicy[type];
-
             if (node.kind === nodeKind.Gateway) {
                 if (!gateways) {
                     gateways = [];
                 }
-                const { nodeName, spec, stateType: nodeStateType } = node;
-                if (nodeStateType && nodeStateType !== stateType.Stateful) {
-                    throw new InvalidDataError(`Gateway node ${nodeName} stateType must be "stateful". Got ${nodeStateType}`);
-                }
+                const { nodeName, spec } = node;
                 const { algorithmName, url, stateType: streamKind } = await gatewayService.createGateway({ jobId, nodeName, spec }); // eslint-disable-line
                 node.stateType = streamKind;
                 node.algorithmName = algorithmName;
                 gateways.push({ nodeName, url });
             }
+            else {
+                node.stateType = algorithms.get(node.algorithmName)?.stateType || stateType.Stateless;
+            }
+            node.retry = StreamRetryPolicy[node.stateType];
         }
 
         const parsedFlow = {};

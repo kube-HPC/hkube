@@ -691,7 +691,10 @@ $$\text{nextVersion} = \begin{cases} \text{inc}(\text{patch}) & \text{if patch} 
 - Batch pipelines cannot have `streaming.flows` defined
 - Stream pipelines MUST have `streaming.flows` defined
 - If multiple flows exist, a `defaultFlow` must be specified
-- Gateway nodes are forced to `stateType: Stateful`
+- Node `stateType` is derived, not user-configurable: gateway nodes → `stateful`; algorithm nodes → `algorithm.stateType`, or `stateless` if unset. Resolved on every execution (stored values are overwritten)
+- On store/update and `exec/raw`, a node `stateType` that differs from the resolved value is rejected (400). Store/update strips `stateType` from nodes before persisting
+- `minStatelessCount`/`maxStatelessCount` are validated against the resolved `stateType`
+- Debug algorithms inherit `stateType` from the original algorithm
 
 ### LC-7: Reserved Memory Calculation
 - If not explicitly set: $\text{reservedMemory} = \lceil \text{mem\_in\_Mi} \times \text{reservedMemoryRatio} \rceil \text{ Mi}$
