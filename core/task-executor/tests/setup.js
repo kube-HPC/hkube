@@ -26,6 +26,7 @@ before(async () => {
 
     global.testParams = {
         callCount,
-        clearCount
+        clearCount,
+        kubernetesMock: mock
     }
 });
