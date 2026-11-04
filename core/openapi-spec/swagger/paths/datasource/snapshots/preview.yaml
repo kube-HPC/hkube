@@ -20,7 +20,7 @@ post:
                     required:
                         - query
     responses:
-        "201":
+        "200":
             $ref: "#/components/responses/datasource_snapshots_successGetPreview"
         "400":
             $ref: "#/components/responses/errorBadRequest"
